@@ -1119,6 +1119,19 @@ static bool charliecard_parse(FuriString* parsed_data, const MfClassicData* data
     bool parsed = false;
 
     do {
+        // Verify key
+        // arbitrary sector in the main data portion
+        const uint8_t verify_sector = 3;
+        const MfClassicSectorTrailer* sec_tr =
+            mf_classic_get_sector_trailer_by_sector(data, verify_sector);
+
+        const uint64_t key_a =
+            bit_lib_bytes_to_num_be(sec_tr->key_a.data, COUNT_OF(sec_tr->key_a.data));
+        const uint64_t key_b =
+            bit_lib_bytes_to_num_be(sec_tr->key_b.data, COUNT_OF(sec_tr->key_b.data));
+        if(key_a != charliecard_1k_keys[verify_sector].a) break;
+        if(key_b != charliecard_1k_keys[verify_sector].b) break;
+
         // parse card data
         const uint32_t card_number = mfg_sector_parse(data);
         const CounterSector counter_sector = counter_sector_parse(data);
@@ -1222,7 +1235,11 @@ static NfcCommand
 
         dolphin_deed(DolphinDeedNfcReadSuccess);
         furi_string_reset(app->text_box_store);
-        charliecard_parse(parsed_data, mfc_data);
+        if(!charliecard_parse(parsed_data, mfc_data)) {
+            furi_string_reset(app->text_box_store);
+            FURI_LOG_I(TAG, "Unknown card type");
+            furi_string_printf(parsed_data, "\e#Unknown card\n");
+        }
         widget_add_text_scroll_element(widget, 0, 0, 128, 64, furi_string_get_cstr(parsed_data));
 
         widget_add_button_element(

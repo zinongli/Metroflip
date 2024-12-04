@@ -153,6 +153,15 @@ static bool
     bool parsed = false;
 
     do {
+        // verify sector 0 key A
+        MfClassicSectorTrailer* sec_tr = mf_classic_get_sector_trailer_by_sector(data, 0);
+
+        if(data->type != MfClassicType1k) break;
+
+        uint64_t key = bit_lib_bytes_to_num_be(sec_tr->key_a.data, 6);
+        if(key != bip_1k_keys[0].a) {
+            break;
+        }
         // Get Card ID, little-endian 4 bytes at sector 0 block 1, bytes 4-7
         const uint8_t card_id_start_block_num =
             mf_classic_get_first_block_num_of_sector(BIP_CARD_ID_SECTOR_NUMBER);
@@ -314,7 +323,11 @@ static NfcCommand metroflip_scene_bip_poller_callback(NfcGenericEvent event, voi
 
         dolphin_deed(DolphinDeedNfcReadSuccess);
         furi_string_reset(app->text_box_store);
-        bip_parse(app->nfc_device, parsed_data, mfc_data);
+        if(!bip_parse(app->nfc_device, parsed_data, mfc_data)) {
+            furi_string_reset(app->text_box_store);
+            FURI_LOG_I(TAG, "Unknown card type");
+            furi_string_printf(parsed_data, "\e#Unknown card\n");
+        }
         metroflip_app_blink_stop(app);
         widget_add_text_scroll_element(widget, 0, 0, 128, 64, furi_string_get_cstr(parsed_data));
 
