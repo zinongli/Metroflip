@@ -17,9 +17,60 @@ uint8_t apdu_success[] = {0x90, 0x00};
 uint8_t select_balance_file[] = {0x94, 0xA4, 0x00, 0x00, 0x02, 0x20, 0x2A, 0x00};
 uint8_t read_balance[] = {0x94, 0xb2, 0x01, 0x04, 0x1D};
 
-// balance
+// events
 uint8_t select_events_aid[] = {0x94, 0xA4, 0x00, 0x00, 0x02, 0x20, 0x10, 0x00};
 uint8_t read_event[] = {0x00, 0xb2, 0x01, 0x04, 0x1D};
+
+// profile
+uint8_t select_profile_aid[] = {0x94, 0xA4, 0x00, 0x00, 0x02, 0x20, 0x01, 0x00};
+uint8_t read_profile[] = {0x00, 0xb2, 0x01, 0x04, 0x1D};
+
+#define PROFILE_COUNT 50
+
+const char* PROFILES[PROFILE_COUNT] = {
+    "Standard",
+    "Standard",
+    "2",
+    "Extended Student",
+    "Senior Citizen",
+    "Handicapped",
+    "Poor vision / blind",
+    "7",
+    "8",
+    "9",
+    "Ministry of Defence",
+    "11",
+    "12",
+    "Public Transport Works",
+    "14",
+    "15",
+    "16",
+    "17",
+    "18",
+    "Regular Student",
+    "20",
+    "21",
+    "22",
+    "23",
+    "24",
+    "25",
+    "26",
+    "27",
+    "28",
+    "29",
+    "30",
+    "31",
+    "Child aged 5-10",
+    "Youth",
+    "National Service",
+    "Of \"takad\" zayin",
+    "Israel Police",
+    "Prison Services",
+    "Member of Parliament",
+    "Parliament Guard",
+    "Eligible for Social Security",
+    "Victim of Hostilities",
+    "New Immigrant in Rural Settlement"};
 
 void locale_format_datetime_cat(FuriString* out, const DateTime* dt) {
     // helper to print datetimes
@@ -165,6 +216,79 @@ static NfcCommand metroflip_scene_ravkav_poller_callback(NfcGenericEvent event, 
                 furi_string_printf(parsed_data, "\e#Rav-Kav:\n");
                 furi_string_cat_printf(parsed_data, "Card Type: Anonymous\n");
                 furi_string_cat_printf(parsed_data, "Balance: %.2f ILS\n", (double)result);
+
+                // Select app for profile
+                bit_buffer_reset(tx_buffer);
+                bit_buffer_append_bytes(tx_buffer, select_profile_aid, sizeof(select_profile_aid));
+                error = iso14443_4b_poller_send_block(iso14443_4b_poller, tx_buffer, rx_buffer);
+                if(error != Iso14443_4bErrorNone) {
+                    FURI_LOG_I(TAG, "Select File: iso14443_4b_poller_send_block error %d", error);
+                    stage = MetroflipPollerEventTypeFail;
+                    view_dispatcher_send_custom_event(
+                        app->view_dispatcher, MetroflipCustomEventPollerFail);
+                    break;
+                }
+
+                // Check the response after selecting app
+                response_length = bit_buffer_get_size_bytes(rx_buffer);
+                if(bit_buffer_get_byte(rx_buffer, response_length - 2) != apdu_success[0] ||
+                   bit_buffer_get_byte(rx_buffer, response_length - 1) != apdu_success[1]) {
+                    FURI_LOG_I(
+                        TAG,
+                        "Select profile app failed: %02x%02x",
+                        bit_buffer_get_byte(rx_buffer, response_length - 2),
+                        bit_buffer_get_byte(rx_buffer, response_length - 1));
+                    stage = MetroflipPollerEventTypeFail;
+                    view_dispatcher_send_custom_event(
+                        app->view_dispatcher, MetroflipCustomEventPollerFileNotFound);
+                    break;
+                }
+
+                bit_buffer_reset(tx_buffer);
+                bit_buffer_append_bytes(tx_buffer, read_profile, sizeof(read_profile));
+                error = iso14443_4b_poller_send_block(iso14443_4b_poller, tx_buffer, rx_buffer);
+                if(error != Iso14443_4bErrorNone) {
+                    FURI_LOG_I(TAG, "Read File: iso14443_4b_poller_send_block error %d", error);
+                    stage = MetroflipPollerEventTypeFail;
+                    view_dispatcher_send_custom_event(
+                        app->view_dispatcher, MetroflipCustomEventPollerFail);
+                    break;
+                }
+
+                // Check the response after reading the file
+                response_length = bit_buffer_get_size_bytes(rx_buffer);
+                if(bit_buffer_get_byte(rx_buffer, response_length - 2) != apdu_success[0] ||
+                   bit_buffer_get_byte(rx_buffer, response_length - 1) != apdu_success[1]) {
+                    FURI_LOG_I(
+                        TAG,
+                        "Read file failed: %02x%02x",
+                        bit_buffer_get_byte(rx_buffer, response_length - 2),
+                        bit_buffer_get_byte(rx_buffer, response_length - 1));
+                    stage = MetroflipPollerEventTypeFail;
+                    view_dispatcher_send_custom_event(
+                        app->view_dispatcher, MetroflipCustomEventPollerFileNotFound);
+                    break;
+                }
+                char bit_representation
+                    [response_length * 8 + 1]; // Total bits in the response (each byte = 8 bits)
+                bit_representation[0] = '\0'; // Initialize the string to empty
+                for(size_t i = 0; i < response_length; i++) {
+                    char bits[9]; // Temporary string for each byte (8 bits + null terminator)
+                    uint8_t byte = bit_buffer_get_byte(rx_buffer, i);
+                    byte_to_binary(byte, bits);
+                    strcat(bit_representation, bits); // Append binary string to the result
+                }
+                int start = 54, end = 83;
+                char bit_slice[end - start + 1];
+                strncpy(bit_slice, bit_representation + start, end - start + 1);
+                bit_slice[end - start + 1] = '\0';
+                int decimal_value = binary_to_decimal(bit_slice);
+                uint64_t result_timestamp = decimal_value + epoch_ravkav + (3600 * 3);
+                DateTime dt = {0};
+                datetime_timestamp_to_datetime(result_timestamp, &dt);
+                furi_string_cat_printf(parsed_data, "\nActivation date:\n");
+                locale_format_datetime_cat(parsed_data, &dt);
+                furi_string_cat_printf(parsed_data, "\n\n");
 
                 // Select app for events
                 bit_buffer_reset(tx_buffer);
