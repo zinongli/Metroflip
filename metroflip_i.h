@@ -9,8 +9,7 @@
 #if __has_include(<assets_icons.h>)
 #include <assets_icons.h>
 #else
-extern const Icon I_DolphinDone_80x58;
-extern const Icon I_WarningDolphinFlip_45x42;
+extern const Icon I_RFIDDolphinReceive_97x61;
 #endif
 
 #include <gui/modules/submenu.h>
@@ -19,10 +18,6 @@ extern const Icon I_WarningDolphinFlip_45x42;
 #include <gui/modules/text_input.h>
 #include <gui/modules/text_box.h>
 #include <gui/modules/widget.h>
-#ifdef FW_ORIGIN_Momentum
-#else
-#include "dropin/text_input.h"
-#endif
 #include <gui/modules/byte_input.h>
 #include <gui/modules/popup.h>
 #include "scenes/metroflip_scene.h"
