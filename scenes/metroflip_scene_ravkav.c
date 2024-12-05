@@ -15,16 +15,15 @@ uint8_t apdu_success[] = {0x90, 0x00};
 
 // read file
 uint8_t read_file[] = {0x94, 0xb2, 0x01, 0x04, 0x1D};
+//                                 ^^^
+//                                 |||
+//                                 FID
 
-// balance app
-uint8_t select_counters_app[] = {0x94, 0xA4, 0x00, 0x00, 0x02, 0x20, 0x2A, 0x00};
-
-// events app
-uint8_t select_events_app[] = {0x94, 0xA4, 0x00, 0x00, 0x02, 0x20, 0x10, 0x00};
-
-// environments app
-uint8_t select_environment_app[] = {0x94, 0xA4, 0x00, 0x00, 0x02, 0x20, 0x01, 0x00};
-
+// select app
+uint8_t select_app[] = {0x94, 0xA4, 0x00, 0x00, 0x02, 0x20, 0x00, 0x00};
+//                                                    ^^^^^^^^^
+//                                                    |||||||||
+//                                                    AID: 20XX
 void locale_format_datetime_cat(FuriString* out, const DateTime* dt) {
     // helper to print datetimes
     FuriString* s = furi_string_alloc();
@@ -97,8 +96,8 @@ static NfcCommand metroflip_scene_ravkav_poller_callback(NfcGenericEvent event, 
 
             do {
                 // Select file of balance
-                bit_buffer_append_bytes(
-                    tx_buffer, select_counters_app, sizeof(select_counters_app));
+                select_app[6] = 42;
+                bit_buffer_append_bytes(tx_buffer, select_app, sizeof(select_app));
                 error = iso14443_4b_poller_send_block(iso14443_4b_poller, tx_buffer, rx_buffer);
                 if(error != Iso14443_4bErrorNone) {
                     FURI_LOG_I(TAG, "Select File: iso14443_4b_poller_send_block error %d", error);
@@ -174,9 +173,9 @@ static NfcCommand metroflip_scene_ravkav_poller_callback(NfcGenericEvent event, 
                 }
 
                 // Select app for profile
+                select_app[6] = 1;
                 bit_buffer_reset(tx_buffer);
-                bit_buffer_append_bytes(
-                    tx_buffer, select_environment_app, sizeof(select_environment_app));
+                bit_buffer_append_bytes(tx_buffer, select_app, sizeof(select_app));
                 error = iso14443_4b_poller_send_block(iso14443_4b_poller, tx_buffer, rx_buffer);
                 if(error != Iso14443_4bErrorNone) {
                     FURI_LOG_I(TAG, "Select File: iso14443_4b_poller_send_block error %d", error);
@@ -248,8 +247,9 @@ static NfcCommand metroflip_scene_ravkav_poller_callback(NfcGenericEvent event, 
                 furi_string_cat_printf(parsed_data, "\n\n");
 
                 // Select app for events
+                select_app[6] = 16;
                 bit_buffer_reset(tx_buffer);
-                bit_buffer_append_bytes(tx_buffer, select_events_app, sizeof(select_events_app));
+                bit_buffer_append_bytes(tx_buffer, select_app, sizeof(select_app));
                 error = iso14443_4b_poller_send_block(iso14443_4b_poller, tx_buffer, rx_buffer);
                 if(error != Iso14443_4bErrorNone) {
                     FURI_LOG_I(TAG, "Select File: iso14443_4b_poller_send_block error %d", error);
