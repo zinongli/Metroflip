@@ -1,63 +1,10 @@
 #include "../metroflip_i.h"
-#include <datetime.h>
-#include <dolphin/dolphin.h>
-#include <locale/locale.h>
 
 #include <nfc/protocols/iso14443_4b/iso14443_4b_poller.h>
 
-#define Metroflip_POLLER_MAX_BUFFER_SIZE 1024
-
 #define TAG "Metroflip:Scene:RavKav"
 
-#define epoch_ravkav 852073200
-
-uint8_t apdu_success[] = {0x90, 0x00};
-
-// read file
-uint8_t read_file[] = {0x94, 0xb2, 0x01, 0x04, 0x1D};
-//                                 ^^^
-//                                 |||
-//                                 FID
-
-// select app
-uint8_t select_app[] = {0x94, 0xA4, 0x00, 0x00, 0x02, 0x20, 0x00, 0x00};
-//                                                    ^^^^^^^^^
-//                                                    |||||||||
-//                                                    AID: 20XX
-void locale_format_datetime_cat(FuriString* out, const DateTime* dt) {
-    // helper to print datetimes
-    FuriString* s = furi_string_alloc();
-
-    LocaleDateFormat date_format = locale_get_date_format();
-    const char* separator = (date_format == LocaleDateFormatDMY) ? "." : "/";
-    locale_format_date(s, dt, date_format, separator);
-    furi_string_cat(out, s);
-    locale_format_time(s, dt, locale_get_time_format(), false);
-    furi_string_cat_printf(out, "  ");
-    furi_string_cat(out, s);
-
-    furi_string_free(s);
-}
-
-void byte_to_binary(uint8_t byte, char* bits) {
-    for(int i = 7; i >= 0; i--) {
-        bits[7 - i] = (byte & (1 << i)) ? '1' : '0';
-    }
-    bits[8] = '\0';
-}
-
-int binary_to_decimal(const char binary[]) {
-    int decimal = 0;
-    int length = strlen(binary);
-
-    for(int i = 0; i < length; i++) {
-        decimal = decimal * 2 + (binary[i] - '0');
-    }
-
-    return decimal;
-}
-
-void metroflip_charliecard_ravkav_widget_callback(
+void metroflip_ravkav_widget_callback(
     GuiButtonType result,
     InputType type,
     void* context) {
@@ -239,11 +186,11 @@ static NfcCommand metroflip_scene_ravkav_poller_callback(NfcGenericEvent event, 
                 strncpy(bit_slice, bit_representation + start, end - start + 1);
                 bit_slice[end - start + 1] = '\0';
                 int decimal_value = binary_to_decimal(bit_slice);
-                uint64_t result_timestamp = decimal_value + epoch_ravkav + (3600 * 3);
+                uint64_t result_timestamp = decimal_value + epoch + (3600 * 3);
                 DateTime dt = {0};
                 datetime_timestamp_to_datetime(result_timestamp, &dt);
                 furi_string_cat_printf(parsed_data, "\nActivation date:\n");
-                locale_format_datetime_cat(parsed_data, &dt);
+                locale_format_datetime_cat(parsed_data, &dt, true);
                 furi_string_cat_printf(parsed_data, "\n\n");
 
                 // Select app for events
@@ -318,11 +265,11 @@ static NfcCommand metroflip_scene_ravkav_poller_callback(NfcGenericEvent event, 
                     strncpy(bit_slice, bit_representation + start, end - start + 1);
                     bit_slice[end - start + 1] = '\0';
                     int decimal_value = binary_to_decimal(bit_slice);
-                    uint64_t result_timestamp = decimal_value + epoch_ravkav + (3600 * 3);
+                    uint64_t result_timestamp = decimal_value + epoch + (3600 * 3);
                     DateTime dt = {0};
                     datetime_timestamp_to_datetime(result_timestamp, &dt);
                     furi_string_cat_printf(parsed_data, "\nEvent 0%d:\n", i);
-                    locale_format_datetime_cat(parsed_data, &dt);
+                    locale_format_datetime_cat(parsed_data, &dt, true);
                     furi_string_cat_printf(parsed_data, "\n\n");
                 }
 
@@ -333,7 +280,7 @@ static NfcCommand metroflip_scene_ravkav_poller_callback(NfcGenericEvent event, 
                     widget,
                     GuiButtonTypeRight,
                     "Exit",
-                    metroflip_charliecard_ravkav_widget_callback,
+                    metroflip_ravkav_widget_callback,
                     app);
 
                 furi_string_free(parsed_data);
