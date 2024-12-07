@@ -1,111 +1,10 @@
 #include "../metroflip_i.h"
-#include <datetime.h>
-#include <dolphin/dolphin.h>
-#include <locale/locale.h>
 
 #include <nfc/protocols/iso14443_4b/iso14443_4b_poller.h>
 
-#define Metroflip_POLLER_MAX_BUFFER_SIZE 1024
-
 #define TAG "Metroflip:Scene:RavKav"
 
-#define epoch_ravkav 852073200
-
-uint8_t apdu_success[] = {0x90, 0x00};
-
-// balance
-uint8_t select_balance_file[] = {0x94, 0xA4, 0x00, 0x00, 0x02, 0x20, 0x2A, 0x00};
-uint8_t read_balance[] = {0x94, 0xb2, 0x01, 0x04, 0x1D};
-
-// events
-uint8_t select_events_aid[] = {0x94, 0xA4, 0x00, 0x00, 0x02, 0x20, 0x10, 0x00};
-uint8_t read_event[] = {0x00, 0xb2, 0x01, 0x04, 0x1D};
-
-// profile
-uint8_t select_profile_aid[] = {0x94, 0xA4, 0x00, 0x00, 0x02, 0x20, 0x01, 0x00};
-uint8_t read_profile[] = {0x00, 0xb2, 0x01, 0x04, 0x1D};
-
-#define PROFILE_COUNT 50
-
-const char* PROFILES[PROFILE_COUNT] = {
-    "Standard",
-    "Standard",
-    "2",
-    "Extended Student",
-    "Senior Citizen",
-    "Handicapped",
-    "Poor vision / blind",
-    "7",
-    "8",
-    "9",
-    "Ministry of Defence",
-    "11",
-    "12",
-    "Public Transport Works",
-    "14",
-    "15",
-    "16",
-    "17",
-    "18",
-    "Regular Student",
-    "20",
-    "21",
-    "22",
-    "23",
-    "24",
-    "25",
-    "26",
-    "27",
-    "28",
-    "29",
-    "30",
-    "31",
-    "Child aged 5-10",
-    "Youth",
-    "National Service",
-    "Of \"takad\" zayin",
-    "Israel Police",
-    "Prison Services",
-    "Member of Parliament",
-    "Parliament Guard",
-    "Eligible for Social Security",
-    "Victim of Hostilities",
-    "New Immigrant in Rural Settlement"};
-
-void locale_format_datetime_cat(FuriString* out, const DateTime* dt) {
-    // helper to print datetimes
-    FuriString* s = furi_string_alloc();
-
-    LocaleDateFormat date_format = locale_get_date_format();
-    const char* separator = (date_format == LocaleDateFormatDMY) ? "." : "/";
-    locale_format_date(s, dt, date_format, separator);
-    furi_string_cat(out, s);
-    locale_format_time(s, dt, locale_get_time_format(), false);
-    furi_string_cat_printf(out, "  ");
-    furi_string_cat(out, s);
-
-    furi_string_free(s);
-}
-
-void byte_to_binary(uint8_t byte, char* bits) {
-    for(int i = 7; i >= 0; i--) {
-        bits[7 - i] = (byte & (1 << i)) ? '1' : '0';
-    }
-    bits[8] = '\0';
-}
-
-int binary_to_decimal(const char binary[]) {
-    int decimal = 0;
-    int length = strlen(binary);
-
-    for(int i = 0; i < length; i++) {
-        decimal = decimal * 2 + (binary[i] - '0');
-    }
-
-    return decimal;
-}
-
-void metroflip_charliecard_ravkav_widget_callback(
+void metroflip_ravkav_widget_callback(
     GuiButtonType result,
     InputType type,
     void* context) {
@@ -144,8 +43,8 @@ static NfcCommand metroflip_scene_ravkav_poller_callback(NfcGenericEvent event, 
 
             do {
                 // Select file of balance
-                bit_buffer_append_bytes(
-                    tx_buffer, select_balance_file, sizeof(select_balance_file));
+                select_app[6] = 42;
+                bit_buffer_append_bytes(tx_buffer, select_app, sizeof(select_app));
                 error = iso14443_4b_poller_send_block(iso14443_4b_poller, tx_buffer, rx_buffer);
                 if(error != Iso14443_4bErrorNone) {
                     FURI_LOG_I(TAG, "Select File: iso14443_4b_poller_send_block error %d", error);
@@ -172,7 +71,7 @@ static NfcCommand metroflip_scene_ravkav_poller_callback(NfcGenericEvent event, 
 
                 // Now send the read command
                 bit_buffer_reset(tx_buffer);
-                bit_buffer_append_bytes(tx_buffer, read_balance, sizeof(read_balance));
+                bit_buffer_append_bytes(tx_buffer, read_file, sizeof(read_file));
                 error = iso14443_4b_poller_send_block(iso14443_4b_poller, tx_buffer, rx_buffer);
                 if(error != Iso14443_4bErrorNone) {
                     FURI_LOG_I(TAG, "Read File: iso14443_4b_poller_send_block error %d", error);
@@ -214,12 +113,16 @@ static NfcCommand metroflip_scene_ravkav_poller_callback(NfcGenericEvent event, 
                 float result = value / 100.0f;
                 FURI_LOG_I(TAG, "Value: %.2f ILS", (double)result);
                 furi_string_printf(parsed_data, "\e#Rav-Kav:\n");
-                furi_string_cat_printf(parsed_data, "Card Type: Anonymous\n");
-                furi_string_cat_printf(parsed_data, "Balance: %.2f ILS\n", (double)result);
+                if(result != 0.0f) {
+                    furi_string_cat_printf(parsed_data, "Balance: %.2f ILS\n", (double)result);
+                } else {
+                    furi_string_cat_printf(parsed_data, "Not a stored value Rav-Kav\n");
+                }
 
                 // Select app for profile
+                select_app[6] = 1;
                 bit_buffer_reset(tx_buffer);
-                bit_buffer_append_bytes(tx_buffer, select_profile_aid, sizeof(select_profile_aid));
+                bit_buffer_append_bytes(tx_buffer, select_app, sizeof(select_app));
                 error = iso14443_4b_poller_send_block(iso14443_4b_poller, tx_buffer, rx_buffer);
                 if(error != Iso14443_4bErrorNone) {
                     FURI_LOG_I(TAG, "Select File: iso14443_4b_poller_send_block error %d", error);
@@ -245,7 +148,7 @@ static NfcCommand metroflip_scene_ravkav_poller_callback(NfcGenericEvent event, 
                 }
 
                 bit_buffer_reset(tx_buffer);
-                bit_buffer_append_bytes(tx_buffer, read_profile, sizeof(read_profile));
+                bit_buffer_append_bytes(tx_buffer, read_file, sizeof(read_file));
                 error = iso14443_4b_poller_send_block(iso14443_4b_poller, tx_buffer, rx_buffer);
                 if(error != Iso14443_4bErrorNone) {
                     FURI_LOG_I(TAG, "Read File: iso14443_4b_poller_send_block error %d", error);
@@ -283,16 +186,17 @@ static NfcCommand metroflip_scene_ravkav_poller_callback(NfcGenericEvent event, 
                 strncpy(bit_slice, bit_representation + start, end - start + 1);
                 bit_slice[end - start + 1] = '\0';
                 int decimal_value = binary_to_decimal(bit_slice);
-                uint64_t result_timestamp = decimal_value + epoch_ravkav + (3600 * 3);
+                uint64_t result_timestamp = decimal_value + epoch + (3600 * 3);
                 DateTime dt = {0};
                 datetime_timestamp_to_datetime(result_timestamp, &dt);
                 furi_string_cat_printf(parsed_data, "\nActivation date:\n");
-                locale_format_datetime_cat(parsed_data, &dt);
+                locale_format_datetime_cat(parsed_data, &dt, true);
                 furi_string_cat_printf(parsed_data, "\n\n");
 
                 // Select app for events
+                select_app[6] = 16;
                 bit_buffer_reset(tx_buffer);
-                bit_buffer_append_bytes(tx_buffer, select_events_aid, sizeof(select_events_aid));
+                bit_buffer_append_bytes(tx_buffer, select_app, sizeof(select_app));
                 error = iso14443_4b_poller_send_block(iso14443_4b_poller, tx_buffer, rx_buffer);
                 if(error != Iso14443_4bErrorNone) {
                     FURI_LOG_I(TAG, "Select File: iso14443_4b_poller_send_block error %d", error);
@@ -319,9 +223,9 @@ static NfcCommand metroflip_scene_ravkav_poller_callback(NfcGenericEvent event, 
 
                 // Now send the read command
                 for(size_t i = 1; i < 7; i++) {
-                    read_event[2] = i;
+                    read_file[2] = i;
                     bit_buffer_reset(tx_buffer);
-                    bit_buffer_append_bytes(tx_buffer, read_event, sizeof(read_event));
+                    bit_buffer_append_bytes(tx_buffer, read_file, sizeof(read_file));
                     error =
                         iso14443_4b_poller_send_block(iso14443_4b_poller, tx_buffer, rx_buffer);
                     if(error != Iso14443_4bErrorNone) {
@@ -361,11 +265,11 @@ static NfcCommand metroflip_scene_ravkav_poller_callback(NfcGenericEvent event, 
                     strncpy(bit_slice, bit_representation + start, end - start + 1);
                     bit_slice[end - start + 1] = '\0';
                     int decimal_value = binary_to_decimal(bit_slice);
-                    uint64_t result_timestamp = decimal_value + epoch_ravkav + (3600 * 3);
+                    uint64_t result_timestamp = decimal_value + epoch + (3600 * 3);
                     DateTime dt = {0};
                     datetime_timestamp_to_datetime(result_timestamp, &dt);
                     furi_string_cat_printf(parsed_data, "\nEvent 0%d:\n", i);
-                    locale_format_datetime_cat(parsed_data, &dt);
+                    locale_format_datetime_cat(parsed_data, &dt, true);
                     furi_string_cat_printf(parsed_data, "\n\n");
                 }
 
@@ -376,7 +280,7 @@ static NfcCommand metroflip_scene_ravkav_poller_callback(NfcGenericEvent event, 
                     widget,
                     GuiButtonTypeRight,
                     "Exit",
-                    metroflip_charliecard_ravkav_widget_callback,
+                    metroflip_ravkav_widget_callback,
                     app);
 
                 furi_string_free(parsed_data);
@@ -426,7 +330,7 @@ bool metroflip_scene_ravkav_on_event(void* context, SceneManagerEvent event) {
             consumed = true;
         } else if(event.event == MetroflipCustomEventPollerFileNotFound) {
             Popup* popup = app->popup;
-            popup_set_header(popup, "No\nRecord\nFile", 68, 30, AlignLeft, AlignTop);
+            popup_set_header(popup, "Read Error,\n wrong card", 68, 30, AlignLeft, AlignTop);
             consumed = true;
         } else if(event.event == MetroflipCustomEventPollerFail) {
             Popup* popup = app->popup;

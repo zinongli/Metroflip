@@ -1,5 +1,6 @@
 ADD_SCENE(metroflip, start, Start)
 ADD_SCENE(metroflip, ravkav, RavKav)
+ADD_SCENE(metroflip, navigo, Navigo)
 ADD_SCENE(metroflip, charliecard, CharlieCard)
 ADD_SCENE(metroflip, metromoney, Metromoney)
 ADD_SCENE(metroflip, read_success, ReadSuccess)

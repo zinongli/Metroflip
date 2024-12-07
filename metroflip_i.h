@@ -31,6 +31,9 @@ extern const Icon I_RFIDDolphinReceive_97x61;
 #include <lib/nfc/nfc.h>
 #include <nfc/nfc_poller.h>
 #include <nfc/nfc_scanner.h>
+#include <datetime.h>
+#include <dolphin/dolphin.h>
+#include <locale/locale.h>
 
 #include <flipper_application/flipper_application.h>
 #include <loader/firmware_api/firmware_api.h>
@@ -115,3 +118,21 @@ void metroflip_app_blink_stop(Metroflip* metroflip);
     submenu, label, index, callback, callback_context, locked, locked_message) \
     if(!(locked)) submenu_add_item(submenu, label, index, callback, callback_context)
 #endif
+
+// Calypso
+
+#define Metroflip_POLLER_MAX_BUFFER_SIZE 1024
+
+#define epoch 852073200
+
+void locale_format_datetime_cat(FuriString* out, const DateTime* dt, bool time);
+
+extern uint8_t read_file[5];
+extern uint8_t apdu_success[2];
+extern uint8_t select_app[8];
+
+void byte_to_binary(uint8_t byte, char* bits);
+
+int binary_to_decimal(const char binary[]);
+
+int bit_slice_to_dec(const char* bit_representation, int start, int end);
