@@ -37,7 +37,7 @@ extern const Icon I_RFIDDolphinReceive_97x61;
 #include <dolphin/dolphin.h>
 #include <locale/locale.h>
 #include <stdio.h>
-#include <string.h>
+#include <strings.h>
 #include <flipper_application/flipper_application.h>
 #include <loader/firmware_api/firmware_api.h>
 
@@ -122,7 +122,7 @@ void metroflip_app_blink_stop(Metroflip* metroflip);
     if(!(locked)) submenu_add_item(submenu, label, index, callback, callback_context)
 #endif
 
-// Calypso
+///////////////////////////////// Calypso /////////////////////////////////
 
 #define Metroflip_POLLER_MAX_BUFFER_SIZE 1024
 
@@ -139,3 +139,5 @@ void byte_to_binary(uint8_t byte, char* bits);
 int binary_to_decimal(const char binary[]);
 
 int bit_slice_to_dec(const char* bit_representation, int start, int end);
+
+void dec_to_bits(char dec_representation, char *bit_representation);
