@@ -25,7 +25,7 @@ jobs:
         run: |
           python3 -m venv venv
           source venv/bin/activate
-          pip install -r https://github.com/flipperdevices/flipper-application-catalog/blob/main/tools/requirements.txt
+          pip install -r https://raw.githubusercontent.com/flipperdevices/flipper-application-catalog/main/tools/requirements.txt
 
       - name: Install UFBT SDK
         run: |
@@ -34,7 +34,7 @@ jobs:
 
       - name: Download bundle.py
         run: |
-          wget https://raw.githubusercontent.com/flipperdevices/flipper-application-catalog/main/tools/bundle.py
+          curl -o bundle.py https://raw.githubusercontent.com/flipperdevices/flipper-application-catalog/main/tools/bundle.py
 
       - name: Run manifest validation
         run: |
@@ -43,4 +43,4 @@ jobs:
 
       - name: Clean up
         run: |
-          rm -rf venv bundle.py
+          rm -rf venv bundle.py bundle.zip
