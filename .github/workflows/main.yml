@@ -1,4 +1,4 @@
-name: UFBT Build and Test
+name: Validate Manifest
 
 on:
   push:
@@ -9,37 +9,39 @@ on:
       - main
 
 jobs:
-  build:
-    name: Build and Test Application
+  validate:
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v2
 
-      - name: Set up Python
-        uses: actions/setup-python@v4
+      - name: Set up Python 3.x
+        uses: actions/setup-python@v2
         with:
           python-version: '3.x'
 
-      - name: Install UFBT
+      - name: Install dependencies
         run: |
-          python3 -m pip install --upgrade pip
-          pip install ufbt
+          python3 -m venv venv
+          source venv/bin/activate
+          curl -o requirements.txt https://github.com/flipperdevices/flipper-application-catalog/blob/main/tools/requirements.txt
+          pip install -r requirements.txt
 
-      - name: Initialize UFBT Environment
+      - name: Install UFBT SDK
         run: |
-          ufbt update
-          ufbt vscode_dist
-      
-      - name: Format code
-        run: ufbt format
-      
-      - name: Build FAP Applications
-        run: ufbt faps
+          export UFBT_HOME=`realpath venv/ufbt`
+          $UFBT_HOME/ufbt update
 
-      - name: Upload Build Artifacts
-        uses: actions/upload-artifact@v3
-        with:
-          name: build-output
-          path: build/
+      - name: Download bundle.py
+        run: |
+          curl -o bundle.py https://raw.githubusercontent.com/flipperdevices/flipper-application-catalog/main/tools/bundle.py
+
+      - name: Run manifest validation
+        run: |
+          source venv/bin/activate
+          python3 bundle.py --nolint manifest.yml bundle.zip
+
+      - name: Clean up
+        run: |
+          rm -rf venv bundle.py
