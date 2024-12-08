@@ -4,10 +4,7 @@
 
 #define TAG "Metroflip:Scene:RavKav"
 
-void metroflip_ravkav_widget_callback(
-    GuiButtonType result,
-    InputType type,
-    void* context) {
+void metroflip_ravkav_widget_callback(GuiButtonType result, InputType type, void* context) {
     Metroflip* app = context;
     UNUSED(result);
 
@@ -70,6 +67,7 @@ static NfcCommand metroflip_scene_ravkav_poller_callback(NfcGenericEvent event, 
                 }
 
                 // Now send the read command
+                read_file[2] = 1;
                 bit_buffer_reset(tx_buffer);
                 bit_buffer_append_bytes(tx_buffer, read_file, sizeof(read_file));
                 error = iso14443_4b_poller_send_block(iso14443_4b_poller, tx_buffer, rx_buffer);
@@ -146,7 +144,7 @@ static NfcCommand metroflip_scene_ravkav_poller_callback(NfcGenericEvent event, 
                         app->view_dispatcher, MetroflipCustomEventPollerFileNotFound);
                     break;
                 }
-
+                read_file[2] = 1;
                 bit_buffer_reset(tx_buffer);
                 bit_buffer_append_bytes(tx_buffer, read_file, sizeof(read_file));
                 error = iso14443_4b_poller_send_block(iso14443_4b_poller, tx_buffer, rx_buffer);
@@ -172,14 +170,13 @@ static NfcCommand metroflip_scene_ravkav_poller_callback(NfcGenericEvent event, 
                         app->view_dispatcher, MetroflipCustomEventPollerFileNotFound);
                     break;
                 }
-                char bit_representation
-                    [response_length * 8 + 1]; // Total bits in the response (each byte = 8 bits)
-                bit_representation[0] = '\0'; // Initialize the string to empty
+                char bit_representation[response_length * 8 + 1];
+                bit_representation[0] = '\0';
                 for(size_t i = 0; i < response_length; i++) {
-                    char bits[9]; // Temporary string for each byte (8 bits + null terminator)
+                    char bits[9];
                     uint8_t byte = bit_buffer_get_byte(rx_buffer, i);
                     byte_to_binary(byte, bits);
-                    strcat(bit_representation, bits); // Append binary string to the result
+                    strcat(bit_representation, bits);
                 }
                 int start = 54, end = 83;
                 char bit_slice[end - start + 1];
@@ -253,12 +250,12 @@ static NfcCommand metroflip_scene_ravkav_poller_callback(NfcGenericEvent event, 
                     }
                     char bit_representation
                         [response_length * 8 + 1]; // Total bits in the response (each byte = 8 bits)
-                    bit_representation[0] = '\0'; // Initialize the string to empty
+                    bit_representation[0] = '\0';
                     for(size_t i = 0; i < response_length; i++) {
-                        char bits[9]; // Temporary string for each byte (8 bits + null terminator)
+                        char bits[9];
                         uint8_t byte = bit_buffer_get_byte(rx_buffer, i);
                         byte_to_binary(byte, bits);
-                        strcat(bit_representation, bits); // Append binary string to the result
+                        strcat(bit_representation, bits);
                     }
                     int start = 23, end = 52;
                     char bit_slice[end - start + 2];
@@ -277,11 +274,7 @@ static NfcCommand metroflip_scene_ravkav_poller_callback(NfcGenericEvent event, 
                     widget, 0, 0, 128, 64, furi_string_get_cstr(parsed_data));
 
                 widget_add_button_element(
-                    widget,
-                    GuiButtonTypeRight,
-                    "Exit",
-                    metroflip_ravkav_widget_callback,
-                    app);
+                    widget, GuiButtonTypeRight, "Exit", metroflip_ravkav_widget_callback, app);
 
                 furi_string_free(parsed_data);
                 view_dispatcher_switch_to_view(app->view_dispatcher, MetroflipViewWidget);
