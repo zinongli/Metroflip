@@ -22,7 +22,7 @@ This is a list of metro cards and transit systems that are supported.
 
 ## .. And more coming soon!
 
-### Credits:
+## Credits:
 - **App Author**: [@luu176](https://github.com/luu176)
 - **Charliecard Parser**: [@zacharyweiss](https://github.com/zacharyweiss)
 - **Rav-Kav Parser**: [@luu176](https://github.com/luu176)
