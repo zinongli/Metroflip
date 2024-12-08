@@ -110,7 +110,8 @@ static NfcCommand metroflip_scene_ravkav_poller_callback(NfcGenericEvent event, 
 
                 float result = value / 100.0f;
                 FURI_LOG_I(TAG, "Value: %.2f ILS", (double)result);
-                furi_string_printf(parsed_data, "\e#Rav-Kav:\n");
+                furi_string_printf(parsed_data, "\e#Rav-Kav:\n\n");
+                furi_string_cat_printf(parsed_data, "\e#Contract:\n");
                 if(result != 0.0f) {
                     furi_string_cat_printf(parsed_data, "Balance: %.2f ILS\n", (double)result);
                 } else {
@@ -176,9 +177,7 @@ static NfcCommand metroflip_scene_ravkav_poller_callback(NfcGenericEvent event, 
                     char bits[9];
                     uint8_t byte = bit_buffer_get_byte(rx_buffer, i);
                     byte_to_binary(byte, bits);
-                    for(int j = 0; j < 8; j++) {
-                        bit_representation[i * 8 + j] = bits[j];
-                    }
+                    strlcat(bit_representation, bits, sizeof(bit_representation));
                 }
                 int start = 54, end = 83;
                 char bit_slice[end - start + 1];
@@ -219,9 +218,9 @@ static NfcCommand metroflip_scene_ravkav_poller_callback(NfcGenericEvent event, 
                         app->view_dispatcher, MetroflipCustomEventPollerFileNotFound);
                     break;
                 }
-
+                furi_string_cat_printf(parsed_data, "\e#Latest Events:\n");
                 // Now send the read command
-                for(size_t i = 1; i < 7; i++) {
+                for(size_t i = 1, j = 6; i < 7 && j > 0; i++, j--) {
                     read_file[2] = i;
                     bit_buffer_reset(tx_buffer);
                     bit_buffer_append_bytes(tx_buffer, read_file, sizeof(read_file));
@@ -256,9 +255,7 @@ static NfcCommand metroflip_scene_ravkav_poller_callback(NfcGenericEvent event, 
                         char bits[9];
                         uint8_t byte = bit_buffer_get_byte(rx_buffer, i);
                         byte_to_binary(byte, bits);
-                        for(int j = 0; j < 8; j++) {
-                            bit_representation[i * 8 + j] = bits[j];
-                        }
+                        strlcat(bit_representation, bits, sizeof(bit_representation));
                     }
                     int start = 23, end = 52;
                     char bit_slice[end - start + 2];
@@ -268,7 +265,7 @@ static NfcCommand metroflip_scene_ravkav_poller_callback(NfcGenericEvent event, 
                     uint64_t result_timestamp = decimal_value + epoch + (3600 * 3);
                     DateTime dt = {0};
                     datetime_timestamp_to_datetime(result_timestamp, &dt);
-                    furi_string_cat_printf(parsed_data, "\nEvent 0%d:\n", i);
+                    furi_string_cat_printf(parsed_data, "\nEvent 0%d:\n", j);
                     locale_format_datetime_cat(parsed_data, &dt, true);
                     furi_string_cat_printf(parsed_data, "\n\n");
                 }

@@ -104,9 +104,7 @@ static NfcCommand metroflip_scene_navigo_poller_callback(NfcGenericEvent event, 
                     char bits[9];
                     uint8_t byte = bit_buffer_get_byte(rx_buffer, i);
                     byte_to_binary(byte, bits);
-                    for(int j = 0; j < 8; j++) {
-                        bit_representation[i * 8 + j] = bits[j];
-                    }
+                    strlcat(bit_representation, bits, sizeof(bit_representation));
                 }
                 bit_representation[response_length * 8] = '\0';
                 int start = 55, end = 70;
@@ -185,9 +183,10 @@ static NfcCommand metroflip_scene_navigo_poller_callback(NfcGenericEvent event, 
                     char bits[9];
                     uint8_t byte = bit_buffer_get_byte(rx_buffer, i);
                     byte_to_binary(byte, bits);
-                    for(int j = 0; j < 8; j++) {
-                        environment_bit_representation[i * 8 + j] = bits[j];
-                    }
+                    strlcat(
+                        environment_bit_representation,
+                        bits,
+                        sizeof(environment_bit_representation));
                 }
                 start = 45;
                 end = 58;
@@ -265,9 +264,7 @@ static NfcCommand metroflip_scene_navigo_poller_callback(NfcGenericEvent event, 
                         char bits[9];
                         uint8_t byte = bit_buffer_get_byte(rx_buffer, i);
                         byte_to_binary(byte, bits);
-                        for(int j = 0; j < 8; j++) {
-                            event_bit_representation[i * 8 + j] = bits[j];
-                        }
+                        strlcat(event_bit_representation, bits, sizeof(event_bit_representation));
                     }
                     furi_string_cat_printf(parsed_data, "\nEvent 0%d:\n", i);
                     int start = 53, end = 60;
