@@ -17,6 +17,8 @@ This is a list of metro cards and transit systems that need support or have part
   - Status: Fully supported.
 - [x] **Bip!**  
   - Status: Fully supported.
+- [x] **Navigo**  
+  - Status: Fully supported.
 
 ## 🚧 In Progress / Needs More Functionality
 - [ ] **Rav-Kav**  
@@ -28,8 +30,6 @@ This is a list of metro cards and transit systems that need support or have part
   - To Do: Add support for reading and analyzing Tianjin Railway Transit cards.
 - [ ] **Clipper**  
   - To Do: Add support for reading and analyzing Clipper cards.
-- [ ] **Navigo**  
-  - To Do: Add support for reading and analyzing Navigo cards (paris, france).
 
 
 ---
@@ -38,6 +38,7 @@ This is a list of metro cards and transit systems that need support or have part
 - **App Author**: [@luu176](https://github.com/luu176)
 - **Charliecard Parser**: [@zacharyweiss](https://github.com/zacharyweiss)
 - **Rav-Kav Parser**: [@luu176](https://github.com/luu176)
+- **Navigo Parser**: [@luu176](https://github.com/luu176)
 - **Metromoney Parser**: [@Leptopt1los](https://github.com/Leptopt1los)
 - **Bip! Parser**: [@rbasoalto](https://github.com/rbasoalto) [@gornekich](https://github.com/gornekich)
 - **Info Slave**: [@equipter](https://github.com/equipter)
