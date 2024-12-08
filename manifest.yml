@@ -13,7 +13,7 @@ screenshots:
 short_description: 'An implementation of metrodroid on the flipper'
 sourcecode:
   location:
-    commit_sha: baa33e63b2beddca9fb64db9bdfd6495856b4d7d
+    commit_sha: caeff55e4cfbff4f4f3c700d1022447c40dc0ca7
     origin: https://github.com/luu176/Metroflip
     subdir:
   type: git
