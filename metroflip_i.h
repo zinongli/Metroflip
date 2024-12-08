@@ -140,4 +140,4 @@ int binary_to_decimal(const char binary[]);
 
 int bit_slice_to_dec(const char* bit_representation, int start, int end);
 
-void dec_to_bits(char dec_representation, char *bit_representation);
+void dec_to_bits(char dec_representation, char* bit_representation);

@@ -172,11 +172,11 @@ static NfcCommand metroflip_scene_ravkav_poller_callback(NfcGenericEvent event, 
                 }
                 char bit_representation[response_length * 8 + 1];
                 bit_representation[0] = '\0';
-                for (size_t i = 0; i < response_length; i++) {
+                for(size_t i = 0; i < response_length; i++) {
                     char bits[9];
                     uint8_t byte = bit_buffer_get_byte(rx_buffer, i);
-                    byte_to_binary(byte, bits);  
-                    for (int j = 0; j < 8; j++) {  
+                    byte_to_binary(byte, bits);
+                    for(int j = 0; j < 8; j++) {
                         bit_representation[i * 8 + j] = bits[j];
                     }
                 }
@@ -252,11 +252,11 @@ static NfcCommand metroflip_scene_ravkav_poller_callback(NfcGenericEvent event, 
                     }
                     char bit_representation[response_length * 8 + 1];
                     bit_representation[0] = '\0';
-                    for (size_t i = 0; i < response_length; i++) {
+                    for(size_t i = 0; i < response_length; i++) {
                         char bits[9];
                         uint8_t byte = bit_buffer_get_byte(rx_buffer, i);
-                        byte_to_binary(byte, bits);  
-                        for (int j = 0; j < 8; j++) {  
+                        byte_to_binary(byte, bits);
+                        for(int j = 0; j < 8; j++) {
                             bit_representation[i * 8 + j] = bits[j];
                         }
                     }
