@@ -194,9 +194,9 @@ extern int32_t metroflip(void* p) {
     return 0;
 }
 
-void dec_to_bits(char dec_representation, char *bit_representation) {
-    int decimal = dec_representation - '0'; 
-    for (int i = 7; i >= 0; --i) {  
-        bit_representation[i] = (decimal & (1 << i)) ? '1' : '0';  
+void dec_to_bits(char dec_representation, char* bit_representation) {
+    int decimal = dec_representation - '0';
+    for(int i = 7; i >= 0; --i) {
+        bit_representation[i] = (decimal & (1 << i)) ? '1' : '0';
     }
 }
