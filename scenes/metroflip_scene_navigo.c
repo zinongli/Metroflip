@@ -8,10 +8,7 @@
 
 #define TAG "Metroflip:Scene:Navigo"
 
-void metroflip_navigo_widget_callback(
-    GuiButtonType result,
-    InputType type,
-    void* context) {
+void metroflip_navigo_widget_callback(GuiButtonType result, InputType type, void* context) {
     Metroflip* app = context;
     UNUSED(result);
 
@@ -46,7 +43,6 @@ static NfcCommand metroflip_scene_navigo_poller_callback(NfcGenericEvent event, 
             size_t response_length = 0;
 
             do {
-
                 // Select app for contracts
                 select_app[6] = 32;
                 bit_buffer_reset(tx_buffer);
@@ -75,7 +71,6 @@ static NfcCommand metroflip_scene_navigo_poller_callback(NfcGenericEvent event, 
                     break;
                 }
 
-
                 // read file 1
                 read_file[2] = 1;
                 bit_buffer_reset(tx_buffer);
@@ -103,14 +98,13 @@ static NfcCommand metroflip_scene_navigo_poller_callback(NfcGenericEvent event, 
                         app->view_dispatcher, MetroflipCustomEventPollerFileNotFound);
                     break;
                 }
-                char bit_representation
-                    [response_length * 8 + 1]; 
-                bit_representation[0] = '\0'; 
+                char bit_representation[response_length * 8 + 1];
+                bit_representation[0] = '\0';
                 for(size_t i = 0; i < response_length; i++) {
-                    char bits[9]; 
+                    char bits[9];
                     uint8_t byte = bit_buffer_get_byte(rx_buffer, i);
                     byte_to_binary(byte, bits);
-                    strcat(bit_representation, bits); 
+                    strcat(bit_representation, bits);
                 }
                 int start = 55, end = 70;
                 float decimal_value = bit_slice_to_dec(bit_representation, start, end);
@@ -155,7 +149,6 @@ static NfcCommand metroflip_scene_navigo_poller_callback(NfcGenericEvent event, 
                     break;
                 }
 
-
                 // read file 1
                 read_file[2] = 1;
                 bit_buffer_reset(tx_buffer);
@@ -183,18 +176,19 @@ static NfcCommand metroflip_scene_navigo_poller_callback(NfcGenericEvent event, 
                         app->view_dispatcher, MetroflipCustomEventPollerFileNotFound);
                     break;
                 }
-                char environment_bit_representation[response_length * 8 + 1]; 
-                environment_bit_representation[0] = '\0'; 
+                char environment_bit_representation[response_length * 8 + 1];
+                environment_bit_representation[0] = '\0';
                 for(size_t i = 0; i < response_length; i++) {
-                    char bits[9]; 
+                    char bits[9];
                     uint8_t byte = bit_buffer_get_byte(rx_buffer, i);
                     byte_to_binary(byte, bits);
-                    strcat(environment_bit_representation, bits); 
+                    strcat(environment_bit_representation, bits);
                 }
                 start = 45;
                 end = 58;
                 decimal_value = bit_slice_to_dec(environment_bit_representation, start, end);
-                uint64_t end_validity_timestamp = (decimal_value * 24 * 3600) + (float)epoch + 3600;
+                uint64_t end_validity_timestamp =
+                    (decimal_value * 24 * 3600) + (float)epoch + 3600;
                 DateTime end_dt = {0};
                 datetime_timestamp_to_datetime(end_validity_timestamp, &end_dt);
                 furi_string_cat_printf(parsed_data, "\nEnd Validity:\n");
@@ -260,29 +254,37 @@ static NfcCommand metroflip_scene_navigo_poller_callback(NfcGenericEvent event, 
                             app->view_dispatcher, MetroflipCustomEventPollerFileNotFound);
                         break;
                     }
-                    char event_bit_representation
-                        [response_length * 8 + 1]; 
-                    event_bit_representation[0] = '\0'; 
+                    char event_bit_representation[response_length * 8 + 1];
+                    event_bit_representation[0] = '\0';
                     for(size_t i = 0; i < response_length; i++) {
-                        char bits[9]; 
+                        char bits[9];
                         uint8_t byte = bit_buffer_get_byte(rx_buffer, i);
                         byte_to_binary(byte, bits);
-                        strcat(event_bit_representation, bits); 
+                        strcat(event_bit_representation, bits);
                     }
                     furi_string_cat_printf(parsed_data, "\nEvent 0%d:\n", i);
                     int start = 53, end = 60;
                     int decimal_value = bit_slice_to_dec(event_bit_representation, start, end);
                     int transport_type = decimal_value >> 4;
                     int transition = decimal_value & 15;
-                    furi_string_cat_printf(parsed_data, "%s - %s\n", TRANSPORT_LIST[transport_type], TRANSITION_LIST[transition]);
+                    furi_string_cat_printf(
+                        parsed_data,
+                        "%s - %s\n",
+                        TRANSPORT_LIST[transport_type],
+                        TRANSITION_LIST[transition]);
                     start = 69, end = 84;
                     decimal_value = bit_slice_to_dec(event_bit_representation, start, end);
                     int line_id = (decimal_value >> 9) - 1;
                     int station_id = ((decimal_value >> 4) & 31) - 1;
-                    furi_string_cat_printf(parsed_data, "Line: %s\nStation: %s\n", METRO_LIST[line_id].name, METRO_LIST[line_id].stations[station_id]);
+                    furi_string_cat_printf(
+                        parsed_data,
+                        "Line: %s\nStation: %s\n",
+                        METRO_LIST[line_id].name,
+                        METRO_LIST[line_id].stations[station_id]);
                     start = 61, end = 68;
                     decimal_value = bit_slice_to_dec(event_bit_representation, start, end);
-                    furi_string_cat_printf(parsed_data, "Provider: %s\n", SERVICE_PROVIDERS[decimal_value]);
+                    furi_string_cat_printf(
+                        parsed_data, "Provider: %s\n", SERVICE_PROVIDERS[decimal_value]);
                     start = 0, end = 13;
                     decimal_value = bit_slice_to_dec(event_bit_representation, start, end);
                     uint64_t date_timestamp = (decimal_value * 24 * 3600) + epoch + 3600;
@@ -292,27 +294,26 @@ static NfcCommand metroflip_scene_navigo_poller_callback(NfcGenericEvent event, 
                     locale_format_datetime_cat(parsed_data, &dt, false);
                     start = 14, end = 24;
                     decimal_value = bit_slice_to_dec(event_bit_representation, start, end);
-                    furi_string_cat_printf(parsed_data, " %02d:%02d:%02d\n\n", ((decimal_value*60) / 3600), (((decimal_value*60) % 3600)/60), (((decimal_value*60) % 3600)%60));
+                    furi_string_cat_printf(
+                        parsed_data,
+                        " %02d:%02d:%02d\n\n",
+                        ((decimal_value * 60) / 3600),
+                        (((decimal_value * 60) % 3600) / 60),
+                        (((decimal_value * 60) % 3600) % 60));
                 }
 
                 widget_add_text_scroll_element(
                     widget, 0, 0, 128, 64, furi_string_get_cstr(parsed_data));
 
                 widget_add_button_element(
-                    widget,
-                    GuiButtonTypeRight,
-                    "Exit",
-                    metroflip_navigo_widget_callback,
-                    app);
+                    widget, GuiButtonTypeRight, "Exit", metroflip_navigo_widget_callback, app);
 
                 furi_string_free(parsed_data);
                 view_dispatcher_switch_to_view(app->view_dispatcher, MetroflipViewWidget);
                 metroflip_app_blink_stop(app);
                 stage = MetroflipPollerEventTypeSuccess;
                 next_command = NfcCommandStop;
-                } while(false);
-
-
+            } while(false);
 
             if(stage != MetroflipPollerEventTypeSuccess) {
                 next_command = NfcCommandStop;

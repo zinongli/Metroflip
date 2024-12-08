@@ -1,6 +1,8 @@
 #pragma once
 
 #include <furi.h>
+#include <furi_hal.h>
+#include <stdlib.h>
 #include <gui/gui.h>
 #include <gui/view.h>
 #include <gui/modules/validators.h>
@@ -34,7 +36,8 @@ extern const Icon I_RFIDDolphinReceive_97x61;
 #include <datetime.h>
 #include <dolphin/dolphin.h>
 #include <locale/locale.h>
-
+#include <stdio.h>
+#include <string.h>
 #include <flipper_application/flipper_application.h>
 #include <loader/firmware_api/firmware_api.h>
 

@@ -154,7 +154,7 @@ void locale_format_datetime_cat(FuriString* out, const DateTime* dt, bool time) 
     const char* separator = (date_format == LocaleDateFormatDMY) ? "." : "/";
     locale_format_date(s, dt, date_format, separator);
     furi_string_cat(out, s);
-    if (time) {
+    if(time) {
         locale_format_time(s, dt, locale_get_time_format(), false);
         furi_string_cat_printf(out, "  ");
         furi_string_cat(out, s);
