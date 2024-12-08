@@ -25,10 +25,13 @@ jobs:
         run: |
           python3 -m venv venv
           source venv/bin/activate
+          pip install --upgrade pip
           pip install -r https://raw.githubusercontent.com/flipperdevices/flipper-application-catalog/main/tools/requirements.txt
 
       - name: Install UFBT SDK
         run: |
+          source venv/bin/activate
+          git clone https://github.com/flipperdevices/ufbt.git venv/ufbt
           export UFBT_HOME=`realpath venv/ufbt`
           $UFBT_HOME/ufbt update
 
@@ -43,4 +46,4 @@ jobs:
 
       - name: Clean up
         run: |
-          rm -rf venv bundle.py bundle.zip
+          rm -rf venv bundle.py
