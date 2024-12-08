@@ -31,7 +31,10 @@ jobs:
         run: |
           ufbt update
           ufbt vscode_dist
-
+      
+      - name: Format code
+        run: ufbt format
+      
       - name: Build FAP Applications
         run: ufbt faps
 
