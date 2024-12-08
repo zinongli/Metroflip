@@ -18,18 +18,18 @@ This is a list of metro cards and transit systems that need support or have part
 - [x] **Bip!**  
   - Status: Fully supported.
 - [x] **Navigo**  
-  - Status: Fully supported.
+  - Status: Fully supported. (v0.2)
 
 ## 🚧 In Progress / Needs More Functionality
 - [ ] **Rav-Kav**  
-  - Current functionality: Reads balance only.  
-  - To Do: Parse more data from the card (e.g., transaction history, expiration date, etc.).
+  - Current functionality: Reads balance only.  (v0.1)
+  - To Do: Parse more data from the card (e.g., transaction history, expiration date, etc.). (v0.2)
 
 ## 📝 To Do (Unimplemented)
 - [ ] **Tianjin Railway Transit (TRT)**  
   - To Do: Add support for reading and analyzing Tianjin Railway Transit cards.
 - [ ] **Clipper**  
-  - To Do: Add support for reading and analyzing Clipper cards.
+  - To Do: Add support for reading and analyzing Clipper cards. (v0.3)
 
 
 ---
