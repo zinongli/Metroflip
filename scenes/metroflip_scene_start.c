@@ -26,6 +26,13 @@ void metroflip_scene_start_on_enter(void* context) {
 
     submenu_add_item(
         submenu,
+        "Clipper",
+        MetroflipSceneClipper,
+        metroflip_scene_start_submenu_callback,
+        app);
+
+    submenu_add_item(
+        submenu,
         "Metromoney",
         MetroflipSceneMetromoney,
         metroflip_scene_start_submenu_callback,
