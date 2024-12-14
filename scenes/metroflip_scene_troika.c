@@ -4,7 +4,7 @@
 #include <nfc/protocols/mf_classic/mf_classic_poller_sync.h>
 #include <nfc/protocols/mf_classic/mf_classic.h>
 #include <nfc/protocols/mf_classic/mf_classic_poller.h>
-#include "../api/mosgortrans_util.h"
+#include "../api/mosgortrans/mosgortrans_util.h"
 
 #include <dolphin/dolphin.h>
 #include <bit_lib.h>
