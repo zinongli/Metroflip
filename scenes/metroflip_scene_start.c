@@ -34,6 +34,12 @@ void metroflip_scene_start_on_enter(void* context) {
         submenu, "Troika", MetroflipSceneTroika, metroflip_scene_start_submenu_callback, app);
 
     submenu_add_item(
+        submenu, "Opal", MetroflipSceneOpal, metroflip_scene_start_submenu_callback, app);
+
+    submenu_add_item(
+        submenu, "ITSO", MetroflipSceneItso, metroflip_scene_start_submenu_callback, app);
+
+    submenu_add_item(
         submenu,
         "Metromoney",
         MetroflipSceneMetromoney,

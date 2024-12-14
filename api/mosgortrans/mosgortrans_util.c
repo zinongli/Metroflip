@@ -1,6 +1,6 @@
 #include "mosgortrans_util.h"
 
-#define TAG "Mosgortrans"
+#define TAG "Metroflip:Scene:Mosgortrans"
 
 void render_section_header(
     FuriString* str,

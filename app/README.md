@@ -2,33 +2,43 @@
 Metroflip is a multi-protocol metro card reader app for the Flipper Zero, inspired by the Metrodroid project. It enables the parsing and analysis of metro cards from transit systems around the world, providing a proof-of-concept for exploring transit card data in a portable format.
 
 # Author
-[luu176](https://github.com/luu176)
+luu176
 
-# Metroflip - Card Support List
+# Card Support List
 
 This is a list of metro cards and transit systems that are supported.
 
-## ✅ Supported Cards
-- [x] **Rav-Kav**  
+## Supported Cards
+- **Rav-Kav**  
   - Status: Partially supported
-- [x] **Navigo**  
+- **Navigo**  
   - Status: Fully supported.
-- [x] **Charliecard**  
+- **Charliecard**  
   - Status: Fully supported.
-- [x] **Metromoney**  
+- **Metromoney**  
   - Status: Fully supported.
-- [x] **Bip!**  
+- **Bip!**  
+  - Status: Fully supported.
+- **Clipper**  
+  - Status: Fully supported.
+- **Troika**  
+  - Status: Fully supported.
+- **Myki**  
+  - Status: Fully supported.
+- **Opal**  
   - Status: Fully supported.
 
-## .. And more coming soon!
+More coming soon! 
 
----
-
-### Credits:
-- **App Author**: [@luu176](https://github.com/luu176)
-- **Charliecard Parser**: [@zacharyweiss](https://github.com/zacharyweiss)
-- **Rav-Kav Parser**: [@luu176](https://github.com/luu176)
-- **Navigo Parser**: [@luu176](https://github.com/luu176)
-- **Metromoney Parser**: [@Leptopt1los](https://github.com/Leptopt1los)
-- **Bip! Parser**: [@rbasoalto](https://github.com/rbasoalto) [@gornekich](https://github.com/gornekich)
-- **Info Slave**: [@equipter](https://github.com/equipter)
+## Credits:
+- **App Author**: luu176
+- **Charliecard Parser**: zacharyweiss
+- **Rav-Kav Parser**: luu176
+- **Navigo Parser**: luu176
+- **Metromoney Parser**: Leptopt1los
+- **Bip! Parser**: rbasoaltor & gornekich
+- **Clipper Parser**: ke6jjj
+- **Troika Parser**: gornekich
+- **Myki Parser**: gornekich
+- **Opal parser**: gornekich
+- **Info Slave**: equipter

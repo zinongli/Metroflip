@@ -29,6 +29,8 @@
 #include <locale/locale.h>
 #include <inttypes.h>
 
+#define TAG "Metroflip:Scene:Clipper"
+
 //
 // Table of application ids observed in the wild, and their sources.
 //
@@ -575,7 +577,11 @@ static NfcCommand metroflip_scene_clipper_poller_callback(NfcGenericEvent event,
     if(mf_desfire_event->type == MfDesfirePollerEventTypeReadSuccess) {
         nfc_device_set_data(
             app->nfc_device, NfcProtocolMfDesfire, nfc_poller_get_data(app->poller));
-        clipper_parse(app->nfc_device, parsed_data);
+        if(!clipper_parse(app->nfc_device, parsed_data)) {
+            furi_string_reset(app->text_box_store);
+            FURI_LOG_I(TAG, "Unknown card type");
+            furi_string_printf(parsed_data, "\e#Unknown card\n");
+        }
         widget_add_text_scroll_element(widget, 0, 0, 128, 64, furi_string_get_cstr(parsed_data));
 
         widget_add_button_element(

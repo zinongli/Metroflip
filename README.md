@@ -19,17 +19,19 @@ This is a list of metro cards and transit systems that need support or have part
   - Status: Fully supported.
 - [x] **Navigo**  
   - Status: Fully supported.
-
-## 🚧 In Progress / Needs More Functionality
-- [ ] **Rav-Kav**  
-  - Current functionality: Reads balance only.  
-  - To Do: Parse more data from the card (e.g., transaction history, expiration date, etc.).
+- [x] **Troika**
+  - Status: Fully supported.
+- [x] **Clipper**
+  - Status: Fully supported.
+- [x] **Myki**
+  - Status: Fully supported.
+- [x] **Opal**
+  - Status: Fully supported.
 
 ## 📝 To Do (Unimplemented)
 - [ ] **Tianjin Railway Transit (TRT)**  
   - To Do: Add support for reading and analyzing Tianjin Railway Transit cards.
-- [ ] **Clipper**  
-  - To Do: Add support for reading and analyzing Clipper cards.
+
 
 
 ---
@@ -41,5 +43,8 @@ This is a list of metro cards and transit systems that need support or have part
 - **Navigo Parser**: [@luu176](https://github.com/luu176)
 - **Metromoney Parser**: [@Leptopt1los](https://github.com/Leptopt1los)
 - **Bip! Parser**: [@rbasoalto](https://github.com/rbasoalto) [@gornekich](https://github.com/gornekich)
+- **Clipper Parser**: [@ke6jjj](https://github.com/ke6jjj)
+- **Troika Parser**: [@gornekich](https://github.com/gornekich)
+- **Myki Parser**: [@gornekich](https://github.com/gornekich)
+- **Opal parser**: [@gornekich](https://github.com/gornekich)
 - **Info Slave**: [@equipter](https://github.com/equipter)
-
