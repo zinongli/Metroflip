@@ -10,7 +10,7 @@ This is a list of metro cards and transit systems that need support or have part
 
 ## ✅ Supported Cards
 - [x] **Rav-Kav**  
-  - Status: Needs more functionality (currently only able to read balance).
+  - Status: Partially Supported
 - [x] **Charliecard**  
   - Status: Fully supported.
 - [x] **Metromoney**  
@@ -27,10 +27,17 @@ This is a list of metro cards and transit systems that need support or have part
   - Status: Fully supported.
 - [x] **Opal**
   - Status: Fully supported.
+>>>>>>>>> Temporary merge branch 2
 
 ## 📝 To Do (Unimplemented)
 - [ ] **Tianjin Railway Transit (TRT)**  
   - To Do: Add support for reading and analyzing Tianjin Railway Transit cards.
+<<<<<<<<< Temporary merge branch 1
+- [ ] **Clipper**  
+  - To Do: Add support for reading and analyzing Clipper cards. (v0.3)
+=========
+
+>>>>>>>>> Temporary merge branch 2
 
 
 ---
@@ -47,4 +54,4 @@ This is a list of metro cards and transit systems that need support or have part
 - **Myki Parser**: [@gornekich](https://github.com/gornekich)
 - **Opal parser**: [@gornekich](https://github.com/gornekich)
 - **ITSO parser**: [@gsp8181](https://github.com/gsp8181), [@hedger](https://github.com/hedger), [@gornekich](https://github.com/gornekich)
-- **Info Slave**: [@equipter](https://github.com/equipter)
+- **Info Slaves**: [@equipter](https://github.com/equipter), [TheDingo8MyBaby](https://github.com/TheDingo8MyBaby)
