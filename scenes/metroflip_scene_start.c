@@ -28,6 +28,9 @@ void metroflip_scene_start_on_enter(void* context) {
         submenu, "Clipper", MetroflipSceneClipper, metroflip_scene_start_submenu_callback, app);
 
     submenu_add_item(
+        submenu, "Myki", MetroflipSceneMyki, metroflip_scene_start_submenu_callback, app);
+
+    submenu_add_item(
         submenu, "Troika", MetroflipSceneTroika, metroflip_scene_start_submenu_callback, app);
 
     submenu_add_item(
