@@ -10,7 +10,7 @@ This is a list of metro cards and transit systems that need support or have part
 
 ## ✅ Supported Cards
 - [x] **Rav-Kav**  
-  - Status: Needs more functionality (currently only able to read balance).
+  - Status: Partially Supported
 - [x] **Charliecard**  
   - Status: Fully supported.
 - [x] **Metromoney**  
@@ -18,19 +18,21 @@ This is a list of metro cards and transit systems that need support or have part
 - [x] **Bip!**  
   - Status: Fully supported.
 - [x] **Navigo**  
-  - Status: Fully supported. (v0.2)
-
-## 🚧 In Progress / Needs More Functionality
-- [ ] **Rav-Kav**  
-  - Current functionality: Reads balance only.  (v0.1)
-  - To Do: Parse more data from the card (e.g., transaction history, expiration date, etc.). (v0.2)
+  - Status: Fully supported.
+- [x] **Troika**
+  - Status: Fully supported.
+- [x] **Clipper**
+  - Status: Fully supported.
+- [x] **Myki**
+  - Status: Fully supported.
+- [x] **Opal**
+  - Status: Fully supported.
+- [x] **ITSO**
+  - Status: Fully supported.
 
 ## 📝 To Do (Unimplemented)
 - [ ] **Tianjin Railway Transit (TRT)**  
   - To Do: Add support for reading and analyzing Tianjin Railway Transit cards.
-- [ ] **Clipper**  
-  - To Do: Add support for reading and analyzing Clipper cards. (v0.3)
-
 
 ---
 
@@ -41,5 +43,9 @@ This is a list of metro cards and transit systems that need support or have part
 - **Navigo Parser**: [@luu176](https://github.com/luu176)
 - **Metromoney Parser**: [@Leptopt1los](https://github.com/Leptopt1los)
 - **Bip! Parser**: [@rbasoalto](https://github.com/rbasoalto) [@gornekich](https://github.com/gornekich)
-- **Info Slave**: [@equipter](https://github.com/equipter)
-
+- **Clipper Parser**: [@ke6jjj](https://github.com/ke6jjj)
+- **Troika Parser**: [@gornekich](https://github.com/gornekich)
+- **Myki Parser**: [@gornekich](https://github.com/gornekich)
+- **Opal parser**: [@gornekich](https://github.com/gornekich)
+- **ITSO parser**: [@gsp8181](https://github.com/gsp8181), [@hedger](https://github.com/hedger), [@gornekich](https://github.com/gornekich)
+- **Info Slaves**: [@equipter](https://github.com/equipter), [TheDingo8MyBaby](https://github.com/TheDingo8MyBaby)

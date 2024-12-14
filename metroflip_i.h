@@ -122,6 +122,8 @@ void metroflip_app_blink_stop(Metroflip* metroflip);
     if(!(locked)) submenu_add_item(submenu, label, index, callback, callback_context)
 #endif
 
+void metroflip_exit_widget_callback(GuiButtonType result, InputType type, void* context);
+
 ///////////////////////////////// Calypso /////////////////////////////////
 
 #define Metroflip_POLLER_MAX_BUFFER_SIZE 1024

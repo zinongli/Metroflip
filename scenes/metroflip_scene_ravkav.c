@@ -4,15 +4,6 @@
 
 #define TAG "Metroflip:Scene:RavKav"
 
-void metroflip_ravkav_widget_callback(GuiButtonType result, InputType type, void* context) {
-    Metroflip* app = context;
-    UNUSED(result);
-
-    if(type == InputTypeShort) {
-        scene_manager_search_and_switch_to_previous_scene(app->scene_manager, MetroflipSceneStart);
-    }
-}
-
 static NfcCommand metroflip_scene_ravkav_poller_callback(NfcGenericEvent event, void* context) {
     furi_assert(event.protocol == NfcProtocolIso14443_4b);
     NfcCommand next_command = NfcCommandContinue;
@@ -274,7 +265,7 @@ static NfcCommand metroflip_scene_ravkav_poller_callback(NfcGenericEvent event, 
                     widget, 0, 0, 128, 64, furi_string_get_cstr(parsed_data));
 
                 widget_add_button_element(
-                    widget, GuiButtonTypeRight, "Exit", metroflip_ravkav_widget_callback, app);
+                    widget, GuiButtonTypeRight, "Exit", metroflip_exit_widget_callback, app);
 
                 furi_string_free(parsed_data);
                 view_dispatcher_switch_to_view(app->view_dispatcher, MetroflipViewWidget);

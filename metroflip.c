@@ -126,6 +126,15 @@ void metroflip_app_blink_stop(Metroflip* metroflip) {
     notification_message(metroflip->notifications, &metroflip_app_sequence_blink_stop);
 }
 
+void metroflip_exit_widget_callback(GuiButtonType result, InputType type, void* context) {
+    Metroflip* app = context;
+    UNUSED(result);
+
+    if(type == InputTypeShort) {
+        scene_manager_search_and_switch_to_previous_scene(app->scene_manager, MetroflipSceneStart);
+    }
+}
+
 // Calypso
 
 void byte_to_binary(uint8_t byte, char* bits) {
