@@ -27,18 +27,6 @@ This is a list of metro cards and transit systems that need support or have part
   - Status: Fully supported.
 - [x] **Opal**
   - Status: Fully supported.
->>>>>>>>> Temporary merge branch 2
-
-## 📝 To Do (Unimplemented)
-- [ ] **Tianjin Railway Transit (TRT)**  
-  - To Do: Add support for reading and analyzing Tianjin Railway Transit cards.
-<<<<<<<<< Temporary merge branch 1
-- [ ] **Clipper**  
-  - To Do: Add support for reading and analyzing Clipper cards. (v0.3)
-=========
-
->>>>>>>>> Temporary merge branch 2
-
 
 ---
 

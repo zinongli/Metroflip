@@ -15,4 +15,3 @@
 - Added Myki parser (Melbourne (and surrounds), VIC, Australia)
 - Added Opal parser (Sydney (and surrounds), NSW, Australia)
 - Added ITSO parser (United Kingdom)
->>>>>>>>> Temporary merge branch 2
