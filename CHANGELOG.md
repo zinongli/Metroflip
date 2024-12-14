@@ -14,3 +14,4 @@
 - Added Troika parser (Moscow, Russia)
 - Added Myki parser (Melbourne (and surrounds), VIC, Australia)
 - Added Opal parser (Sydney (and surrounds), NSW, Australia)
+- Added ITSO parser (United Kingdom)

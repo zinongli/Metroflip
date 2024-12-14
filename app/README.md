@@ -27,6 +27,8 @@ This is a list of metro cards and transit systems that are supported.
   - Status: Fully supported.
 - **Opal**  
   - Status: Fully supported.
+- **ITSO**
+  - Status: Fully supported.
 
 More coming soon! 
 
@@ -41,4 +43,6 @@ More coming soon!
 - **Troika Parser**: gornekich
 - **Myki Parser**: gornekich
 - **Opal parser**: gornekich
+- **ITSO parser**: gsp8181, hedger, gornekich
+
 - **Info Slave**: equipter

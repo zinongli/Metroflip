@@ -47,4 +47,5 @@ This is a list of metro cards and transit systems that need support or have part
 - **Troika Parser**: [@gornekich](https://github.com/gornekich)
 - **Myki Parser**: [@gornekich](https://github.com/gornekich)
 - **Opal parser**: [@gornekich](https://github.com/gornekich)
+- **ITSO parser**: [@gsp8181](https://github.com/gsp8181), [@hedger](https://github.com/hedger), [@gornekich](https://github.com/gornekich)
 - **Info Slave**: [@equipter](https://github.com/equipter)
