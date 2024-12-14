@@ -44,5 +44,4 @@ More coming soon!
 - **Myki Parser**: gornekich
 - **Opal parser**: gornekich
 - **ITSO parser**: gsp8181, hedger, gornekich
-
-- **Info Slave**: equipter
+- **Info Slaves**: Equip, TheDingo8MyBaby
