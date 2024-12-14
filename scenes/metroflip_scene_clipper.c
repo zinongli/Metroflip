@@ -242,33 +242,25 @@ static bool clipper_parse(const NfcDevice* device, FuriString* parsed_data) {
 
         for(size_t i = 0; i < kNumCardTypes; i++) {
             app = mf_desfire_get_application(data, &clipper_types[i].app);
-            FURI_LOG_I("TAG", "ya");
             device_description = clipper_types[i].type;
             if(app != NULL) break;
         }
-        FURI_LOG_I("TAG", "ya2");
         // If no matching application was found, abort this parser.
         if(app == NULL) break;
-        FURI_LOG_I("TAG", "ya3");
         ClipperCardInfo info;
         const uint8_t* id_data;
         if(!get_file_contents(
                app, &clipper_identity_file_id, MfDesfireFileTypeStandard, 5, &id_data))
             break;
-        FURI_LOG_I("TAG", "ya4");
         if(!decode_id_file(id_data, &info)) break;
-        FURI_LOG_I("TAG", "ya5");
         const uint8_t* cash_data;
         if(!get_file_contents(app, &clipper_ecash_file_id, MfDesfireFileTypeBackup, 32, &cash_data))
             break;
-        FURI_LOG_I("TAG", "ya6");
         if(!decode_cash_file(cash_data, &info)) break;
-        FURI_LOG_I("TAG", "ya7");
         int16_t balance_usd;
         uint16_t balance_cents;
         bool _balance_is_negative;
         decode_usd(info.balance_cents, &_balance_is_negative, &balance_usd, &balance_cents);
-        FURI_LOG_I("TAG", "ya8");
         furi_string_cat_printf(
             parsed_data,
             "\e#Clipper\n"
@@ -322,11 +314,11 @@ static bool get_file_contents(
     if(settings->type != type) return false;
 
     const MfDesfireFileData* file_data = mf_desfire_get_file_data(app, id);
-    
+
     if(file_data == NULL) return false;
 
     if(simple_array_get_count(file_data->data) < min_size) return false;
-    
+
     *out = simple_array_cget_data(file_data->data);
 
     return true;
@@ -541,16 +533,6 @@ static void
     }
 }
 
-void metroflip_clipper_widget_callback(GuiButtonType result, InputType type, void* context) {
-    Metroflip* app = context;
-    UNUSED(result);
-
-    if(type == InputTypeShort) {
-        scene_manager_search_and_switch_to_previous_scene(app->scene_manager, MetroflipSceneStart);
-    }
-}
-
-
 // Decode a raw 1900-based timestamp and append a human-readable form to a
 // FuriString.
 static void furi_string_cat_timestamp(
@@ -594,11 +576,10 @@ static NfcCommand metroflip_scene_clipper_poller_callback(NfcGenericEvent event,
         nfc_device_set_data(
             app->nfc_device, NfcProtocolMfDesfire, nfc_poller_get_data(app->poller));
         clipper_parse(app->nfc_device, parsed_data);
-        widget_add_text_scroll_element(
-            widget, 0, 0, 128, 64, furi_string_get_cstr(parsed_data));
+        widget_add_text_scroll_element(widget, 0, 0, 128, 64, furi_string_get_cstr(parsed_data));
 
         widget_add_button_element(
-            widget, GuiButtonTypeRight, "Exit", metroflip_clipper_widget_callback, app);
+            widget, GuiButtonTypeRight, "Exit", metroflip_exit_widget_callback, app);
 
         furi_string_free(parsed_data);
         view_dispatcher_switch_to_view(app->view_dispatcher, MetroflipViewWidget);
@@ -651,7 +632,7 @@ bool metroflip_scene_clipper_on_event(void* context, SceneManagerEvent event) {
             Popup* popup = app->popup;
             popup_set_header(popup, "Failed", 68, 30, AlignLeft, AlignTop);
             consumed = true;
-        } 
+        }
     } else if(event.type == SceneManagerEventTypeBack) {
         scene_manager_search_and_switch_to_previous_scene(app->scene_manager, MetroflipSceneStart);
         consumed = true;

@@ -3,15 +3,6 @@
 
 #define TAG "Metroflip:Scene:ReadSuccess"
 
-void metroflip_success_widget_callback(GuiButtonType result, InputType type, void* context) {
-    Metroflip* app = context;
-    UNUSED(result);
-
-    if(type == InputTypeShort) {
-        scene_manager_search_and_switch_to_previous_scene(app->scene_manager, MetroflipSceneStart);
-    }
-}
-
 void metroflip_scene_read_success_on_enter(void* context) {
     Metroflip* app = context;
     Widget* widget = app->widget;
@@ -37,7 +28,7 @@ void metroflip_scene_read_success_on_enter(void* context) {
     widget_add_text_scroll_element(widget, 0, 0, 128, 64, furi_string_get_cstr(str));
 
     widget_add_button_element(
-        widget, GuiButtonTypeRight, "Exit", metroflip_success_widget_callback, app);
+        widget, GuiButtonTypeRight, "Exit", metroflip_exit_widget_callback, app);
 
     furi_string_free(str);
     view_dispatcher_switch_to_view(app->view_dispatcher, MetroflipViewWidget);
