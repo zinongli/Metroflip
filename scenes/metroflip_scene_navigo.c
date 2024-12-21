@@ -8,6 +8,45 @@
 
 #define TAG "Metroflip:Scene:Navigo"
 
+int eventSizes[] = {8,  24, 8, 8,   8,  8, 24, 16, 16, 8,  16, 16, 8,  16,
+                    16, 8,  5, 240, 16, 8, 16, 16, 16, 16, 16, 5,  16, 5};
+
+int* get_bit_positions(const char* binary_string, int* count) {
+    int length = strlen(binary_string);
+    int* positions = malloc(length * sizeof(int));
+    int pos_index = 0;
+
+    for(int i = 0; i < length; i++) {
+        if(binary_string[length - 1 - i] == '1') {
+            positions[pos_index++] = i - 1;
+        }
+    }
+
+    *count = pos_index;
+    return positions;
+}
+
+int is_event_present(int* array, int size, int number) {
+    for(int i = 0; i < size; i++) {
+        if(array[i] == number) {
+            return 1;
+        }
+    }
+    return 0;
+}
+
+int check_events(int* array, int size, int number) {
+    int total = 0;
+
+    for(int i = 0; i < size; i++) {
+        if(array[i] < number) {
+            total += eventSizes[array[i]];
+        }
+    }
+
+    return total + 53;
+}
+
 static NfcCommand metroflip_scene_navigo_poller_callback(NfcGenericEvent event, void* context) {
     furi_assert(event.protocol == NfcProtocolIso14443_4b);
     NfcCommand next_command = NfcCommandContinue;
@@ -249,6 +288,8 @@ static NfcCommand metroflip_scene_navigo_poller_callback(NfcGenericEvent event, 
                             app->view_dispatcher, MetroflipCustomEventPollerFileNotFound);
                         break;
                     }
+                    UNUSED(response_length);
+
                     char event_bit_representation[response_length * 8 + 1];
                     event_bit_representation[0] = '\0';
                     for(size_t i = 0; i < response_length; i++) {
@@ -257,31 +298,53 @@ static NfcCommand metroflip_scene_navigo_poller_callback(NfcGenericEvent event, 
                         byte_to_binary(byte, bits);
                         strlcat(event_bit_representation, bits, sizeof(event_bit_representation));
                     }
+
                     furi_string_cat_printf(parsed_data, "\nEvent 0%d:\n", i);
-                    int start = 53, end = 60;
-                    int decimal_value = bit_slice_to_dec(event_bit_representation, start, end);
-                    int transport_type = decimal_value >> 4;
-                    int transition = decimal_value & 15;
-                    furi_string_cat_printf(
-                        parsed_data,
-                        "%s - %s\n",
-                        TRANSPORT_LIST[transport_type],
-                        TRANSITION_LIST[transition]);
-                    start = 69, end = 84;
-                    decimal_value = bit_slice_to_dec(event_bit_representation, start, end);
-                    int line_id = (decimal_value >> 9) - 1;
-                    int station_id = ((decimal_value >> 4) & 31) - 1;
-                    furi_string_cat_printf(
-                        parsed_data,
-                        "Line: %s\nStation: %s\n",
-                        METRO_LIST[line_id].name,
-                        METRO_LIST[line_id].stations[station_id]);
-                    start = 61, end = 68;
-                    decimal_value = bit_slice_to_dec(event_bit_representation, start, end);
-                    furi_string_cat_printf(
-                        parsed_data, "Provider: %s\n", SERVICE_PROVIDERS[decimal_value]);
+                    int count = 0;
+                    int start = 25, end = 53;
+                    char bit_slice[end - start + 2];
+                    strncpy(bit_slice, event_bit_representation + start, end - start + 1);
+                    bit_slice[end - start + 1] = '\0';
+                    int* positions = get_bit_positions(bit_slice, &count);
+
+                    int event_number = 2;
+                    if(is_event_present(positions, count, event_number)) {
+                        int positionOffset = check_events(positions, count, event_number);
+                        int start = positionOffset, end = positionOffset + 7;
+                        int decimal_value = bit_slice_to_dec(event_bit_representation, start, end);
+                        int transport_type = decimal_value >> 4;
+                        int transition = decimal_value & 15;
+                        furi_string_cat_printf(
+                            parsed_data,
+                            "%s - %s\n",
+                            TRANSPORT_LIST[transport_type],
+                            TRANSITION_LIST[transition]);
+                    }
+                    event_number = 4;
+                    if(is_event_present(positions, count, event_number)) {
+                        int positionOffset = check_events(positions, count, event_number);
+                        start = positionOffset, end = positionOffset + 7;
+                        int decimal_value = bit_slice_to_dec(event_bit_representation, start, end);
+                        furi_string_cat_printf(
+                            parsed_data, "Provider: %s\n", SERVICE_PROVIDERS[decimal_value]);
+                    }
+                    event_number = 8;
+                    if(is_event_present(positions, count, event_number)) {
+                        int positionOffset = check_events(positions, count, event_number);
+                        start = positionOffset, end = positionOffset + 15;
+                        int decimal_value = bit_slice_to_dec(event_bit_representation, start, end);
+                        int line_id = (decimal_value >> 9) - 1;
+                        int station_id = ((decimal_value >> 4) & 31) - 1;
+                        furi_string_cat_printf(
+                            parsed_data,
+                            "Line: %s\nStation: %s\n",
+                            METRO_LIST[line_id].name,
+                            METRO_LIST[line_id].stations[station_id]);
+                    }
+                    free(positions);
+
                     start = 0, end = 13;
-                    decimal_value = bit_slice_to_dec(event_bit_representation, start, end);
+                    int decimal_value = bit_slice_to_dec(event_bit_representation, start, end);
                     uint64_t date_timestamp = (decimal_value * 24 * 3600) + epoch + 3600;
                     DateTime dt = {0};
                     datetime_timestamp_to_datetime(date_timestamp, &dt);

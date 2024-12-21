@@ -1242,7 +1242,7 @@ static NfcCommand
         metroflip_app_blink_stop(app);
     } else if(mfc_event->type == MfClassicPollerEventTypeFail) {
         FURI_LOG_I(TAG, "fail");
-        command = NfcCommandStop;
+        command = NfcCommandContinue;
     }
 
     return command;

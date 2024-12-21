@@ -244,7 +244,7 @@ static NfcCommand metroflip_scene_opal_poller_callback(NfcGenericEvent event, vo
         command = NfcCommandStop;
     } else if(mf_desfire_event->type == MfDesfirePollerEventTypeReadFailed) {
         view_dispatcher_send_custom_event(app->view_dispatcher, MetroflipCustomEventPollerSuccess);
-        command = NfcCommandReset;
+        command = NfcCommandContinue;
     }
 
     return command;
