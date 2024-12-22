@@ -288,7 +288,6 @@ static NfcCommand metroflip_scene_navigo_poller_callback(NfcGenericEvent event, 
                             app->view_dispatcher, MetroflipCustomEventPollerFileNotFound);
                         break;
                     }
-                    UNUSED(response_length);
 
                     char event_bit_representation[response_length * 8 + 1];
                     event_bit_representation[0] = '\0';
@@ -306,6 +305,9 @@ static NfcCommand metroflip_scene_navigo_poller_callback(NfcGenericEvent event, 
                     strncpy(bit_slice, event_bit_representation + start, end - start + 1);
                     bit_slice[end - start + 1] = '\0';
                     int* positions = get_bit_positions(bit_slice, &count);
+                    for(int i = 0; i < count; i++) {
+                        FURI_LOG_I(TAG, "%d ", positions[i]);
+                    }
 
                     int event_number = 2;
                     if(is_event_present(positions, count, event_number)) {
@@ -320,6 +322,7 @@ static NfcCommand metroflip_scene_navigo_poller_callback(NfcGenericEvent event, 
                             TRANSPORT_LIST[transport_type],
                             TRANSITION_LIST[transition]);
                     }
+
                     event_number = 4;
                     if(is_event_present(positions, count, event_number)) {
                         int positionOffset = check_events(positions, count, event_number);
@@ -328,18 +331,19 @@ static NfcCommand metroflip_scene_navigo_poller_callback(NfcGenericEvent event, 
                         furi_string_cat_printf(
                             parsed_data, "Provider: %s\n", SERVICE_PROVIDERS[decimal_value]);
                     }
+
                     event_number = 8;
                     if(is_event_present(positions, count, event_number)) {
                         int positionOffset = check_events(positions, count, event_number);
                         start = positionOffset, end = positionOffset + 15;
                         int decimal_value = bit_slice_to_dec(event_bit_representation, start, end);
-                        int line_id = (decimal_value >> 9) - 1;
-                        int station_id = ((decimal_value >> 4) & 31) - 1;
+                        int line_id = decimal_value >> 9;
+                        int station_id = (decimal_value >> 4) & 31;
                         furi_string_cat_printf(
                             parsed_data,
                             "Line: %s\nStation: %s\n",
-                            METRO_LIST[line_id].name,
-                            METRO_LIST[line_id].stations[station_id]);
+                            STATION_LIST[line_id][0],
+                            STATION_LIST[line_id][station_id]);
                     }
                     free(positions);
 
@@ -359,6 +363,9 @@ static NfcCommand metroflip_scene_navigo_poller_callback(NfcGenericEvent event, 
                         (((decimal_value * 60) % 3600) / 60),
                         (((decimal_value * 60) % 3600) % 60));
                 }
+                UNUSED(TRANSITION_LIST);
+                UNUSED(TRANSPORT_LIST);
+                UNUSED(SERVICE_PROVIDERS);
 
                 widget_add_text_scroll_element(
                     widget, 0, 0, 128, 64, furi_string_get_cstr(parsed_data));
