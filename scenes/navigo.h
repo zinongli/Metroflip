@@ -1,6 +1,8 @@
 #include "../metroflip_i.h"
-#include <stdbool.h>
+#include "../api/calypso/calypso_util.h"
+#include "../api/calypso/cards/navigo.h"
 #include <datetime.h>
+#include <stdbool.h>
 
 #ifndef METRO_LIST_H
 #define METRO_LIST_H
@@ -42,14 +44,36 @@ typedef struct {
 } NavigoCardEnv;
 
 typedef struct {
-    float balance;
-    DateTime start_dt;
+    int card_status;
+    int commercial_id;
+} NavigoCardHolder;
+
+typedef struct {
+    int tariff;
+    int serial_number;
+    bool serial_number_available;
+    int pay_method;
+    bool pay_method_available;
+    double price_amount;
+    bool price_amount_available;
+    DateTime start_date;
+    DateTime end_date;
+    bool end_date_available;
+    int zones[5];
+    bool zones_available;
+    DateTime sale_date;
+    int sale_agent;
+    int sale_device;
+    int status;
+    int authenticator;
 } NavigoCardContract;
 
 typedef struct {
     NavigoCardEnv environment;
+    NavigoCardHolder holder;
     NavigoCardContract* contracts;
     NavigoCardEvent* events;
+    int ticket_count;
 } NavigoCardData;
 
 typedef struct {
@@ -59,13 +83,6 @@ typedef struct {
     // mutex
     FuriMutex* mutex;
 } NavigoContext;
-
-/* // Navigo Card Subscriptions Types
-static const char* SUBSCRIPTIONS_LIST[] = {
-    [1] = "Navigo decouverte",
-    [2] = "Navigo standard",
-    [6] = " Navigo integral",
-    [14] = "Imagine R (etudiant)"}; */
 
 // Service Providers
 static const char* SERVICE_PROVIDERS[] = {
@@ -93,6 +110,14 @@ typedef enum {
     TRAIN = 5,
     PARKING = 8
 } TRANSPORT_TYPE;
+
+typedef enum {
+    NAVIGO_EASY = 0,
+    NAVIGO_DECOUVERTE = 1,
+    NAVIGO_STANDARD = 2,
+    NAVIGO_INTEGRAL = 6,
+    IMAGINE_R = 14
+} CARD_STATUS;
 
 // Transition Types
 static const char* TRANSITION_LIST[] = {
