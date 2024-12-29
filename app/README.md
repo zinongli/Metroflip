@@ -36,7 +36,7 @@ More coming soon!
 - **App Author**: luu176
 - **Charliecard Parser**: zacharyweiss
 - **Rav-Kav Parser**: luu176
-- **Navigo Parser**: luu176
+- **Navigo Parser**: luu176, DocSystem
 - **Metromoney Parser**: Leptopt1los
 - **Bip! Parser**: rbasoaltor & gornekich
 - **Clipper Parser**: ke6jjj
