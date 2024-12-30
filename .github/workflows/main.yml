@@ -72,7 +72,7 @@ jobs:
             echo "create=true" >> $GITHUB_ENV
           else
             echo "Release found. Deleting existing release."
-            RELEASE_ID=$(echo $RELEASE_EXISTS | jq -r '.[0].id')
+            RELEASE_ID=$(echo $RELEASE_EXISTS | jq -r '.id')
             curl -X DELETE -H "Authorization: token $GITHUB_TOKEN" https://api.github.com/repos/$REPO/releases/$RELEASE_ID
             echo "create=true" >> $GITHUB_ENV
           fi
