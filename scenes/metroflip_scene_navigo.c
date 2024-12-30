@@ -458,7 +458,9 @@ void show_environment_info(NavigoCardEnv* environment, FuriString* parsed_data) 
     furi_string_cat_printf(parsed_data, "\n");
 }
 
-void update_page_info(NavigoContext* ctx, FuriString* parsed_data) {
+void update_page_info(void* context, FuriString* parsed_data) {
+    Metroflip* app = context;
+    NavigoContext* ctx = app->navigo_context;
     if(ctx->page_id == 0) {
         furi_string_cat_printf(
             parsed_data, "\e#%s :\n", get_navigo_type(ctx->card->holder.card_status));
@@ -484,7 +486,10 @@ void update_page_info(NavigoContext* ctx, FuriString* parsed_data) {
     }
 }
 
-void update_widget_elements(Widget* widget, NavigoContext* ctx, void* context) {
+void update_widget_elements(void* context) {
+    Metroflip* app = context;
+    NavigoContext* ctx = app->navigo_context;
+    Widget* widget = app->widget;
     if(ctx->page_id < 5) {
         widget_add_button_element(
             widget, GuiButtonTypeRight, "Next", metroflip_next_button_widget_callback, context);
@@ -499,8 +504,8 @@ void update_widget_elements(Widget* widget, NavigoContext* ctx, void* context) {
 }
 
 void metroflip_back_button_widget_callback(GuiButtonType result, InputType type, void* context) {
-    NavigoContext* ctx = context;
-    Metroflip* app = ctx->app;
+    Metroflip* app = context;
+    NavigoContext* ctx = app->navigo_context;
     UNUSED(result);
 
     Widget* widget = app->widget;
@@ -521,7 +526,7 @@ void metroflip_back_button_widget_callback(GuiButtonType result, InputType type,
 
         // Ensure no nested mutexes
         furi_mutex_acquire(ctx->mutex, FuriWaitForever);
-        update_page_info(ctx, parsed_data);
+        update_page_info(app, parsed_data);
         furi_mutex_release(ctx->mutex);
 
         widget_add_text_scroll_element(widget, 0, 0, 128, 64, furi_string_get_cstr(parsed_data));
@@ -529,7 +534,7 @@ void metroflip_back_button_widget_callback(GuiButtonType result, InputType type,
 
         // Ensure no nested mutexes
         furi_mutex_acquire(ctx->mutex, FuriWaitForever);
-        update_widget_elements(widget, ctx, context);
+        update_widget_elements(app);
         furi_mutex_release(ctx->mutex);
 
         furi_string_free(parsed_data);
@@ -537,8 +542,8 @@ void metroflip_back_button_widget_callback(GuiButtonType result, InputType type,
 }
 
 void metroflip_next_button_widget_callback(GuiButtonType result, InputType type, void* context) {
-    NavigoContext* ctx = context;
-    Metroflip* app = ctx->app;
+    Metroflip* app = context;
+    NavigoContext* ctx = app->navigo_context;
     UNUSED(result);
 
     Widget* widget = app->widget;
@@ -557,20 +562,21 @@ void metroflip_next_button_widget_callback(GuiButtonType result, InputType type,
             ctx->page_id = 0;
             scene_manager_search_and_switch_to_previous_scene(
                 app->scene_manager, MetroflipSceneStart);
+            return;
         }
 
         FuriString* parsed_data = furi_string_alloc();
 
         // Ensure no nested mutexes
         furi_mutex_acquire(ctx->mutex, FuriWaitForever);
-        update_page_info(ctx, parsed_data);
+        update_page_info(app, parsed_data);
         furi_mutex_release(ctx->mutex);
 
         widget_add_text_scroll_element(widget, 0, 0, 128, 64, furi_string_get_cstr(parsed_data));
 
         // Ensure no nested mutexes
         furi_mutex_acquire(ctx->mutex, FuriWaitForever);
-        update_widget_elements(widget, ctx, context);
+        update_widget_elements(app);
         furi_mutex_release(ctx->mutex);
 
         furi_string_free(parsed_data);
@@ -612,11 +618,8 @@ static NfcCommand metroflip_scene_navigo_poller_callback(NfcGenericEvent event, 
             size_t response_length = 0;
 
             do {
+                // Initialize the card data
                 NavigoCardData* card = malloc(sizeof(NavigoCardData));
-
-                // Initialize the card
-                card->contracts = malloc(2 * sizeof(NavigoCardContract));
-                card->events = malloc(3 * sizeof(NavigoCardEvent));
 
                 // Select app for contracts
                 error =
@@ -1175,6 +1178,10 @@ static NfcCommand metroflip_scene_navigo_poller_callback(NfcGenericEvent event, 
                     card->events[i - 1].date.minute = ((decimal_value * 60) % 3600) / 60;
                     card->events[i - 1].date.second = ((decimal_value * 60) % 3600) % 60;
                 }
+
+                // Free the calypso structure
+                free_calypso_structure(NavigoEventStructure);
+
                 UNUSED(TRANSITION_LIST);
                 UNUSED(TRANSPORT_LIST);
                 UNUSED(SERVICE_PROVIDERS);
@@ -1183,14 +1190,14 @@ static NfcCommand metroflip_scene_navigo_poller_callback(NfcGenericEvent event, 
                     widget, 0, 0, 128, 64, furi_string_get_cstr(parsed_data));
 
                 NavigoContext* context = malloc(sizeof(NavigoContext));
-                context->app = app;
                 context->card = card;
                 context->page_id = 0;
                 context->mutex = furi_mutex_alloc(FuriMutexTypeNormal);
+                app->navigo_context = context;
 
                 // Ensure no nested mutexes
                 furi_mutex_acquire(context->mutex, FuriWaitForever);
-                update_page_info(context, parsed_data);
+                update_page_info(app, parsed_data);
                 furi_mutex_release(context->mutex);
 
                 widget_add_text_scroll_element(
@@ -1198,7 +1205,7 @@ static NfcCommand metroflip_scene_navigo_poller_callback(NfcGenericEvent event, 
 
                 // Ensure no nested mutexes
                 furi_mutex_acquire(context->mutex, FuriWaitForever);
-                update_widget_elements(widget, context, context);
+                update_widget_elements(app);
                 furi_mutex_release(context->mutex);
 
                 furi_string_free(parsed_data);
@@ -1275,4 +1282,12 @@ void metroflip_scene_navigo_on_exit(void* context) {
 
     // Clear view
     popup_reset(app->popup);
+
+    if(app->navigo_context) {
+        NavigoContext* ctx = app->navigo_context;
+        free(ctx->card);
+        furi_mutex_free(ctx->mutex);
+        free(ctx);
+        app->navigo_context = NULL;
+    }
 }

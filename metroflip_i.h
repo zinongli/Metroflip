@@ -43,6 +43,8 @@ extern const Icon I_RFIDDolphinReceive_97x61;
 
 #include "scenes/metroflip_scene.h"
 
+#include "scenes/navigo_structs.h"
+
 typedef struct {
     Gui* gui;
     SceneManager* scene_manager;
@@ -71,6 +73,8 @@ typedef struct {
     char currency[4];
     char card_type[32];
 
+    // Navigo specific context
+    NavigoContext* navigo_context;
 } Metroflip;
 
 enum MetroflipCustomEvent {

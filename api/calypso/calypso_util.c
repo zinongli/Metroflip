@@ -13,7 +13,7 @@ CalypsoElement make_calypso_final_element(
     final_element.final = malloc(sizeof(CalypsoFinalElement));
     final_element.final->size = size;
     final_element.final->final_type = final_type;
-    strncpy(final_element.final->key, key, 64);
+    strncpy(final_element.final->key, key, 36);
     strncpy(final_element.final->label, label, 64);
 
     return final_element;
@@ -29,7 +29,7 @@ CalypsoElement make_calypso_bitmap_element(const char* key, int size, CalypsoEle
     for(int i = 0; i < size; i++) {
         bitmap_element.bitmap->elements[i] = elements[i];
     }
-    strncpy(bitmap_element.bitmap->key, key, 64);
+    strncpy(bitmap_element.bitmap->key, key, 36);
 
     return bitmap_element;
 }
@@ -92,11 +92,13 @@ bool is_calypso_subnode_present(
         CalypsoElement* element = &bitmap->elements[positions[i]];
         if(element->type == CALYPSO_ELEMENT_TYPE_FINAL) {
             if(strcmp(element->final->key, key) == 0) {
+                free(positions);
                 return true;
             }
             offset += element->final->size;
         } else {
             if(strcmp(element->bitmap->key, key) == 0) {
+                free(positions);
                 return true;
             }
             int sub_binary_string_size = element->bitmap->size;
@@ -104,11 +106,13 @@ bool is_calypso_subnode_present(
             strncpy(bit_slice, binary_string, sub_binary_string_size);
             bit_slice[sub_binary_string_size] = '\0';
             if(is_calypso_subnode_present(binary_string + offset, key, element->bitmap)) {
+                free(positions);
                 return true;
             }
             offset += element->bitmap->size;
         }
     }
+    free(positions);
     return false;
 }
 
