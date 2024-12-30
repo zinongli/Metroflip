@@ -1,37 +1,46 @@
-name: Upload FAP
+name: Build and Upload FAP to Release
 
 on:
-  workflow_dispatch:
+  workflow_dispatch: 
+
+permissions:
+  contents: write 
 
 jobs:
   build-and-upload:
+    name: Build and Upload FAP
     runs-on: ubuntu-latest
+
     steps:
-      - name: Checkout code
+      - name: Checkout Repository
         uses: actions/checkout@v3
 
-      - name: Set up dependencies
+      - name: Extract Version from Manifest
+        id: extract_version
         run: |
-          sudo apt-get install gh
-          echo "${{ secrets.GITHUB_TOKEN }}" | gh auth login --with-token
+          VERSION=$(grep '^version:' manifest.yml | awk '{print $2}')
+          echo "VERSION=${VERSION}" >> $GITHUB_ENV
 
-      - name: Build FAP
-        run: |
-          # Build command here
-          echo "Build completed"
-
-      - name: Delete existing asset if it exists
-        run: |
-          ASSET_ID=$(gh api repos/luu176/Metroflip/releases/192702667/assets | jq '.[] | select(.name=="metroflip.fap") | .id')
-          if [ -n "$ASSET_ID" ]; then
-            echo "Deleting existing asset with ID $ASSET_ID"
-            gh api --method DELETE repos/luu176/Metroflip/releases/assets/$ASSET_ID
-          fi
-
-      - name: Upload FAP
-        uses: actions/upload-release-asset@v1
+      - name: Set up Python
+        uses: actions/setup-python@v4
         with:
-          upload_url: https://uploads.github.com/repos/luu176/Metroflip/releases/192702667/assets
-          asset_path: /home/runner/.ufbt/build/metroflip.fap
-          asset_name: metroflip.fap
-          asset_content_type: application/octet-stream
+          python-version: '3.x'
+
+      - name: Install UFBT
+        run: |
+          python3 -m pip install --upgrade pip
+          pip install ufbt
+
+      - name: Initialize UFBT Environment
+        run: |
+          ufbt update
+          ufbt vscode_dist
+
+      - name: Build FAP Applications
+        run: ufbt faps
+
+      - name: Upload Build Outputs to Release
+        run: |
+          gh release upload ${{ env.VERSION }} /home/runner/.ufbt/build/metroflip.fap
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
