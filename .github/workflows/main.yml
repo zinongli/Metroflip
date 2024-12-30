@@ -1,7 +1,4 @@
-name: UFBT Build and Release
-
-permissions:
-  contents: write
+name: UFBT Build and Test
 
 on:
   push:
@@ -13,7 +10,7 @@ on:
 
 jobs:
   build:
-    name: Build and Test Application
+    name: Build Application
     runs-on: ubuntu-latest
 
     steps:
@@ -35,62 +32,42 @@ jobs:
           ufbt update
           ufbt vscode_dist
 
-      - name: Build FAP Applications
+      - name: Build FAP Application
         run: ufbt faps
 
       - name: Upload Build Artifacts
         uses: actions/upload-artifact@v3
         with:
-          name: build-output
-          path: build/
+          name: metroflip-fap
+          path: /home/runner/.ufbt/build/metroflip.fap
 
-  create-release:
-    name: Create GitHub Release
-    needs: build
+  upload:
+    name: Upload FAP to Existing Release
     runs-on: ubuntu-latest
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: build  # This job depends on the "build" job
+    if: github.event_name != 'pull_request'  # Ensure it doesn't upload on PR
+
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v3
 
-      - name: Extract Version from Manifest
-        id: extract_version
+      - name: Get Release Information
+        id: release
         run: |
-          VERSION=$(grep '^version:' manifest.yml | awk '{print $2}')
-          echo "VERSION=${VERSION}" >> $GITHUB_ENV
+          REPO="luu176/Metroflip"  # Change this to your repository name
+          VERSION="v0.4.0"  # Specify your version
+          RELEASE=$(curl -s "https://api.github.com/repos/$REPO/releases/tags/$VERSION")
+          echo "::set-output name=upload_url::$(echo $RELEASE | jq -r .upload_url | sed -e "s/{?name,label}//")"
 
-      - name: Create Release
-        id: create_release
-        uses: actions/create-release@v1
+      - name: Download FAP Artifact
+        uses: actions/download-artifact@v3
         with:
-          tag_name: v${{ env.VERSION }}
-          release_name: Metroflip v${{ env.VERSION }}
-          body: |
-            **What's New:**
-            $(cat CHANGELOG.md)
-          draft: false
-          prerelease: false
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          name: metroflip-fap
 
-  upload-fap:
-    name: Upload FAP to Release
-    needs: create-release
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v3
-
-      - name: Extract Version from Manifest
-        id: extract_version
-        run: |
-          VERSION=$(grep '^version:' manifest.yml | awk '{print $2}')
-          echo "VERSION=${VERSION}" >> $GITHUB_ENV
-
-      - name: Upload FAP to Release
+      - name: Upload FAP to Existing Release
         uses: actions/upload-release-asset@v1
         with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: build/fap/metroflip-${{ env.VERSION }}.fap
-          asset_name: metroflip-${{ env.VERSION }}.fap
+          upload_url: ${{ steps.release.outputs.upload_url }}
+          asset_path: /home/runner/.ufbt/build/metroflip.fap
+          asset_name: metroflip-${{ github.sha }}.fap
           asset_content_type: application/octet-stream
