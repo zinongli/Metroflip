@@ -41,10 +41,10 @@ jobs:
       - name: Build FAP Applications
         run: ufbt faps
 
-      - name: Rename FAP File
+      - name: Rename and Move FAP File
         run: |
           mkdir -p build/fap
-          mv build/fap/metroflip.fap build/fap/metroflip-${{ env.VERSION }}.fap
+          mv /home/runner/.ufbt/build/metroflip.fap build/fap/metroflip-${{ env.VERSION }}.fap
 
       - name: Upload Build Artifacts
         if: github.event_name == 'pull_request'
