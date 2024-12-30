@@ -35,7 +35,7 @@ jobs:
       - name: Build FAP Application
         run: ufbt faps
 
-      - name: Upload Build Artifacts
+      - name: Upload Build Artifact
         uses: actions/upload-artifact@v3
         with:
           name: metroflip-fap
@@ -68,6 +68,6 @@ jobs:
         uses: actions/upload-release-asset@v1
         with:
           upload_url: ${{ steps.release.outputs.upload_url }}
-          asset_path: /home/runner/.ufbt/build/metroflip.fap
+          asset_path: /home/runner/work/<YOUR_REPO_NAME>/metroflip.fap  # Correct path
           asset_name: metroflip-${{ github.sha }}.fap
           asset_content_type: application/octet-stream
