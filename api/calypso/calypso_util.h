@@ -39,14 +39,14 @@ typedef struct {
 } CalypsoElement;
 
 struct CalypsoFinalElement_t {
-    char key[64];
+    char key[36];
     int size;
     char label[64];
     CalypsoFinalType final_type;
 };
 
 struct CalypsoBitmapElement_t {
-    char key[64];
+    char key[36];
     int size;
     CalypsoElement* elements;
 };
