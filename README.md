@@ -19,12 +19,12 @@ To build Metroflip manually, follow these steps:
    Download and install Git on your Windows computer.  
    Run the first command:  
 
-git clone https://github.com/luu176/Metroflip.git
+```git clone https://github.com/luu176/Metroflip.git```
 
 2. **Navigate to the Project Folder**  
 Run the second command:  
 
-cd Metroflip
+```cd Metroflip```
 
 3. **Install Python**  
 Download and install Python from the [official website](https://www.python.org).  
@@ -32,13 +32,13 @@ Download and install Python from the [official website](https://www.python.org).
 4. **Install UFBT**  
 Run the third command to install UFBT:  
 
-pip install ufbt
+```pip install ufbt```
 
 5. **Update and Build the Project**  
 Run the following commands in order:  
 
-ufbt update
-ufbt fap_metroflip
+```ufbt update```
+```ufbt fap_metroflip```
 
 6. **Connect Your Flipper Zero**  
 Ensure your Flipper Zero is connected via USB and close the QFlipper application (if it’s open).  
@@ -46,7 +46,7 @@ Ensure your Flipper Zero is connected via USB and close the QFlipper application
 7. **Launch the Build**  
 Run the final command:  
 
-ufbt launch
+```ufbt launch```
 
 ---
 
