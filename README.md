@@ -69,7 +69,7 @@ This is a list of metro cards and transit systems that need support or have part
 - Status: Fully supported.
 - [x] **Clipper**
 - Status: Fully supported.
-- [x] **Myki**
+- [x] **myki**
 - Status: Fully supported.
 - [x] **Opal**
 - Status: Fully supported.
