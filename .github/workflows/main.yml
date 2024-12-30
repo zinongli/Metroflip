@@ -1,5 +1,4 @@
 name: UFBT Build and Test
-
 on:
   push:
     branches:
@@ -7,46 +6,29 @@ on:
   pull_request:
     branches:
       - main
-
 jobs:
   build:
     name: Build and Test Application
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v3
-
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
           python-version: '3.x'
-
       - name: Install UFBT
         run: |
           python3 -m pip install --upgrade pip
           pip install ufbt
-
       - name: Initialize UFBT Environment
         run: |
           ufbt update
           ufbt vscode_dist
-
       - name: Build FAP Applications
         run: ufbt faps
-
-      - name: Get Release Information
-        id: release
-        run: |
-          REPO="luu176/Metroflip" # Change this to your repository name
-          VERSION="v0.4.0" # Specify your version
-          RELEASE=$(curl -s "https://api.github.com/repos/$REPO/releases/tags/$VERSION")
-          echo "::set-output name=upload_url::$(echo $RELEASE | jq -r .upload_url | sed -e "s/{?name,label}//")"
-
-            - name: Upload FAP to Existing Release
-        uses: actions/upload-release-asset@v1
+      - name: Upload Build Artifacts
+        uses: actions/upload-artifact@v3
         with:
-          upload_url: ${{ steps.release.outputs.upload_url }}
-          asset_path: /home/runner/.ufbt/build/metroflip.fap
-          asset_name: metroflip-${{ github.run_id }}.fap
-          asset_content_type: application/octet-stream
+          name: build-output
+          path: build/
