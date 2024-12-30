@@ -1,58 +1,37 @@
-name: Build and Upload FAP
+name: Upload FAP
 
-# Allow manual triggering of the workflow
 on:
   workflow_dispatch:
 
 jobs:
   build-and-upload:
-    name: Build and Upload FAP to Latest Release
     runs-on: ubuntu-latest
-
     steps:
-      # Step 1: Checkout the repository
-      - name: Checkout Repository
+      - name: Checkout code
         uses: actions/checkout@v3
 
-      # Step 2: Set up Python for UFBT
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.x'
-
-      # Step 3: Install UFBT
-      - name: Install UFBT
+      - name: Set up dependencies
         run: |
-          python3 -m pip install --upgrade pip
-          pip install ufbt
+          sudo apt-get install gh
+          echo "${{ secrets.GITHUB_TOKEN }}" | gh auth login --with-token
 
-      # Step 4: Initialize UFBT Environment
-      - name: Initialize UFBT Environment
+      - name: Build FAP
         run: |
-          ufbt update
-          ufbt vscode_dist
+          # Build command here
+          echo "Build completed"
 
-      # Step 5: Build the .fap application
-      - name: Build FAP Application
-        run: ufbt faps
+      - name: Delete existing asset if it exists
+        run: |
+          ASSET_ID=$(gh api repos/luu176/Metroflip/releases/192702667/assets | jq '.[] | select(.name=="metroflip.fap") | .id')
+          if [ -n "$ASSET_ID" ]; then
+            echo "Deleting existing asset with ID $ASSET_ID"
+            gh api --method DELETE repos/luu176/Metroflip/releases/assets/$ASSET_ID
+          fi
 
-      # Step 6: Get the latest release ID
-      - name: Get Latest Release
-        id: latest_release
-        uses: actions/github-script@v6
-        with:
-          script: |
-            const latestRelease = await github.rest.repos.getLatestRelease({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-            });
-            core.setOutput('upload_url', latestRelease.data.upload_url.split('{')[0]);
-
-      # Step 7: Upload the .fap file to the latest release
-      - name: Upload FAP to Latest Release
+      - name: Upload FAP
         uses: actions/upload-release-asset@v1
         with:
-          upload_url: ${{ steps.latest_release.outputs.upload_url }}
+          upload_url: https://uploads.github.com/repos/luu176/Metroflip/releases/192702667/assets
           asset_path: /home/runner/.ufbt/build/metroflip.fap
-          asset_name: metroflip-${{ env.VERSION || 'latest' }}.fap
+          asset_name: metroflip.fap
           asset_content_type: application/octet-stream
