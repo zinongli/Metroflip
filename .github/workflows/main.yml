@@ -60,38 +60,6 @@ jobs:
           VERSION=$(grep '^version:' manifest.yml | awk '{print $2}')
           echo "VERSION=${VERSION}" >> $GITHUB_ENV
 
-      - name: Check if Release Exists
-        id: check_release
-        run: |
-          REPO="luu176/Metroflip"
-          TAG="v${{ env.VERSION }}"
-          RELEASE_EXISTS=$(curl -s https://api.github.com/repos/$REPO/releases/tags/$TAG)
-          echo "RELEASE_EXISTS=$RELEASE_EXISTS"
-          if [[ $RELEASE_EXISTS == *"Not Found"* ]]; then
-            echo "Release not found. Creating new release."
-            echo "create=true" >> $GITHUB_ENV
-          else
-            echo "Release found. Deleting existing release."
-            RELEASE_ID=$(echo $RELEASE_EXISTS | jq -r '.id')
-            curl -X DELETE -H "Authorization: token $GITHUB_TOKEN" https://api.github.com/repos/$REPO/releases/$RELEASE_ID
-            echo "create=true" >> $GITHUB_ENV
-          fi
-
-      - name: Create Release
-        id: create_release
-        if: env.create == 'true'
-        uses: actions/create-release@v1
-        with:
-          tag_name: v${{ env.VERSION }}
-          release_name: Metroflip v${{ env.VERSION }}
-          body: |
-            **What's New:**
-            $(cat CHANGELOG.md)
-          draft: false
-          prerelease: false
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
       - name: Upload FAP File to Release
         if: env.create == 'true'
         uses: actions/upload-release-asset@v1
