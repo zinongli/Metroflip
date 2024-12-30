@@ -1,64 +1,58 @@
-name: Build and Publish FAP to Release
+name: Build and Upload FAP
 
+# Allow manual triggering of the workflow
 on:
   workflow_dispatch:
 
 jobs:
-  build-and-publish:
-    name: Build and Publish FAP to Latest Release
+  build-and-upload:
+    name: Build and Upload FAP to Latest Release
     runs-on: ubuntu-latest
 
     steps:
+      # Step 1: Checkout the repository
       - name: Checkout Repository
         uses: actions/checkout@v3
 
+      # Step 2: Set up Python for UFBT
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
           python-version: '3.x'
 
+      # Step 3: Install UFBT
       - name: Install UFBT
         run: |
           python3 -m pip install --upgrade pip
           pip install ufbt
 
+      # Step 4: Initialize UFBT Environment
       - name: Initialize UFBT Environment
         run: |
           ufbt update
           ufbt vscode_dist
 
-      - name: Build FAP Applications
+      # Step 5: Build the .fap application
+      - name: Build FAP Application
         run: ufbt faps
 
-      - name: Archive Build Outputs
-        run: tar -czf build-output.tar.gz build/
-
-      - name: Get Latest Release Info
-        id: get-release
-        uses: octokit/request-action@v2
+      # Step 6: Get the latest release ID
+      - name: Get Latest Release
+        id: latest_release
+        uses: actions/github-script@v6
         with:
-          route: GET /repos/${{ github.repository }}/releases/latest
-        continue-on-error: true
+          script: |
+            const latestRelease = await github.rest.repos.getLatestRelease({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+            });
+            core.setOutput('upload_url', latestRelease.data.upload_url.split('{')[0]);
 
-      - name: Create a New Release (if latest does not exist)
-        if: steps.get-release.outputs.status == '404'
-        id: create-release
-        uses: actions/create-release@v1
-        with:
-          tag_name: latest
-          release_name: Latest Release
-          draft: false
-          prerelease: false
-          generate_release_notes: true
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Upload Build Artifacts to Release
+      # Step 7: Upload the .fap file to the latest release
+      - name: Upload FAP to Latest Release
         uses: actions/upload-release-asset@v1
         with:
-          upload_url: ${{ steps.get-release.outputs.data.html_url || steps.create-release.outputs.upload_url }}
-          asset_path: build-output.tar.gz
-          asset_name: build-output.tar.gz
-          asset_content_type: application/gzip
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          upload_url: ${{ steps.latest_release.outputs.upload_url }}
+          asset_path: /home/runner/.ufbt/build/metroflip.fap
+          asset_name: metroflip.fap
+          asset_content_type: application/octet-stream
