@@ -43,10 +43,10 @@ jobs:
           RELEASE=$(curl -s "https://api.github.com/repos/$REPO/releases/tags/$VERSION")
           echo "::set-output name=upload_url::$(echo $RELEASE | jq -r .upload_url | sed -e "s/{?name,label}//")"
 
-      - name: Upload FAP to Existing Release
+            - name: Upload FAP to Existing Release
         uses: actions/upload-release-asset@v1
         with:
           upload_url: ${{ steps.release.outputs.upload_url }}
           asset_path: /home/runner/.ufbt/build/metroflip.fap
-          asset_name: metroflip-${{ github.sha }}.fap
+          asset_name: metroflip-${{ github.run_id }}.fap
           asset_content_type: application/octet-stream
