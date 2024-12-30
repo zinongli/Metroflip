@@ -16,6 +16,7 @@
 - Added Opal parser (Sydney (and surrounds), NSW, Australia)
 - Added ITSO parser (United Kingdom)
 
-## v0.4
+## v0.4
 
 - Updated Navigo parser (Paris, France)
+  - Now use a global Calypso parser, with defined structures
