@@ -9,8 +9,8 @@ on:
       - main
 
 jobs:
-  build:
-    name: Build Application
+  build_and_upload:
+    name: Build and Upload FAP Application
     runs-on: ubuntu-latest
 
     steps:
@@ -35,22 +35,6 @@ jobs:
       - name: Build FAP Application
         run: ufbt faps
 
-      - name: Upload Build Artifact
-        uses: actions/upload-artifact@v3
-        with:
-          name: metroflip-fap
-          path: /home/runner/.ufbt/build/metroflip.fap
-
-  upload:
-    name: Upload FAP to Existing Release
-    runs-on: ubuntu-latest
-    needs: build  # This job depends on the "build" job
-    if: github.event_name != 'pull_request'  # Ensure it doesn't upload on PR
-
-    steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v3
-
       - name: Get Release Information
         id: release
         run: |
@@ -59,15 +43,10 @@ jobs:
           RELEASE=$(curl -s "https://api.github.com/repos/$REPO/releases/tags/$VERSION")
           echo "::set-output name=upload_url::$(echo $RELEASE | jq -r .upload_url | sed -e "s/{?name,label}//")"
 
-      - name: Download FAP Artifact
-        uses: actions/download-artifact@v3
-        with:
-          name: metroflip-fap
-
       - name: Upload FAP to Existing Release
         uses: actions/upload-release-asset@v1
         with:
           upload_url: ${{ steps.release.outputs.upload_url }}
-          asset_path: /home/runner/work/<YOUR_REPO_NAME>/metroflip.fap  # Correct path
+          asset_path: /home/runner/.ufbt/build/metroflip.fap  # Correct path to the .fap file
           asset_name: metroflip-${{ github.sha }}.fap
           asset_content_type: application/octet-stream
