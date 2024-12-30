@@ -1,16 +1,12 @@
-name: UFBT Build and Test
+name: Build and Release Metroflip
 
 on:
   push:
-    branches:
-      - main
-  pull_request:
-    branches:
-      - main
+    tags:
+      - 'v*.*.*'
 
 jobs:
   build:
-    name: Build and Test Application
     runs-on: ubuntu-latest
 
     steps:
@@ -20,23 +16,54 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: '3.x'
+          python-version: 3.x
 
       - name: Install UFBT
-        run: |
-          python3 -m pip install --upgrade pip
-          pip install ufbt
+        run: pip install ufbt
 
-      - name: Initialize UFBT Environment
+      - name: Parse Version from Manifest
+        id: version
+        run: |
+          VERSION=$(grep '^version:' manifest.yml | awk '{print $2}')
+          echo "VERSION=${VERSION}" >> $GITHUB_ENV
+          echo "::set-output name=version::${VERSION}"
+
+      - name: Build Metroflip
         run: |
           ufbt update
-          ufbt vscode_dist
+          ufbt fap_metroflip
 
-      - name: Build FAP Applications
-        run: ufbt faps
+      - name: Prepare Release Directory
+        run: |
+          mkdir -p releases/${VERSION}
+          mv build/fap/metroflip.fap releases/${VERSION}/metroflip.fap
 
-      - name: Upload Build Artifacts
+      - name: Upload Build Artifact
         uses: actions/upload-artifact@v3
         with:
-          name: build-output
-          path: build/
+          name: metroflip-${{ env.VERSION }}
+          path: releases/${{ env.VERSION }}/metroflip.fap
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Download Build Artifact
+        uses: actions/download-artifact@v3
+        with:
+          name: metroflip-${{ env.VERSION }}
+
+      - name: Create GitHub Release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref_name }}
+          release_name: Metroflip ${{ github.ref_name }}
+          draft: false
+          prerelease: false
+          files: releases/${{ env.VERSION }}/metroflip.fap
+          body: |
+            ## Changes
+            See the [CHANGELOG.md](https://github.com/luu176/Metroflip/blob/${{ github.ref_name }}/CHANGELOG.md) for details.
