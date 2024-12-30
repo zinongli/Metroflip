@@ -6,7 +6,7 @@
 #include "../metroflip_i.h"
 #include <nfc/protocols/mf_desfire/mf_desfire_poller.h>
 
-#define TAG "Metroflip:Scene:Myki"
+#define TAG "Metroflip:Scene:myki"
 
 static const MfDesfireApplicationId myki_app_id = {.data = {0x00, 0x11, 0xf2}};
 static const MfDesfireFileId myki_file_id = 0x0f;
@@ -49,19 +49,19 @@ static bool myki_parse(const NfcDevice* device, FuriString* parsed_data) {
         typedef struct {
             uint32_t top;
             uint32_t bottom;
-        } MykiFile;
+        } mykiFile;
 
         const MfDesfireFileSettings* file_settings =
             mf_desfire_get_file_settings(app, &myki_file_id);
 
         if(file_settings == NULL || file_settings->type != MfDesfireFileTypeStandard ||
-           file_settings->data.size < sizeof(MykiFile))
+           file_settings->data.size < sizeof(mykiFile))
             break;
 
         const MfDesfireFileData* file_data = mf_desfire_get_file_data(app, &myki_file_id);
         if(file_data == NULL) break;
 
-        const MykiFile* myki_file = simple_array_cget_data(file_data->data);
+        const mykiFile* myki_file = simple_array_cget_data(file_data->data);
 
         // All myki card numbers are prefixed with "308425"
         if(myki_file->top != 308425UL) break;
