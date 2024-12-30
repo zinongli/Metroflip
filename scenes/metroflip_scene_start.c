@@ -28,7 +28,7 @@ void metroflip_scene_start_on_enter(void* context) {
         submenu, "Clipper", MetroflipSceneClipper, metroflip_scene_start_submenu_callback, app);
 
     submenu_add_item(
-        submenu, "Myki", MetroflipSceneMyki, metroflip_scene_start_submenu_callback, app);
+        submenu, "Myki", MetroflipScenemyki, metroflip_scene_start_submenu_callback, app);
 
     submenu_add_item(
         submenu, "Troika", MetroflipSceneTroika, metroflip_scene_start_submenu_callback, app);
@@ -37,7 +37,7 @@ void metroflip_scene_start_on_enter(void* context) {
         submenu, "Opal", MetroflipSceneOpal, metroflip_scene_start_submenu_callback, app);
 
     submenu_add_item(
-        submenu, "ITSO", MetroflipSceneItso, metroflip_scene_start_submenu_callback, app);
+        submenu, "ITSO", MetroflipSceneITSO, metroflip_scene_start_submenu_callback, app);
 
     submenu_add_item(
         submenu,
