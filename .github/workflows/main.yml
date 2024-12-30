@@ -1,12 +1,16 @@
-name: Build and Release Metroflip
+name: UFBT Build and Release
 
 on:
   push:
-    tags:
-      - 'v*.*.*'
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
 
 jobs:
   build:
+    name: Build and Test
     runs-on: ubuntu-latest
 
     steps:
@@ -16,54 +20,72 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: 3.x
+          python-version: '3.x'
 
       - name: Install UFBT
-        run: pip install ufbt
+        run: |
+          python3 -m pip install --upgrade pip
+          pip install ufbt
 
-      - name: Parse Version from Manifest
-        id: version
+      - name: Extract Version from Manifest
+        id: extract_version
         run: |
           VERSION=$(grep '^version:' manifest.yml | awk '{print $2}')
           echo "VERSION=${VERSION}" >> $GITHUB_ENV
-          echo "::set-output name=version::${VERSION}"
 
-      - name: Build Metroflip
+      - name: Initialize UFBT Environment
         run: |
           ufbt update
-          ufbt fap_metroflip
+          ufbt vscode_dist
 
-      - name: Prepare Release Directory
+      - name: Build FAP Applications
+        run: ufbt faps
+
+      - name: Rename FAP File
         run: |
-          mkdir -p releases/${VERSION}
-          mv build/fap/metroflip.fap releases/${VERSION}/metroflip.fap
+          mkdir -p build/fap
+          mv build/fap/metroflip.fap build/fap/metroflip-${{ env.VERSION }}.fap
 
-      - name: Upload Build Artifact
+      - name: Upload Build Artifacts
+        if: github.event_name == 'pull_request'
         uses: actions/upload-artifact@v3
         with:
-          name: metroflip-${{ env.VERSION }}
-          path: releases/${{ env.VERSION }}/metroflip.fap
+          name: metroflip-build
+          path: build/fap/metroflip-${{ env.VERSION }}.fap
 
   release:
+    name: Create Release
     needs: build
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
 
     steps:
-      - name: Download Build Artifact
-        uses: actions/download-artifact@v3
-        with:
-          name: metroflip-${{ env.VERSION }}
+      - name: Checkout Repository
+        uses: actions/checkout@v3
 
-      - name: Create GitHub Release
+      - name: Extract Version from Manifest
+        id: extract_version
+        run: |
+          VERSION=$(grep '^version:' manifest.yml | awk '{print $2}')
+          echo "VERSION=${VERSION}" >> $GITHUB_ENV
+
+      - name: Create Release
         uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag_name: ${{ github.ref_name }}
-          release_name: Metroflip ${{ github.ref_name }}
+          tag_name: v${{ env.VERSION }}
+          release_name: Metroflip v${{ env.VERSION }}
+          body: |
+            **What's New:**
+            $(cat CHANGELOG.md)
           draft: false
           prerelease: false
-          files: releases/${{ env.VERSION }}/metroflip.fap
-          body: |
-            ## Changes
-            See the [CHANGELOG.md](https://github.com/luu176/Metroflip/blob/${{ github.ref_name }}/CHANGELOG.md) for details.
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload FAP File to Release
+        uses: actions/upload-release-asset@v1
+        with:
+          release_id: ${{ steps.create-release.outputs.id }}
+          asset_path: build/fap/metroflip-${{ env.VERSION }}.fap
+          asset_name: metroflip-${{ env.VERSION }}.fap
+          asset_content_type: application/octet-stream
