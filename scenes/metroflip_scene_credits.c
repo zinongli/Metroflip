@@ -25,7 +25,7 @@ void metroflip_scene_credits_on_enter(void* context) {
     furi_string_cat_printf(str, "Troika Parser:\n gornekich\n\n");
     furi_string_cat_printf(str, "ITSO Parser:\n gsp8181, hedger, gornekich\n\n");
     furi_string_cat_printf(str, "Opal Parser:\n gornekich\n\n");
-    furi_string_cat_printf(str, "Myki Parser:\n gornekich\n\n");
+    furi_string_cat_printf(str, "myki Parser:\n gornekich\n\n");
     furi_string_cat_printf(str, "Info Slaves:\n Equip, TheDingo8MyBaby\n\n");
 
     widget_add_text_scroll_element(widget, 0, 0, 128, 64, furi_string_get_cstr(str));
