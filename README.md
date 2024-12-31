@@ -64,18 +64,19 @@ This is a list of metro cards and transit systems that need support or have part
 
 ## ✅ Supported Cards
 
-| **Card / Agency** | **Country / City** | **Card Type** |
-|--------------------|---------------------||----------------|
-| **Bip!** | :chile: Santiago de Chile, Chile | Mifare Classic |
-| **Charliecard** | :us: Boston, MA, USA | Mifare Classic |
-| **Clipper** | :us: San Francisco, CA, USA | Mifare DESFire |
-| **ITSO** | :uk: United Kingdomn | Mifare DESFire |
-| **Metromoney**  | :georgia: Tbilisi, Georgia | Mifare Classic |
-| **myki** | :australia: Melbourne (and surrounds), VIC, Australia | Mifare DESFire |
-| **Navigo** | :fr: Paris, France | Calypso |
-| **Opal** | :australia: Sydney (and surrounds), NSW, Australia | Mifare DESFire |
-| **Rav-Kav**  | :israel: Israel | Calypso |
-| **Troika** | :ru: Moscow, Russia | Mifare Classic |
+| **Card / Agency** | **Country / City**                  | **Card Type**     |
+|--------------------|-------------------------------------|-------------------|
+| **Bip!**          | 🇨🇱 Santiago de Chile, Chile        | Mifare Classic    |
+| **Charliecard**    | 🇺🇸 Boston, MA, USA                 | Mifare Classic    |
+| **Clipper**        | 🇺🇸 San Francisco, CA, USA          | Mifare DESFire    |
+| **ITSO**           | 🇬🇧 United Kingdom                 | Mifare DESFire    |
+| **Metromoney**     | 🇬🇪 Tbilisi, Georgia                | Mifare Classic    |
+| **myki**           | 🇦🇺 Melbourne (and surrounds), VIC, Australia | Mifare DESFire |
+| **Navigo**         | 🇫🇷 Paris, France                   | Calypso           |
+| **Opal**           | 🇦🇺 Sydney (and surrounds), NSW, Australia | Mifare DESFire |
+| **Rav-Kav**        | 🇮🇱 Israel                          | Calypso           |
+| **Troika**         | 🇷🇺 Moscow, Russia                  | Mifare Classic    |
+
 
 
 ---
