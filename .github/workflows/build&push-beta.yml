@@ -1,4 +1,4 @@
-name: Build and Upload FAP to Release
+name: Build and Upload FAP to Beta
 
 on:
   workflow_dispatch:
