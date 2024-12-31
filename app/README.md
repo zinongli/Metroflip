@@ -10,25 +10,15 @@ This is a list of metro cards and transit systems that are supported.
 
 ## Supported Cards
 - **Rav-Kav**  
-  - Status: Partially supported
 - **Navigo**  
-  - Status: Fully supported.
 - **Charliecard**  
-  - Status: Fully supported.
 - **Metromoney**  
-  - Status: Fully supported.
 - **Bip!**  
-  - Status: Fully supported.
 - **Clipper**  
-  - Status: Fully supported.
 - **Troika**  
-  - Status: Fully supported.
 - **Myki**  
-  - Status: Fully supported.
 - **Opal**  
-  - Status: Fully supported.
 - **ITSO**
-  - Status: Fully supported.
 
 More coming soon! 
 
@@ -36,7 +26,7 @@ More coming soon!
 - **App Author**: luu176
 - **Charliecard Parser**: zacharyweiss
 - **Rav-Kav Parser**: luu176
-- **Navigo Parser**: luu176
+- **Navigo Parser**: luu176, DocSystem
 - **Metromoney Parser**: Leptopt1los
 - **Bip! Parser**: rbasoaltor & gornekich
 - **Clipper Parser**: ke6jjj

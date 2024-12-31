@@ -1127,10 +1127,8 @@ static bool charliecard_parse(FuriString* parsed_data, const MfClassicData* data
 
         const uint64_t key_a =
             bit_lib_bytes_to_num_be(sec_tr->key_a.data, COUNT_OF(sec_tr->key_a.data));
-        const uint64_t key_b =
-            bit_lib_bytes_to_num_be(sec_tr->key_b.data, COUNT_OF(sec_tr->key_b.data));
+
         if(key_a != charliecard_1k_keys[verify_sector].a) break;
-        if(key_b != charliecard_1k_keys[verify_sector].b) break;
 
         // parse card data
         const uint32_t card_number = mfg_sector_parse(data);
@@ -1242,7 +1240,7 @@ static NfcCommand
         metroflip_app_blink_stop(app);
     } else if(mfc_event->type == MfClassicPollerEventTypeFail) {
         FURI_LOG_I(TAG, "fail");
-        command = NfcCommandStop;
+        command = NfcCommandContinue;
     }
 
     return command;

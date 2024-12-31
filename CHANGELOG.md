@@ -15,3 +15,13 @@
 - Added Myki parser (Melbourne (and surrounds), VIC, Australia)
 - Added Opal parser (Sydney (and surrounds), NSW, Australia)
 - Added ITSO parser (United Kingdom)
+
+## v0.4
+
+- Updated Navigo parser (Paris, France) (thanks to: DocSystem)
+  - Now use a global Calypso parser, with defined structures
+  - Fix Busfault and NULL Pointer Dereferences
+- Updated all Desfire parsers (opal, itso, myki, etc..)
+  - Now doesnt crash when you click the back button while reading
+- Fix Charliecard parser
+

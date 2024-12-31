@@ -1,5 +1,4 @@
 name: UFBT Build and Test
-
 on:
   push:
     branches:
@@ -7,34 +6,27 @@ on:
   pull_request:
     branches:
       - main
-
 jobs:
   build:
     name: Build and Test Application
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v3
-
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
           python-version: '3.x'
-
       - name: Install UFBT
         run: |
           python3 -m pip install --upgrade pip
           pip install ufbt
-
       - name: Initialize UFBT Environment
         run: |
           ufbt update
           ufbt vscode_dist
-
       - name: Build FAP Applications
         run: ufbt faps
-
       - name: Upload Build Artifacts
         uses: actions/upload-artifact@v3
         with:

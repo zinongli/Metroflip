@@ -140,7 +140,7 @@ static NfcCommand metroflip_scene_itso_poller_callback(NfcGenericEvent event, vo
         command = NfcCommandStop;
     } else if(mf_desfire_event->type == MfDesfirePollerEventTypeReadFailed) {
         view_dispatcher_send_custom_event(app->view_dispatcher, MetroflipCustomEventPollerSuccess);
-        command = NfcCommandReset;
+        command = NfcCommandContinue;
     }
 
     return command;
@@ -197,7 +197,7 @@ bool metroflip_scene_itso_on_event(void* context, SceneManagerEvent event) {
 void metroflip_scene_itso_on_exit(void* context) {
     Metroflip* app = context;
     widget_reset(app->widget);
-
+    metroflip_app_blink_stop(app);
     if(app->poller) {
         nfc_poller_stop(app->poller);
         nfc_poller_free(app->poller);
