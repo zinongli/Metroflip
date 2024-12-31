@@ -10,21 +10,27 @@ Metroflip is a multi-protocol metro card reader app for the Flipper Zero, inspir
 
 # Setup Instructions
 
-## Using the Latest Release
-1. Download the `.fap` file from the [Releases section](https://github.com/luu176/Metroflip/releases).
-2. Drag and drop the `.fap` file into the `apps` folder on your Flipper Zero's SD card.
+## Using a pre-built release: Stable (Recommended) or Beta (Newer updates, less stable)
+1. Download the appropriate `metroflip.fap` file from the [Releases section](https://github.com/luu176/Metroflip/releases).
+2. Drag and drop the `metroflip.fap` file into the `apps` folder on your Flipper Zero's SD card.
 
 ## Manual Build Instructions
 To build Metroflip manually, follow these steps:
 
 1. **Install Git**  
    Download and install Git on your Windows computer.  
-   Run the first command:  
+   Run the first command to download the app:  
 
+**Either**:
+Stable Release (recommended): 
 ```git clone https://github.com/luu176/Metroflip.git```
 
+**OR**:
+Beta (newer updates but not fully tested): 
+```git clone --single-branch --branch dev https://github.com/luu176/Metroflip.git```
+
 2. **Navigate to the Project Folder**  
-Run the second command:  
+Run the second command to enter the app folder:  
 
 ```cd Metroflip```
 
@@ -37,7 +43,7 @@ Run the third command to install UFBT:
 ```pip install ufbt```
 
 5. **Update and Build the Project**  
-Run the following commands in order:  
+Run the following commands in order to build the app:  
 
 ```ufbt update```
 ```ufbt fap_metroflip```
@@ -46,7 +52,7 @@ Run the following commands in order:
 Ensure your Flipper Zero is connected via USB and close the QFlipper application (if it’s open).  
 
 7. **Launch the Build**  
-Run the final command:  
+Run the final command to launch the app on your flipper:  
 
 ```ufbt launch```
 
@@ -57,26 +63,19 @@ Run the final command:
 This is a list of metro cards and transit systems that need support or have partial support.
 
 ## ✅ Supported Cards
-- [x] **Rav-Kav**  
-- Status: Partially Supported
-- [x] **Charliecard**  
-- Status: Fully supported.
-- [x] **Metromoney**  
-- Status: Fully supported.
-- [x] **Bip!**  
-- Status: Fully supported.
-- [x] **Navigo**  
-- Status: Fully supported.
-- [x] **Troika**
-- Status: Fully supported.
-- [x] **Clipper**
-- Status: Fully supported.
-- [x] **myki**
-- Status: Fully supported.
-- [x] **Opal**
-- Status: Fully supported.
-- [x] **ITSO**
-- Status: Fully supported
+
+| **Card / Agency** | **Country / City** | **Card Type** |
+| **Bip!** | :chile: Santiago de Chile, Chile | Mifare Classic |
+| **Charliecard** | :us: Boston, MA, USA | Mifare Classic |
+| **Clipper** | :us: San Francisco, CA, USA | Mifare DESFire |
+| **ITSO** | :uk: United Kingdomn | Mifare DESFire |
+| **Metromoney**  | :georgia: Tbilisi, Georgia | Mifare Classic |
+| **myki** | :australia: Melbourne (and surrounds), VIC, Australia | Mifare DESFire |
+| **Navigo** | :fr: Paris, France | Calypso |
+| **Opal** | :australia: Sydney (and surrounds), NSW, Australia | Mifare DESFire |
+| **Rav-Kav**  | :israel: Israel | Calypso |
+| **Troika** | :ru: Moscow, Russia | Mifare Classic |
+
 
 ---
 
