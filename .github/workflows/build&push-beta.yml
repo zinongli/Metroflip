@@ -8,6 +8,9 @@ on:
         required: true
         default: '1.0.0'
 
+    branches:
+      - dev
+
 permissions:
   contents: write 
 
@@ -19,6 +22,8 @@ jobs:
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v3
+        with:
+          ref: dev  
 
       - name: Set up Python
         uses: actions/setup-python@v4
