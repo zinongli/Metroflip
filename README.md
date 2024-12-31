@@ -65,6 +65,7 @@ This is a list of metro cards and transit systems that need support or have part
 ## ✅ Supported Cards
 
 | **Card / Agency** | **Country / City** | **Card Type** |
+|--------------------|---------------------||----------------|
 | **Bip!** | :chile: Santiago de Chile, Chile | Mifare Classic |
 | **Charliecard** | :us: Boston, MA, USA | Mifare Classic |
 | **Clipper** | :us: San Francisco, CA, USA | Mifare DESFire |
