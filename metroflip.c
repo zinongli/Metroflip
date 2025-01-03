@@ -21,6 +21,9 @@ Metroflip* metroflip_alloc() {
     app->nfc = nfc_alloc();
     app->nfc_device = nfc_device_alloc();
 
+    // key cache
+    app->mfc_key_cache = mf_classic_key_cache_alloc();
+
     // notifs
     app->notifications = furi_record_open(RECORD_NOTIFICATION);
     // View Dispatcher and Scene Manager
@@ -73,6 +76,9 @@ void metroflip_free(Metroflip* app) {
     //nfc device
     nfc_free(app->nfc);
     nfc_device_free(app->nfc_device);
+
+    // key cache
+    mf_classic_key_cache_free(app->mfc_key_cache);
 
     //notifs
     furi_record_close(RECORD_NOTIFICATION);
@@ -208,4 +214,85 @@ void dec_to_bits(char dec_representation, char* bit_representation) {
     for(int i = 7; i >= 0; --i) {
         bit_representation[i] = (decimal & (1 << i)) ? '1' : '0';
     }
+}
+
+KeyfileManager manage_keyfiles(char uid_str[]) {
+    Storage* storage = furi_record_open(RECORD_STORAGE);
+    File* source = storage_file_alloc(storage);
+    char source_path[64];
+
+    FURI_LOG_I("TAG", "%s", uid_str);
+    size_t source_required_size =
+        strlen("/ext/nfc/.cache/") + strlen(uid_str) + strlen(".keys") + 1;
+    snprintf(source_path, source_required_size, "/ext/nfc/.cache/%s.keys", uid_str);
+    bool cache_file = storage_file_open(source, source_path, FSAM_READ, FSOM_OPEN_EXISTING);
+    /*-----------------Open assets cache file (if exists)------------*/
+
+    File* dest = storage_file_alloc(storage);
+    char dest_path[64];
+    size_t dest_required_size =
+        strlen("/ext/nfc/assets/.") + strlen(uid_str) + strlen(".keys") + 1;
+    snprintf(dest_path, dest_required_size, "/ext/nfc/assets/.%s.keys", uid_str);
+    bool dest_cache_file = storage_file_open(dest, dest_path, FSAM_READ, FSOM_OPEN_EXISTING);
+
+    /*-----------------Check cache file------------*/
+    if(!cache_file) {
+        /*-----------------Check assets cache file------------*/
+        FURI_LOG_I("TAG", "cache dont exist, checking assets");
+
+        if(!dest_cache_file) {
+            FURI_LOG_I("TAG", "assets dont exist, prompting user to fix..");
+            storage_file_close(source);
+            storage_file_close(dest);
+            return MISSING_KEYFILE;
+        } else {
+            size_t dest_file_length = storage_file_size(dest);
+
+            FURI_LOG_I(
+                "TAG", "assets exist, but cache doesnt, proceeding to copy assets to cache");
+            // Close, then open both files
+            storage_file_close(source);
+            storage_file_close(dest);
+            storage_file_open(
+                source, source_path, FSAM_WRITE, FSOM_OPEN_ALWAYS); // create new file
+            storage_file_open(
+                dest, dest_path, FSAM_READ, FSOM_OPEN_EXISTING); // open existing assets keyfile
+            FURI_LOG_I("TAG", "creating cache file at %s from %s", source_path, dest_path);
+            /*-----Clone keyfile from assets to cache (creates temporary buffer)----*/
+            uint8_t* cloned_buffer = malloc(dest_file_length);
+            storage_file_read(dest, cloned_buffer, dest_file_length);
+            storage_file_write(source, cloned_buffer, dest_file_length);
+            free(cloned_buffer);
+            storage_file_close(source);
+            storage_file_close(dest);
+            return SUCCESSFUL;
+        }
+    } else {
+        size_t source_file_length = storage_file_size(source);
+        if(source_file_length > 1216) {
+            FURI_LOG_I("TAG", "cache exist, creating assets cache if not already exists");
+            storage_file_close(dest);
+            storage_file_close(source);
+            storage_file_open(dest, dest_path, FSAM_WRITE, FSOM_OPEN_ALWAYS);
+            storage_file_open(source, source_path, FSAM_READ, FSOM_OPEN_EXISTING);
+            FURI_LOG_I("TAG", "creating assets cache");
+            /*-----Clone keyfile from assets to cache (creates temporary buffer)----*/
+            uint8_t* cloned_buffer = malloc(source_file_length);
+            storage_file_read(source, cloned_buffer, source_file_length);
+            storage_file_write(dest, cloned_buffer, source_file_length);
+            free(cloned_buffer);
+            storage_file_close(source);
+            storage_file_close(dest);
+            return SUCCESSFUL;
+
+        } else {
+            FURI_LOG_I("TAG", "incomplete cache file, aborting.");
+            storage_file_close(source);
+            storage_file_close(dest);
+            return INCOMPLETE_KEYFILE;
+        }
+    }
+    FURI_LOG_I("TAG", "proceeding to read");
+    storage_file_close(source);
+    storage_file_close(dest);
 }
