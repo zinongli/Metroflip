@@ -465,12 +465,12 @@ void update_page_info(void* context, FuriString* parsed_data) {
         furi_string_cat_printf(
             parsed_data, "\e#%s :\n", get_navigo_type(ctx->card->holder.card_status));
         furi_string_cat_printf(parsed_data, "\e#Contrat 1 :\n");
-        show_contract_info(&ctx->card->contracts[0], ctx->card->ticket_count, parsed_data);
+        show_contract_info(&ctx->card->contracts[0], ctx->card->ticket_counts[0], parsed_data);
     } else if(ctx->page_id == 1) {
         furi_string_cat_printf(
             parsed_data, "\e#%s :\n", get_navigo_type(ctx->card->holder.card_status));
         furi_string_cat_printf(parsed_data, "\e#Contrat 2 :\n");
-        show_contract_info(&ctx->card->contracts[1], ctx->card->ticket_count, parsed_data);
+        show_contract_info(&ctx->card->contracts[1], ctx->card->ticket_counts[1], parsed_data);
     } else if(ctx->page_id == 2) {
         furi_string_cat_printf(parsed_data, "\e#Environnement :\n");
         show_environment_info(&ctx->card->environment, parsed_data);
@@ -938,7 +938,7 @@ static NfcCommand metroflip_scene_navigo_poller_callback(NfcGenericEvent event, 
 
                 // Select app for counters (remaining tickets on Navigo Easy)
                 error =
-                    select_new_app(0x2A, tx_buffer, rx_buffer, iso14443_4b_poller, app, &stage);
+                    select_new_app(0x69, tx_buffer, rx_buffer, iso14443_4b_poller, app, &stage);
                 if(error != 0) {
                     break;
                 }
@@ -969,10 +969,18 @@ static NfcCommand metroflip_scene_navigo_poller_callback(NfcGenericEvent event, 
                 }
                 FURI_LOG_I(TAG, "Counter bit_representation: %s", counter_bit_representation);
 
-                // Ticket count
-                start = 2;
+                // Ticket count (contract 1)
+                start = 0;
                 end = 5;
-                card->ticket_count = bit_slice_to_dec(counter_bit_representation, start, end);
+                card->ticket_counts[0] = bit_slice_to_dec(counter_bit_representation, start, end);
+
+                // Ticket count (contract 2)
+                start = 24;
+                end = 29;
+                card->ticket_counts[1] = bit_slice_to_dec(counter_bit_representation, start, end);
+
+                FURI_LOG_I(TAG, "Ticket count 1: %d", card->ticket_counts[0]);
+                FURI_LOG_I(TAG, "Ticket count 2: %d", card->ticket_counts[1]);
 
                 // Select app for events
                 error =
