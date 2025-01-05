@@ -78,15 +78,32 @@ const char* get_country(int country_num) {
     switch(country_num) {
     case 250:
         return "France";
-    default:
-        return "Unknown";
+    case 124:
+        return "Canada";
+    default: {
+        char* country = malloc(4 * sizeof(char));
+        snprintf(country, 4, "%d", country_num);
+        return country;
+    }
     }
 }
 
-const char* get_network(int network_num) {
-    switch(network_num) {
-    case 901:
-        return "Ile-de-France Mobilites";
+const char* get_network(int country_num, int network_num) {
+    switch(country_num) {
+    case 250:
+        switch(network_num) {
+        case 901:
+            return "IDFM";
+        default:
+            return "Unknown";
+        }
+    case 124:
+        switch(network_num) {
+        case 1:
+            return "STM";
+        default:
+            return "Unknown";
+        }
     default:
         return "Unknown";
     }
@@ -175,27 +192,62 @@ const char* get_navigo_type(int type) {
     case IMAGINE_R:
         return "Imagine R";
     default:
-        return "Navigo Inconnu";
+        return "Navigo";
     }
 }
 
 const char* get_tariff(int tariff) {
     switch(tariff) {
+    case 0x0000:
+        return "Navigo Mois"; // Theoric
+    case 0x0001:
+        return "Navigo Semaine"; // Theoric
     case 0x0002:
         return "Navigo Annuel";
+    case 0x0003:
+        return "Navigo Jour"; // Theoric
     case 0x0004:
         return "Imagine R Junior";
     case 0x0005:
         return "Imagine R Etudiant";
     case 0x000D:
         return "Navigo Jeunes Week-end";
+    case 0x0015:
+        return "Paris-Visite"; // Theoric
     case 0x1000:
         return "Navigo Liberte+";
+    case 0x4015:
+        return "Paris-Visite (Enfant)"; // Theoric
     case 0x5000:
-        return "Navigo Easy";
-    default:
-        return "Inconnu";
+        return "Tickets T+";
+    case 0x5004:
+        return "Tickets OrlyBus"; // Theoric
+    case 0x5005:
+        return "Tickets RoissyBus"; // Theoric
+    case 0x5006:
+        return "Bus-Tram"; // Theoric
+    case 0x5008:
+        return "Metro-Train-RER"; // Theoric
+    case 0x500b:
+        return "Paris <> Aeroports"; // Theoric
+    case 0x5010:
+        return "Tickets T+ (Reduit)"; // Theoric
+    case 0x5016:
+        return "Bus-Tram (Reduit)"; // Theoric
+    case 0x5018:
+        return "Metro-Train-RER (Reduit)"; // Theoric
+    case 0x501b:
+        return "Paris <> Aeroports (Reduit)"; // Theoric
+    default: {
+        char* tariff_str = malloc(6 * sizeof(char));
+        snprintf(tariff_str, 6, "%d", tariff);
+        return tariff_str;
     }
+    }
+}
+
+bool is_ticket_count_available(int tariff) {
+    return tariff >= 0x5000 && tariff <= 0x501b;
 }
 
 const char* get_pay_method(int pay_method) {
@@ -316,10 +368,29 @@ const char* get_train_station(int station_group_id, int station_id) {
     return station;
 }
 
+const char* get_tram_line(int route_number) {
+    switch(route_number) {
+    case 16:
+        return "T6";
+    default: {
+        char* line = malloc(3 * sizeof(char));
+        if(!line) {
+            return "Unknown";
+        }
+        snprintf(line, 3, "T%d", route_number);
+        return line;
+    }
+    }
+}
+
 void show_event_info(
     NavigoCardEvent* event,
     NavigoCardContract* contracts,
     FuriString* parsed_data) {
+    if(event->used_contract == 0) {
+        furi_string_cat_printf(parsed_data, "No event data\n");
+        return;
+    }
     if(event->transport_type == BUS_URBAIN || event->transport_type == BUS_INTERURBAIN ||
        event->transport_type == METRO || event->transport_type == TRAM) {
         if(event->route_number_available) {
@@ -328,6 +399,13 @@ void show_event_info(
                     parsed_data,
                     "%s 3 bis\n%s\n",
                     get_transport_type(event->transport_type),
+                    get_transition_type(event->transition));
+            } else if(event->transport_type == TRAM) {
+                furi_string_cat_printf(
+                    parsed_data,
+                    "%s %s\n%s\n",
+                    get_transport_type(event->transport_type),
+                    get_tram_line(event->route_number),
                     get_transition_type(event->transition));
             } else {
                 furi_string_cat_printf(
@@ -378,7 +456,7 @@ void show_event_info(
                 parsed_data,
                 "Contract: %d - %s\n",
                 event->used_contract,
-                get_tariff(contracts[event->used_contract].tariff));
+                get_tariff(contracts[event->used_contract - 1].tariff));
         }
         locale_format_datetime_cat(parsed_data, &event->date, true);
         furi_string_cat_printf(parsed_data, "\n");
@@ -423,7 +501,7 @@ void show_event_info(
                 parsed_data,
                 "Contract: %d - %s\n",
                 event->used_contract,
-                get_tariff(contracts[event->used_contract].tariff));
+                get_tariff(contracts[event->used_contract - 1].tariff));
         }
         locale_format_datetime_cat(parsed_data, &event->date, true);
         furi_string_cat_printf(parsed_data, "\n");
@@ -454,15 +532,18 @@ void show_event_info(
                 parsed_data,
                 "Contract: %d - %s\n",
                 event->used_contract,
-                get_tariff(contracts[event->used_contract].tariff));
+                get_tariff(contracts[event->used_contract - 1].tariff));
         }
         locale_format_datetime_cat(parsed_data, &event->date, true);
         furi_string_cat_printf(parsed_data, "\n");
     }
 }
 
-void show_contract_info(NavigoCardContract* contract, int ticket_count, FuriString* parsed_data) {
+void show_contract_info(NavigoCardContract* contract, FuriString* parsed_data) {
     furi_string_cat_printf(parsed_data, "Type: %s\n", get_tariff(contract->tariff));
+    if(is_ticket_count_available(contract->tariff)) {
+        furi_string_cat_printf(parsed_data, "Remaining Tickets: %d\n", contract->counter.count);
+    }
     if(contract->serial_number_available) {
         furi_string_cat_printf(parsed_data, "TCN Number: %d\n", contract->serial_number);
     }
@@ -472,9 +553,6 @@ void show_contract_info(NavigoCardContract* contract, int ticket_count, FuriStri
     }
     if(contract->price_amount_available) {
         furi_string_cat_printf(parsed_data, "Amount: %.2f EUR\n", contract->price_amount);
-    }
-    if(contract->tariff == 0x5000) {
-        furi_string_cat_printf(parsed_data, "Remaining Tickets: %d\n", ticket_count);
     }
     if(contract->end_date_available) {
         furi_string_cat_printf(parsed_data, "Valid\nfrom: ");
@@ -506,16 +584,11 @@ void show_environment_info(NavigoCardEnv* environment, FuriString* parsed_data) 
         "App Version: %s - v%d\n",
         get_intercode_version(environment->app_version),
         get_intercode_subversion(environment->app_version));
-    if(environment->country_num == 250) {
-        furi_string_cat_printf(parsed_data, "Country: France\n");
-    } else {
-        furi_string_cat_printf(parsed_data, "Country: %d\n", environment->country_num);
-    }
-    if(environment->network_num == 901) {
-        furi_string_cat_printf(parsed_data, "Network: Ile-de-France Mobilites\n");
-    } else {
-        furi_string_cat_printf(parsed_data, "Network: %d\n", environment->network_num);
-    }
+    furi_string_cat_printf(parsed_data, "Country: %s\n", get_country(environment->country_num));
+    furi_string_cat_printf(
+        parsed_data,
+        "Network: %s\n",
+        get_network(environment->country_num, environment->network_num));
     furi_string_cat_printf(parsed_data, "End of validity:\n");
     locale_format_datetime_cat(parsed_data, &environment->end_dt, false);
     furi_string_cat_printf(parsed_data, "\n");
@@ -531,7 +604,7 @@ void update_page_info(void* context, FuriString* parsed_data) {
             get_navigo_type(ctx->card->holder.card_status),
             ctx->card->card_number);
         furi_string_cat_printf(parsed_data, "\e#Contract 1:\n");
-        show_contract_info(&ctx->card->contracts[0], ctx->card->ticket_counts[0], parsed_data);
+        show_contract_info(&ctx->card->contracts[0], parsed_data);
     } else if(ctx->page_id == 1) {
         furi_string_cat_printf(
             parsed_data,
@@ -539,7 +612,7 @@ void update_page_info(void* context, FuriString* parsed_data) {
             get_navigo_type(ctx->card->holder.card_status),
             ctx->card->card_number);
         furi_string_cat_printf(parsed_data, "\e#Contract 2:\n");
-        show_contract_info(&ctx->card->contracts[1], ctx->card->ticket_counts[1], parsed_data);
+        show_contract_info(&ctx->card->contracts[1], parsed_data);
     } else if(ctx->page_id == 2) {
         furi_string_cat_printf(parsed_data, "\e#Environment:\n");
         show_environment_info(&ctx->card->environment, parsed_data);
@@ -585,7 +658,7 @@ void metroflip_back_button_widget_callback(GuiButtonType result, InputType type,
         FURI_LOG_I(TAG, "Page ID: %d -> %d", ctx->page_id, ctx->page_id - 1);
 
         if(ctx->page_id > 0) {
-            if(ctx->page_id == 2 && ctx->card->contracts[1].tariff == 0) {
+            if(ctx->page_id == 2 && ctx->card->contracts[1].present == 0) {
                 ctx->page_id -= 1;
             }
             ctx->page_id -= 1;
@@ -623,7 +696,7 @@ void metroflip_next_button_widget_callback(GuiButtonType result, InputType type,
         FURI_LOG_I(TAG, "Page ID: %d -> %d", ctx->page_id, ctx->page_id + 1);
 
         if(ctx->page_id < 5) {
-            if(ctx->page_id == 0 && ctx->card->contracts[1].tariff == 0) {
+            if(ctx->page_id == 0 && ctx->card->contracts[1].present == 0) {
                 ctx->page_id += 1;
             }
             ctx->page_id += 1;
@@ -796,6 +869,15 @@ static NfcCommand metroflip_scene_navigo_poller_callback(NfcGenericEvent event, 
                         FURI_LOG_I(
                             TAG, "Position: %d, Key: %s, Offset: %d", positions[i], key, offset);
                     } */
+
+                    if(bit_slice_to_dec(
+                           bit_representation,
+                           0,
+                           NavigoContractStructure->elements[0].bitmap->size - 1) == 0) {
+                        break;
+                    }
+
+                    card->contracts[i - 1].present = 1;
 
                     // 2. ContractTariff
                     const char* contract_key = "ContractTariff";
@@ -1078,12 +1160,24 @@ static NfcCommand metroflip_scene_navigo_poller_callback(NfcGenericEvent event, 
                 // Ticket count (contract 1)
                 start = 0;
                 end = 5;
-                card->ticket_counts[0] = bit_slice_to_dec(counter_bit_representation, start, end);
+                card->contracts[0].counter.count =
+                    bit_slice_to_dec(counter_bit_representation, start, end);
+
+                start = 6;
+                end = 23;
+                card->contracts[0].counter.relative_first_stamp_15mn =
+                    bit_slice_to_dec(counter_bit_representation, start, end);
 
                 // Ticket count (contract 2)
                 start = 24;
                 end = 29;
-                card->ticket_counts[1] = bit_slice_to_dec(counter_bit_representation, start, end);
+                card->contracts[1].counter.count =
+                    bit_slice_to_dec(counter_bit_representation, start, end);
+
+                start = 30;
+                end = 47;
+                card->contracts[1].counter.relative_first_stamp_15mn =
+                    bit_slice_to_dec(counter_bit_representation, start, end);
 
                 // FURI_LOG_I(TAG, "Ticket count 1: %d", card->ticket_counts[0]);
                 // FURI_LOG_I(TAG, "Ticket count 2: %d", card->ticket_counts[1]);
