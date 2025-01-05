@@ -38,6 +38,12 @@ typedef struct {
 } NavigoCardHolder;
 
 typedef struct {
+    int count;
+    int relative_first_stamp_15mn;
+    int struct_number;
+} NavigoCardContractCounter;
+
+typedef struct {
     int tariff;
     int serial_number;
     bool serial_number_available;
@@ -55,6 +61,8 @@ typedef struct {
     int sale_device;
     int status;
     int authenticator;
+    NavigoCardContractCounter counter;
+    bool present;
 } NavigoCardContract;
 
 typedef struct {
@@ -62,7 +70,6 @@ typedef struct {
     NavigoCardHolder holder;
     NavigoCardContract contracts[2];
     NavigoCardEvent events[3];
-    int ticket_counts[2];
     unsigned int card_number;
 } NavigoCardData;
 
