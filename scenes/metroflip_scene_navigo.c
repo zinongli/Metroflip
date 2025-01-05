@@ -78,15 +78,32 @@ const char* get_country(int country_num) {
     switch(country_num) {
     case 250:
         return "France";
-    default:
-        return "Unknown";
+    case 124:
+        return "Canada";
+    default: {
+        char* country = malloc(4 * sizeof(char));
+        snprintf(country, 4, "%d", country_num);
+        return country;
+    }
     }
 }
 
-const char* get_network(int network_num) {
+const char* get_network(int country_num, int network_num) {
+    switch(country_num) {
+    case 250:
     switch(network_num) {
     case 901:
-        return "Ile-de-France Mobilites";
+            return "IDFM";
+        default:
+            return "Unknown";
+        }
+    case 124:
+        switch(network_num) {
+        case 1:
+            return "STM";
+        default:
+            return "Unknown";
+        }
     default:
         return "Unknown";
     }
@@ -506,16 +523,11 @@ void show_environment_info(NavigoCardEnv* environment, FuriString* parsed_data) 
         "App Version: %s - v%d\n",
         get_intercode_version(environment->app_version),
         get_intercode_subversion(environment->app_version));
-    if(environment->country_num == 250) {
-        furi_string_cat_printf(parsed_data, "Country: France\n");
-    } else {
-        furi_string_cat_printf(parsed_data, "Country: %d\n", environment->country_num);
-    }
-    if(environment->network_num == 901) {
-        furi_string_cat_printf(parsed_data, "Network: Ile-de-France Mobilites\n");
-    } else {
-        furi_string_cat_printf(parsed_data, "Network: %d\n", environment->network_num);
-    }
+    furi_string_cat_printf(parsed_data, "Country: %s\n", get_country(environment->country_num));
+    furi_string_cat_printf(
+        parsed_data,
+        "Network: %s\n",
+        get_network(environment->country_num, environment->network_num));
     furi_string_cat_printf(parsed_data, "End of validity:\n");
     locale_format_datetime_cat(parsed_data, &environment->end_dt, false);
     furi_string_cat_printf(parsed_data, "\n");
