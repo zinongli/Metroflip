@@ -63,6 +63,7 @@ typedef struct {
     NavigoCardContract contracts[2];
     NavigoCardEvent events[3];
     int ticket_counts[2];
+    unsigned int card_number;
 } NavigoCardData;
 
 typedef struct {
