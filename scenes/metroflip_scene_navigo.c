@@ -227,6 +227,61 @@ const char* get_pay_method(int pay_method) {
     }
 }
 
+const char* get_zones(int* zones) {
+    if(zones[0] && zones[4]) {
+        return "All Zones (1-5)";
+    } else if(zones[0] && zones[3]) {
+        return "Zones 1-4";
+    } else if(zones[0] && zones[2]) {
+        return "Zones 1-3";
+    } else if(zones[0] && zones[1]) {
+        return "Zones 1-2";
+    } else if(zones[0]) {
+        return "Zone 1";
+    } else if(zones[1] && zones[4]) {
+        return "Zones 2-5";
+    } else if(zones[1] && zones[3]) {
+        return "Zones 2-4";
+    } else if(zones[1] && zones[2]) {
+        return "Zones 2-3";
+    } else if(zones[1]) {
+        return "Zone 2";
+    } else if(zones[2] && zones[4]) {
+        return "Zones 3-5";
+    } else if(zones[2] && zones[3]) {
+        return "Zones 3-4";
+    } else if(zones[2]) {
+        return "Zone 3";
+    } else if(zones[3] && zones[4]) {
+        return "Zones 4-5";
+    } else if(zones[3]) {
+        return "Zone 4";
+    } else if(zones[4]) {
+        return "Zone 5";
+    } else {
+        return "Unknown";
+    }
+}
+
+const char* get_intercode_version(int version) {
+    // version is a 6 bits int
+    // if the first 3 bits are 000, it's a 1.x version
+    // if the first 3 bits are 001, it's a 2.x version
+    // else, it's unknown
+    int major = (version >> 3) & 0x07;
+    if(major == 0) {
+        return "Intercode I";
+    } else if(major == 1) {
+        return "Intercode II";
+    }
+    return "Unknown";
+}
+
+int get_intercode_subversion(int version) {
+    // subversion is a 3 bits int
+    return version & 0x07;
+}
+
 const char* get_metro_station(int station_group_id, int station_id) {
     // Use NAVIGO_H constants
     if(station_group_id < 32 && station_id < 16) {
@@ -261,7 +316,10 @@ const char* get_train_station(int station_group_id, int station_id) {
     return station;
 }
 
-void show_event_info(NavigoCardEvent* event, FuriString* parsed_data) {
+void show_event_info(
+    NavigoCardEvent* event,
+    NavigoCardContract* contracts,
+    FuriString* parsed_data) {
     if(event->transport_type == BUS_URBAIN || event->transport_type == BUS_INTERURBAIN ||
        event->transport_type == METRO || event->transport_type == TRAM) {
         if(event->route_number_available) {
@@ -316,7 +374,11 @@ void show_event_info(NavigoCardEvent* event, FuriString* parsed_data) {
             furi_string_cat_printf(parsed_data, "Vehicle: %d\n", event->vehicle_id);
         }
         if(event->used_contract_available) {
-            furi_string_cat_printf(parsed_data, "Contract: %d\n", event->used_contract);
+            furi_string_cat_printf(
+                parsed_data,
+                "Contract: %d - %s\n",
+                event->used_contract,
+                get_tariff(contracts[event->used_contract].tariff));
         }
         locale_format_datetime_cat(parsed_data, &event->date, true);
         furi_string_cat_printf(parsed_data, "\n");
@@ -357,7 +419,11 @@ void show_event_info(NavigoCardEvent* event, FuriString* parsed_data) {
             furi_string_cat_printf(parsed_data, "Vehicle: %d\n", event->vehicle_id);
         }
         if(event->used_contract_available) {
-            furi_string_cat_printf(parsed_data, "Contract: %d\n", event->used_contract);
+            furi_string_cat_printf(
+                parsed_data,
+                "Contract: %d - %s\n",
+                event->used_contract,
+                get_tariff(contracts[event->used_contract].tariff));
         }
         locale_format_datetime_cat(parsed_data, &event->date, true);
         furi_string_cat_printf(parsed_data, "\n");
@@ -384,7 +450,11 @@ void show_event_info(NavigoCardEvent* event, FuriString* parsed_data) {
             furi_string_cat_printf(parsed_data, "Vehicle: %d\n", event->vehicle_id);
         }
         if(event->used_contract_available) {
-            furi_string_cat_printf(parsed_data, "Contract: %d\n", event->used_contract);
+            furi_string_cat_printf(
+                parsed_data,
+                "Contract: %d - %s\n",
+                event->used_contract,
+                get_tariff(contracts[event->used_contract].tariff));
         }
         locale_format_datetime_cat(parsed_data, &event->date, true);
         furi_string_cat_printf(parsed_data, "\n");
@@ -418,32 +488,24 @@ void show_contract_info(NavigoCardContract* contract, int ticket_count, FuriStri
         furi_string_cat_printf(parsed_data, "\n");
     }
     if(contract->zones_available) {
-        furi_string_cat_printf(parsed_data, "Zones ");
-        for(int i = 0; i < 5; i++) {
-            if(contract->zones[i] != 0) {
-                furi_string_cat_printf(parsed_data, "%d", i + 1);
-                if(i < 4) {
-                    furi_string_cat_printf(parsed_data, ", ");
-                }
-            }
-        }
-        furi_string_cat_printf(parsed_data, "\n");
+        furi_string_cat_printf(parsed_data, "%s\n", get_zones(contract->zones));
     }
     furi_string_cat_printf(parsed_data, "Sold on: ");
     locale_format_datetime_cat(parsed_data, &contract->sale_date, false);
     furi_string_cat_printf(parsed_data, "\n");
     furi_string_cat_printf(
-        parsed_data,
-        "Sales Agent: %s (%d)\n",
-        get_service_provider(contract->sale_agent),
-        contract->sale_agent);
+        parsed_data, "Sales Agent: %s\n", get_service_provider(contract->sale_agent));
     furi_string_cat_printf(parsed_data, "Sales Terminal: %d\n", contract->sale_device);
     furi_string_cat_printf(parsed_data, "Status: %d\n", contract->status);
     furi_string_cat_printf(parsed_data, "Authenticity Code: %d\n", contract->authenticator);
 }
 
 void show_environment_info(NavigoCardEnv* environment, FuriString* parsed_data) {
-    furi_string_cat_printf(parsed_data, "App Version: %d\n", environment->app_version);
+    furi_string_cat_printf(
+        parsed_data,
+        "App Version: %s - v%d\n",
+        get_intercode_version(environment->app_version),
+        get_intercode_subversion(environment->app_version));
     if(environment->country_num == 250) {
         furi_string_cat_printf(parsed_data, "Country: France\n");
     } else {
@@ -483,13 +545,13 @@ void update_page_info(void* context, FuriString* parsed_data) {
         show_environment_info(&ctx->card->environment, parsed_data);
     } else if(ctx->page_id == 3) {
         furi_string_cat_printf(parsed_data, "\e#Event 1:\n");
-        show_event_info(&ctx->card->events[0], parsed_data);
+        show_event_info(&ctx->card->events[0], ctx->card->contracts, parsed_data);
     } else if(ctx->page_id == 4) {
         furi_string_cat_printf(parsed_data, "\e#Event 2:\n");
-        show_event_info(&ctx->card->events[1], parsed_data);
+        show_event_info(&ctx->card->events[1], ctx->card->contracts, parsed_data);
     } else if(ctx->page_id == 5) {
         furi_string_cat_printf(parsed_data, "\e#Event 3:\n");
-        show_event_info(&ctx->card->events[2], parsed_data);
+        show_event_info(&ctx->card->events[2], ctx->card->contracts, parsed_data);
     }
 }
 
@@ -859,13 +921,13 @@ static NfcCommand metroflip_scene_navigo_poller_callback(NfcGenericEvent event, 
                     contract_key = "ContractValiditySaleAgent";
                     /* if(is_calypso_node_present(
                            bit_representation, contract_key, NavigoContractStructure)) { */
-                        int positionOffset = get_calypso_node_offset(
-                            bit_representation, contract_key, NavigoContractStructure);
-                        int start = positionOffset,
-                            end = positionOffset +
-                                  get_calypso_node_size(contract_key, NavigoContractStructure) - 1;
-                        card->contracts[i - 1].sale_agent =
-                            bit_slice_to_dec(bit_representation, start, end);
+                    int positionOffset = get_calypso_node_offset(
+                        bit_representation, contract_key, NavigoContractStructure);
+                    int start = positionOffset,
+                        end = positionOffset +
+                              get_calypso_node_size(contract_key, NavigoContractStructure) - 1;
+                    card->contracts[i - 1].sale_agent =
+                        bit_slice_to_dec(bit_representation, start, end);
                     // }
 
                     // 15.3. ContractValiditySaleDevice
