@@ -91,8 +91,8 @@ const char* get_country(int country_num) {
 const char* get_network(int country_num, int network_num) {
     switch(country_num) {
     case 250:
-    switch(network_num) {
-    case 901:
+        switch(network_num) {
+        case 901:
             return "IDFM";
         default:
             return "Unknown";
@@ -243,7 +243,7 @@ const char* get_tariff(int tariff) {
         snprintf(tariff_str, 6, "%d", tariff);
         return tariff_str;
     }
-}
+    }
 }
 
 bool is_ticket_count_available(int tariff) {
@@ -368,6 +368,21 @@ const char* get_train_station(int station_group_id, int station_id) {
     return station;
 }
 
+const char* get_tram_line(int route_number) {
+    switch(route_number) {
+    case 16:
+        return "T6";
+    default: {
+        char* line = malloc(3 * sizeof(char));
+        if(!line) {
+            return "Unknown";
+        }
+        snprintf(line, 3, "T%d", route_number);
+        return line;
+    }
+    }
+}
+
 void show_event_info(
     NavigoCardEvent* event,
     NavigoCardContract* contracts,
@@ -384,6 +399,13 @@ void show_event_info(
                     parsed_data,
                     "%s 3 bis\n%s\n",
                     get_transport_type(event->transport_type),
+                    get_transition_type(event->transition));
+            } else if(event->transport_type == TRAM) {
+                furi_string_cat_printf(
+                    parsed_data,
+                    "%s %s\n%s\n",
+                    get_transport_type(event->transport_type),
+                    get_tram_line(event->route_number),
                     get_transition_type(event->transition));
             } else {
                 furi_string_cat_printf(
