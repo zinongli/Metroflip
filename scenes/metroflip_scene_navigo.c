@@ -10,12 +10,14 @@
 #define TAG "Metroflip:Scene:Navigo"
 
 int select_new_app(
+    int new_app_directory,
     int new_app,
     BitBuffer* tx_buffer,
     BitBuffer* rx_buffer,
     Iso14443_4bPoller* iso14443_4b_poller,
     Metroflip* app,
     MetroflipPollerEventType* stage) {
+    select_app[5] = new_app_directory;
     select_app[6] = new_app;
 
     bit_buffer_reset(tx_buffer);
@@ -462,12 +464,18 @@ void update_page_info(void* context, FuriString* parsed_data) {
     NavigoContext* ctx = app->navigo_context;
     if(ctx->page_id == 0) {
         furi_string_cat_printf(
-            parsed_data, "\e#%s :\n", get_navigo_type(ctx->card->holder.card_status));
+            parsed_data,
+            "\e#%s %u:\n",
+            get_navigo_type(ctx->card->holder.card_status),
+            ctx->card->card_number);
         furi_string_cat_printf(parsed_data, "\e#Contract 1:\n");
         show_contract_info(&ctx->card->contracts[0], ctx->card->ticket_counts[0], parsed_data);
     } else if(ctx->page_id == 1) {
         furi_string_cat_printf(
-            parsed_data, "\e#%s :\n", get_navigo_type(ctx->card->holder.card_status));
+            parsed_data,
+            "\e#%s %u:\n",
+            get_navigo_type(ctx->card->holder.card_status),
+            ctx->card->card_number);
         furi_string_cat_printf(parsed_data, "\e#Contract 2:\n");
         show_contract_info(&ctx->card->contracts[1], ctx->card->ticket_counts[1], parsed_data);
     } else if(ctx->page_id == 2) {
@@ -620,9 +628,47 @@ static NfcCommand metroflip_scene_navigo_poller_callback(NfcGenericEvent event, 
                 // Initialize the card data
                 NavigoCardData* card = malloc(sizeof(NavigoCardData));
 
+                // Select app ICC
+                error = select_new_app(
+                    0x00, 0x02, tx_buffer, rx_buffer, iso14443_4b_poller, app, &stage);
+                if(error != 0) {
+                    break;
+                }
+
+                // Check the response after selecting app
+                if(check_response(rx_buffer, app, &stage, &response_length) != 0) {
+                    break;
+                }
+
+                // Now send the read command for ICC
+                error = read_new_file(0x01, tx_buffer, rx_buffer, iso14443_4b_poller, app, &stage);
+                if(error != 0) {
+                    break;
+                }
+
+                // Check the response after reading the file
+                if(check_response(rx_buffer, app, &stage, &response_length) != 0) {
+                    break;
+                }
+
+                char icc_bit_representation[response_length * 8 + 1];
+                icc_bit_representation[0] = '\0';
+                for(size_t i = 0; i < response_length; i++) {
+                    char bits[9];
+                    uint8_t byte = bit_buffer_get_byte(rx_buffer, i);
+                    byte_to_binary(byte, bits);
+                    strlcat(icc_bit_representation, bits, sizeof(icc_bit_representation));
+                }
+                icc_bit_representation[response_length * 8] = '\0';
+
+                FURI_LOG_I(TAG, "ICC bit representation: %s", icc_bit_representation);
+
+                int start = 128, end = 159;
+                card->card_number = bit_slice_to_dec(icc_bit_representation, start, end);
+
                 // Select app for contracts
-                error =
-                    select_new_app(0x20, tx_buffer, rx_buffer, iso14443_4b_poller, app, &stage);
+                error = select_new_app(
+                    0x20, 0x20, tx_buffer, rx_buffer, iso14443_4b_poller, app, &stage);
                 if(error != 0) {
                     break;
                 }
@@ -809,10 +855,10 @@ static NfcCommand metroflip_scene_navigo_poller_callback(NfcGenericEvent event, 
                             sale_timestamp, &card->contracts[i - 1].sale_date);
                     }
 
-                    // 15.2. ContractValiditySaleAgent
+                    // 15.2. ContractValiditySaleAgent - FIX NEEDED
                     contract_key = "ContractValiditySaleAgent";
-                    if(is_calypso_node_present(
-                           bit_representation, contract_key, NavigoContractStructure)) {
+                    /* if(is_calypso_node_present(
+                           bit_representation, contract_key, NavigoContractStructure)) { */
                         int positionOffset = get_calypso_node_offset(
                             bit_representation, contract_key, NavigoContractStructure);
                         int start = positionOffset,
@@ -820,9 +866,7 @@ static NfcCommand metroflip_scene_navigo_poller_callback(NfcGenericEvent event, 
                                   get_calypso_node_size(contract_key, NavigoContractStructure) - 1;
                         card->contracts[i - 1].sale_agent =
                             bit_slice_to_dec(bit_representation, start, end);
-                    } else {
-                        card->contracts[i - 1].sale_agent = -1;
-                    }
+                    // }
 
                     // 15.3. ContractValiditySaleDevice
                     contract_key = "ContractValiditySaleDevice";
@@ -868,7 +912,8 @@ static NfcCommand metroflip_scene_navigo_poller_callback(NfcGenericEvent event, 
                 free_calypso_structure(NavigoContractStructure);
 
                 // Select app for environment
-                error = select_new_app(0x1, tx_buffer, rx_buffer, iso14443_4b_poller, app, &stage);
+                error = select_new_app(
+                    0x20, 0x1, tx_buffer, rx_buffer, iso14443_4b_poller, app, &stage);
                 if(error != 0) {
                     break;
                 }
@@ -900,10 +945,10 @@ static NfcCommand metroflip_scene_navigo_poller_callback(NfcGenericEvent event, 
                         bits,
                         sizeof(environment_bit_representation));
                 }
-                FURI_LOG_I(
-                    TAG, "Environment bit_representation: %s", environment_bit_representation);
-                int start = 0;
-                int end = 5;
+                // FURI_LOG_I(
+                //     TAG, "Environment bit_representation: %s", environment_bit_representation);
+                start = 0;
+                end = 5;
                 card->environment.app_version =
                     bit_slice_to_dec(environment_bit_representation, start, end);
                 start = 13;
@@ -936,8 +981,8 @@ static NfcCommand metroflip_scene_navigo_poller_callback(NfcGenericEvent event, 
                     bit_slice_to_dec(environment_bit_representation, start, end);
 
                 // Select app for counters (remaining tickets on Navigo Easy)
-                error =
-                    select_new_app(0x69, tx_buffer, rx_buffer, iso14443_4b_poller, app, &stage);
+                error = select_new_app(
+                    0x20, 0x69, tx_buffer, rx_buffer, iso14443_4b_poller, app, &stage);
                 if(error != 0) {
                     break;
                 }
@@ -966,7 +1011,7 @@ static NfcCommand metroflip_scene_navigo_poller_callback(NfcGenericEvent event, 
                     byte_to_binary(byte, bits);
                     strlcat(counter_bit_representation, bits, sizeof(counter_bit_representation));
                 }
-                FURI_LOG_I(TAG, "Counter bit_representation: %s", counter_bit_representation);
+                // FURI_LOG_I(TAG, "Counter bit_representation: %s", counter_bit_representation);
 
                 // Ticket count (contract 1)
                 start = 0;
@@ -978,12 +1023,12 @@ static NfcCommand metroflip_scene_navigo_poller_callback(NfcGenericEvent event, 
                 end = 29;
                 card->ticket_counts[1] = bit_slice_to_dec(counter_bit_representation, start, end);
 
-                FURI_LOG_I(TAG, "Ticket count 1: %d", card->ticket_counts[0]);
-                FURI_LOG_I(TAG, "Ticket count 2: %d", card->ticket_counts[1]);
+                // FURI_LOG_I(TAG, "Ticket count 1: %d", card->ticket_counts[0]);
+                // FURI_LOG_I(TAG, "Ticket count 2: %d", card->ticket_counts[1]);
 
                 // Select app for events
-                error =
-                    select_new_app(0x10, tx_buffer, rx_buffer, iso14443_4b_poller, app, &stage);
+                error = select_new_app(
+                    0x20, 0x10, tx_buffer, rx_buffer, iso14443_4b_poller, app, &stage);
                 if(error != 0) {
                     break;
                 }
