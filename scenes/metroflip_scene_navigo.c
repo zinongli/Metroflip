@@ -154,27 +154,31 @@ const char* get_service_provider(int provider) {
 const char* get_transition_type(int transition) {
     switch(transition) {
     case 1:
-        return "Validation - entry";
+        return "Entry";
     case 2:
-        return "Validation - exit";
+        return "Exit";
     case 4:
         return "Controle volant (a bord)";
     case 5:
         return "Test validation";
     case 6:
-        return "Interchange validation - entry";
+        return "Interchange - Entry";
     case 7:
-        return "Interchange validation - exit";
+        return "Interchange - Exit";
     case 9:
         return "Validation cancelled";
     case 10:
-        return "Validation - entry";
+        return "Entry";
+    case 11:
+        return "Exit";
     case 13:
         return "Distribution";
     case 15:
         return "Invalidation";
     default: {
-        return "Unknown";
+        char* transition_str = malloc(6 * sizeof(char));
+        snprintf(transition_str, 6, "%d", transition);
+        return transition_str;
     }
     }
 }
@@ -614,15 +618,31 @@ void update_page_info(void* context, FuriString* parsed_data) {
         furi_string_cat_printf(parsed_data, "\e#Contract 2:\n");
         show_contract_info(&ctx->card->contracts[1], parsed_data);
     } else if(ctx->page_id == 2) {
+        furi_string_cat_printf(
+            parsed_data,
+            "\e#%s %u:\n",
+            get_navigo_type(ctx->card->holder.card_status),
+            ctx->card->card_number);
+        furi_string_cat_printf(parsed_data, "\e#Contract 3:\n");
+        show_contract_info(&ctx->card->contracts[2], parsed_data);
+    } else if(ctx->page_id == 3) {
+        furi_string_cat_printf(
+            parsed_data,
+            "\e#%s %u:\n",
+            get_navigo_type(ctx->card->holder.card_status),
+            ctx->card->card_number);
+        furi_string_cat_printf(parsed_data, "\e#Contract 4:\n");
+        show_contract_info(&ctx->card->contracts[3], parsed_data);
+    } else if(ctx->page_id == 4) {
         furi_string_cat_printf(parsed_data, "\e#Environment:\n");
         show_environment_info(&ctx->card->environment, parsed_data);
-    } else if(ctx->page_id == 3) {
+    } else if(ctx->page_id == 5) {
         furi_string_cat_printf(parsed_data, "\e#Event 1:\n");
         show_event_info(&ctx->card->events[0], ctx->card->contracts, parsed_data);
-    } else if(ctx->page_id == 4) {
+    } else if(ctx->page_id == 6) {
         furi_string_cat_printf(parsed_data, "\e#Event 2:\n");
         show_event_info(&ctx->card->events[1], ctx->card->contracts, parsed_data);
-    } else if(ctx->page_id == 5) {
+    } else if(ctx->page_id == 7) {
         furi_string_cat_printf(parsed_data, "\e#Event 3:\n");
         show_event_info(&ctx->card->events[2], ctx->card->contracts, parsed_data);
     }
@@ -658,6 +678,12 @@ void metroflip_back_button_widget_callback(GuiButtonType result, InputType type,
         FURI_LOG_I(TAG, "Page ID: %d -> %d", ctx->page_id, ctx->page_id - 1);
 
         if(ctx->page_id > 0) {
+            if(ctx->page_id == 4 && ctx->card->contracts[3].present == 0) {
+                ctx->page_id -= 1;
+            }
+            if(ctx->page_id == 3 && ctx->card->contracts[2].present == 0) {
+                ctx->page_id -= 1;
+            }
             if(ctx->page_id == 2 && ctx->card->contracts[1].present == 0) {
                 ctx->page_id -= 1;
             }
@@ -695,8 +721,14 @@ void metroflip_next_button_widget_callback(GuiButtonType result, InputType type,
 
         FURI_LOG_I(TAG, "Page ID: %d -> %d", ctx->page_id, ctx->page_id + 1);
 
-        if(ctx->page_id < 5) {
+        if(ctx->page_id < 7) {
             if(ctx->page_id == 0 && ctx->card->contracts[1].present == 0) {
+                ctx->page_id += 1;
+            }
+            if(ctx->page_id == 1 && ctx->card->contracts[2].present == 0) {
+                ctx->page_id += 1;
+            }
+            if(ctx->page_id == 2 && ctx->card->contracts[3].present == 0) {
                 ctx->page_id += 1;
             }
             ctx->page_id += 1;
@@ -821,7 +853,7 @@ static NfcCommand metroflip_scene_navigo_poller_callback(NfcGenericEvent event, 
                 }
 
                 // Now send the read command for contracts
-                for(size_t i = 1; i < 3; i++) {
+                for(size_t i = 1; i < 5; i++) {
                     error =
                         read_new_file(i, tx_buffer, rx_buffer, iso14443_4b_poller, app, &stage);
                     if(error != 0) {
@@ -1157,30 +1189,18 @@ static NfcCommand metroflip_scene_navigo_poller_callback(NfcGenericEvent event, 
                 }
                 // FURI_LOG_I(TAG, "Counter bit_representation: %s", counter_bit_representation);
 
-                // Ticket count (contract 1)
-                start = 0;
-                end = 5;
-                card->contracts[0].counter.count =
-                    bit_slice_to_dec(counter_bit_representation, start, end);
+                // Ticket counts (contracts 1-4)
+                for(int i = 0; i < 4; i++) {
+                    start = 0;
+                    end = 5;
+                    card->contracts[i].counter.count =
+                        bit_slice_to_dec(counter_bit_representation, 24 * i + start, 24 * i + end);
 
-                start = 6;
-                end = 23;
-                card->contracts[0].counter.relative_first_stamp_15mn =
-                    bit_slice_to_dec(counter_bit_representation, start, end);
-
-                // Ticket count (contract 2)
-                start = 24;
-                end = 29;
-                card->contracts[1].counter.count =
-                    bit_slice_to_dec(counter_bit_representation, start, end);
-
-                start = 30;
-                end = 47;
-                card->contracts[1].counter.relative_first_stamp_15mn =
-                    bit_slice_to_dec(counter_bit_representation, start, end);
-
-                // FURI_LOG_I(TAG, "Ticket count 1: %d", card->ticket_counts[0]);
-                // FURI_LOG_I(TAG, "Ticket count 2: %d", card->ticket_counts[1]);
+                    start = 6;
+                    end = 23;
+                    card->contracts[i].counter.relative_first_stamp_15mn =
+                        bit_slice_to_dec(counter_bit_representation, 24 * i + start, 24 * i + end);
+                }
 
                 // Select app for events
                 error = select_new_app(
