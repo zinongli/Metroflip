@@ -485,14 +485,18 @@ void show_event_info(
             parsed_data,
             "Station: %s\n",
             get_train_station(event->station_group_id, event->station_id));
-        if(event->route_number_available) {
+        /* if(event->route_number_available) {
             furi_string_cat_printf(parsed_data, "Route: %d\n", event->route_number);
-        }
+        } */
         if(event->location_gate_available) {
             furi_string_cat_printf(parsed_data, "Gate: %d\n", event->location_gate);
         }
         if(event->device_available) {
-            furi_string_cat_printf(parsed_data, "Device: %d\n", event->device);
+            if(event->service_provider == 2) {
+                furi_string_cat_printf(parsed_data, "Device: %d\n", event->device & 0xFF);
+            } else {
+                furi_string_cat_printf(parsed_data, "Device: %d\n", event->device);
+            }
         }
         if(event->mission_available) {
             furi_string_cat_printf(parsed_data, "Mission: %d\n", event->mission);
@@ -1321,9 +1325,10 @@ static NfcCommand metroflip_scene_navigo_poller_callback(NfcGenericEvent event, 
                         end = positionOffset +
                               get_calypso_node_size(event_key, NavigoEventStructure) - 1;
                         int decimal_value = bit_slice_to_dec(event_bit_representation, start, end);
-                        card->events[i - 1].device = decimal_value >> 8;
-                        card->events[i - 1].door = card->events[i - 1].device / 2 + 1;
-                        card->events[i - 1].side = card->events[i - 1].device % 2;
+                        card->events[i - 1].device = decimal_value;
+                        int bus_device = decimal_value >> 8;
+                        card->events[i - 1].door = bus_device / 2 + 1;
+                        card->events[i - 1].side = bus_device % 2;
                         card->events[i - 1].device_available = true;
                     }
 
