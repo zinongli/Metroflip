@@ -68,7 +68,7 @@ typedef struct {
 typedef struct {
     NavigoCardEnv environment;
     NavigoCardHolder holder;
-    NavigoCardContract contracts[2];
+    NavigoCardContract contracts[4];
     NavigoCardEvent events[3];
     unsigned int card_number;
 } NavigoCardData;

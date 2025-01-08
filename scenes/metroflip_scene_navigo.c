@@ -22,6 +22,17 @@ int select_new_app(
 
     bit_buffer_reset(tx_buffer);
     bit_buffer_append_bytes(tx_buffer, select_app, sizeof(select_app));
+    FURI_LOG_D(
+        TAG,
+        "SEND %02x %02x %02x %02x %02x %02x %02x %02x",
+        select_app[0],
+        select_app[1],
+        select_app[2],
+        select_app[3],
+        select_app[4],
+        select_app[5],
+        select_app[6],
+        select_app[7]);
     int error = iso14443_4b_poller_send_block(iso14443_4b_poller, tx_buffer, rx_buffer);
     if(error != Iso14443_4bErrorNone) {
         FURI_LOG_I(TAG, "Select File: iso14443_4b_poller_send_block error %d", error);
@@ -42,6 +53,14 @@ int read_new_file(
     read_file[2] = new_file;
     bit_buffer_reset(tx_buffer);
     bit_buffer_append_bytes(tx_buffer, read_file, sizeof(read_file));
+    FURI_LOG_D(
+        TAG,
+        "SEND %02x %02x %02x %02x %02x",
+        read_file[0],
+        read_file[1],
+        read_file[2],
+        read_file[3],
+        read_file[4]);
     Iso14443_4bError error =
         iso14443_4b_poller_send_block(iso14443_4b_poller, tx_buffer, rx_buffer);
     if(error != Iso14443_4bErrorNone) {
@@ -61,11 +80,14 @@ int check_response(
     *response_length = bit_buffer_get_size_bytes(rx_buffer);
     if(bit_buffer_get_byte(rx_buffer, *response_length - 2) != apdu_success[0] ||
        bit_buffer_get_byte(rx_buffer, *response_length - 1) != apdu_success[1]) {
-        FURI_LOG_I(
-            TAG,
-            "Select profile app/file failed: %02x%02x",
-            bit_buffer_get_byte(rx_buffer, *response_length - 2),
-            bit_buffer_get_byte(rx_buffer, *response_length - 1));
+        int error_code_1 = bit_buffer_get_byte(rx_buffer, *response_length - 2);
+        int error_code_2 = bit_buffer_get_byte(rx_buffer, *response_length - 1);
+        FURI_LOG_E(TAG, "Select profile app/file failed: %02x%02x", error_code_1, error_code_2);
+        if(error_code_1 == 0x6a && error_code_2 == 0x82) {
+            FURI_LOG_E(TAG, "Wrong parameter(s) P1-P2 - File not found");
+        } else if(error_code_1 == 0x69 && error_code_2 == 0x82) {
+            FURI_LOG_E(TAG, "Command not allowed - Security status not satisfied");
+        }
         *stage = MetroflipPollerEventTypeFail;
         view_dispatcher_send_custom_event(
             app->view_dispatcher, MetroflipCustomEventPollerFileNotFound);
@@ -154,27 +176,31 @@ const char* get_service_provider(int provider) {
 const char* get_transition_type(int transition) {
     switch(transition) {
     case 1:
-        return "Validation - entry";
+        return "Entry";
     case 2:
-        return "Validation - exit";
+        return "Exit";
     case 4:
         return "Controle volant (a bord)";
     case 5:
         return "Test validation";
     case 6:
-        return "Interchange validation - entry";
+        return "Interchange - Entry";
     case 7:
-        return "Interchange validation - exit";
+        return "Interchange - Exit";
     case 9:
         return "Validation cancelled";
     case 10:
-        return "Validation - entry";
+        return "Entry";
+    case 11:
+        return "Exit";
     case 13:
         return "Distribution";
     case 15:
         return "Invalidation";
     default: {
-        return "Unknown";
+        char* transition_str = malloc(6 * sizeof(char));
+        snprintf(transition_str, 6, "%d", transition);
+        return transition_str;
     }
     }
 }
@@ -199,13 +225,13 @@ const char* get_navigo_type(int type) {
 const char* get_tariff(int tariff) {
     switch(tariff) {
     case 0x0000:
-        return "Navigo Mois"; // Theoric
+        return "Navigo Mois";
     case 0x0001:
-        return "Navigo Semaine"; // Theoric
+        return "Navigo Semaine";
     case 0x0002:
         return "Navigo Annuel";
     case 0x0003:
-        return "Navigo Jour"; // Theoric
+        return "Navigo Jour";
     case 0x0004:
         return "Imagine R Junior";
     case 0x0005:
@@ -216,6 +242,10 @@ const char* get_tariff(int tariff) {
         return "Paris-Visite"; // Theoric
     case 0x1000:
         return "Navigo Liberte+";
+    case 0x4000:
+        return "Navigo Mois 75%%";
+    case 0x4001:
+        return "Navigo Semaine 75%%";
     case 0x4015:
         return "Paris-Visite (Enfant)"; // Theoric
     case 0x5000:
@@ -238,6 +268,8 @@ const char* get_tariff(int tariff) {
         return "Metro-Train-RER (Reduit)"; // Theoric
     case 0x501b:
         return "Paris <> Aeroports (Reduit)"; // Theoric
+    case 0x8003:
+        return "Navigo Solidarite Gratuit";
     default: {
         char* tariff_str = malloc(6 * sizeof(char));
         snprintf(tariff_str, 6, "%d", tariff);
@@ -481,14 +513,18 @@ void show_event_info(
             parsed_data,
             "Station: %s\n",
             get_train_station(event->station_group_id, event->station_id));
-        if(event->route_number_available) {
+        /* if(event->route_number_available) {
             furi_string_cat_printf(parsed_data, "Route: %d\n", event->route_number);
-        }
+        } */
         if(event->location_gate_available) {
             furi_string_cat_printf(parsed_data, "Gate: %d\n", event->location_gate);
         }
         if(event->device_available) {
-            furi_string_cat_printf(parsed_data, "Device: %d\n", event->device);
+            if(event->service_provider == 2) {
+                furi_string_cat_printf(parsed_data, "Device: %d\n", event->device & 0xFF);
+            } else {
+                furi_string_cat_printf(parsed_data, "Device: %d\n", event->device);
+            }
         }
         if(event->mission_available) {
             furi_string_cat_printf(parsed_data, "Mission: %d\n", event->mission);
@@ -574,7 +610,11 @@ void show_contract_info(NavigoCardContract* contract, FuriString* parsed_data) {
     furi_string_cat_printf(
         parsed_data, "Sales Agent: %s\n", get_service_provider(contract->sale_agent));
     furi_string_cat_printf(parsed_data, "Sales Terminal: %d\n", contract->sale_device);
-    furi_string_cat_printf(parsed_data, "Status: %d\n", contract->status);
+    if(contract->status == 1) {
+        furi_string_cat_printf(parsed_data, "Status: OK\n");
+    } else {
+        furi_string_cat_printf(parsed_data, "Status: Unknown (%d)\n", contract->status);
+    }
     furi_string_cat_printf(parsed_data, "Authenticity Code: %d\n", contract->authenticator);
 }
 
@@ -614,15 +654,31 @@ void update_page_info(void* context, FuriString* parsed_data) {
         furi_string_cat_printf(parsed_data, "\e#Contract 2:\n");
         show_contract_info(&ctx->card->contracts[1], parsed_data);
     } else if(ctx->page_id == 2) {
+        furi_string_cat_printf(
+            parsed_data,
+            "\e#%s %u:\n",
+            get_navigo_type(ctx->card->holder.card_status),
+            ctx->card->card_number);
+        furi_string_cat_printf(parsed_data, "\e#Contract 3:\n");
+        show_contract_info(&ctx->card->contracts[2], parsed_data);
+    } else if(ctx->page_id == 3) {
+        furi_string_cat_printf(
+            parsed_data,
+            "\e#%s %u:\n",
+            get_navigo_type(ctx->card->holder.card_status),
+            ctx->card->card_number);
+        furi_string_cat_printf(parsed_data, "\e#Contract 4:\n");
+        show_contract_info(&ctx->card->contracts[3], parsed_data);
+    } else if(ctx->page_id == 4) {
         furi_string_cat_printf(parsed_data, "\e#Environment:\n");
         show_environment_info(&ctx->card->environment, parsed_data);
-    } else if(ctx->page_id == 3) {
+    } else if(ctx->page_id == 5) {
         furi_string_cat_printf(parsed_data, "\e#Event 1:\n");
         show_event_info(&ctx->card->events[0], ctx->card->contracts, parsed_data);
-    } else if(ctx->page_id == 4) {
+    } else if(ctx->page_id == 6) {
         furi_string_cat_printf(parsed_data, "\e#Event 2:\n");
         show_event_info(&ctx->card->events[1], ctx->card->contracts, parsed_data);
-    } else if(ctx->page_id == 5) {
+    } else if(ctx->page_id == 7) {
         furi_string_cat_printf(parsed_data, "\e#Event 3:\n");
         show_event_info(&ctx->card->events[2], ctx->card->contracts, parsed_data);
     }
@@ -658,6 +714,12 @@ void metroflip_back_button_widget_callback(GuiButtonType result, InputType type,
         FURI_LOG_I(TAG, "Page ID: %d -> %d", ctx->page_id, ctx->page_id - 1);
 
         if(ctx->page_id > 0) {
+            if(ctx->page_id == 4 && ctx->card->contracts[3].present == 0) {
+                ctx->page_id -= 1;
+            }
+            if(ctx->page_id == 3 && ctx->card->contracts[2].present == 0) {
+                ctx->page_id -= 1;
+            }
             if(ctx->page_id == 2 && ctx->card->contracts[1].present == 0) {
                 ctx->page_id -= 1;
             }
@@ -695,8 +757,14 @@ void metroflip_next_button_widget_callback(GuiButtonType result, InputType type,
 
         FURI_LOG_I(TAG, "Page ID: %d -> %d", ctx->page_id, ctx->page_id + 1);
 
-        if(ctx->page_id < 5) {
+        if(ctx->page_id < 7) {
             if(ctx->page_id == 0 && ctx->card->contracts[1].present == 0) {
+                ctx->page_id += 1;
+            }
+            if(ctx->page_id == 1 && ctx->card->contracts[2].present == 0) {
+                ctx->page_id += 1;
+            }
+            if(ctx->page_id == 2 && ctx->card->contracts[3].present == 0) {
                 ctx->page_id += 1;
             }
             ctx->page_id += 1;
@@ -796,20 +864,34 @@ static NfcCommand metroflip_scene_navigo_poller_callback(NfcGenericEvent event, 
                 }
                 icc_bit_representation[response_length * 8] = '\0';
 
-                FURI_LOG_I(TAG, "ICC bit representation: %s", icc_bit_representation);
-
                 int start = 128, end = 159;
                 card->card_number = bit_slice_to_dec(icc_bit_representation, start, end);
 
-                // Select app for contracts
+                // Select app for ticketing
                 error = select_new_app(
-                    0x20, 0x20, tx_buffer, rx_buffer, iso14443_4b_poller, app, &stage);
+                    0x20, 0x00, tx_buffer, rx_buffer, iso14443_4b_poller, app, &stage);
                 if(error != 0) {
+                    FURI_LOG_E(TAG, "Failed to select app for ticketing");
                     break;
                 }
 
                 // Check the response after selecting app
                 if(check_response(rx_buffer, app, &stage, &response_length) != 0) {
+                    FURI_LOG_E(TAG, "Failed to check response after selecting app for ticketing");
+                    break;
+                }
+
+                // Select app for contracts
+                error = select_new_app(
+                    0x20, 0x20, tx_buffer, rx_buffer, iso14443_4b_poller, app, &stage);
+                if(error != 0) {
+                    FURI_LOG_E(TAG, "Failed to select app for contracts");
+                    break;
+                }
+
+                // Check the response after selecting app
+                if(check_response(rx_buffer, app, &stage, &response_length) != 0) {
+                    FURI_LOG_E(TAG, "Failed to check response after selecting app for contracts");
                     break;
                 }
 
@@ -821,15 +903,17 @@ static NfcCommand metroflip_scene_navigo_poller_callback(NfcGenericEvent event, 
                 }
 
                 // Now send the read command for contracts
-                for(size_t i = 1; i < 3; i++) {
+                for(size_t i = 1; i < 5; i++) {
                     error =
                         read_new_file(i, tx_buffer, rx_buffer, iso14443_4b_poller, app, &stage);
                     if(error != 0) {
+                        FURI_LOG_E(TAG, "Failed to read contract %d", i);
                         break;
                     }
 
                     // Check the response after reading the file
                     if(check_response(rx_buffer, app, &stage, &response_length) != 0) {
+                        FURI_LOG_E(TAG, "Failed to check response after reading contract %d", i);
                         break;
                     }
 
@@ -1157,30 +1241,18 @@ static NfcCommand metroflip_scene_navigo_poller_callback(NfcGenericEvent event, 
                 }
                 // FURI_LOG_I(TAG, "Counter bit_representation: %s", counter_bit_representation);
 
-                // Ticket count (contract 1)
-                start = 0;
-                end = 5;
-                card->contracts[0].counter.count =
-                    bit_slice_to_dec(counter_bit_representation, start, end);
+                // Ticket counts (contracts 1-4)
+                for(int i = 0; i < 4; i++) {
+                    start = 0;
+                    end = 5;
+                    card->contracts[i].counter.count =
+                        bit_slice_to_dec(counter_bit_representation, 24 * i + start, 24 * i + end);
 
-                start = 6;
-                end = 23;
-                card->contracts[0].counter.relative_first_stamp_15mn =
-                    bit_slice_to_dec(counter_bit_representation, start, end);
-
-                // Ticket count (contract 2)
-                start = 24;
-                end = 29;
-                card->contracts[1].counter.count =
-                    bit_slice_to_dec(counter_bit_representation, start, end);
-
-                start = 30;
-                end = 47;
-                card->contracts[1].counter.relative_first_stamp_15mn =
-                    bit_slice_to_dec(counter_bit_representation, start, end);
-
-                // FURI_LOG_I(TAG, "Ticket count 1: %d", card->ticket_counts[0]);
-                // FURI_LOG_I(TAG, "Ticket count 2: %d", card->ticket_counts[1]);
+                    start = 6;
+                    end = 23;
+                    card->contracts[i].counter.relative_first_stamp_15mn =
+                        bit_slice_to_dec(counter_bit_representation, 24 * i + start, 24 * i + end);
+                }
 
                 // Select app for events
                 error = select_new_app(
@@ -1301,9 +1373,10 @@ static NfcCommand metroflip_scene_navigo_poller_callback(NfcGenericEvent event, 
                         end = positionOffset +
                               get_calypso_node_size(event_key, NavigoEventStructure) - 1;
                         int decimal_value = bit_slice_to_dec(event_bit_representation, start, end);
-                        card->events[i - 1].device = decimal_value >> 8;
-                        card->events[i - 1].door = card->events[i - 1].device / 2 + 1;
-                        card->events[i - 1].side = card->events[i - 1].device % 2;
+                        card->events[i - 1].device = decimal_value;
+                        int bus_device = decimal_value >> 8;
+                        card->events[i - 1].door = bus_device / 2 + 1;
+                        card->events[i - 1].side = bus_device % 2;
                         card->events[i - 1].device_available = true;
                     }
 
