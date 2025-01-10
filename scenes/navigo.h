@@ -1,7 +1,7 @@
 #include <gui/gui.h>
 #include <gui/modules/widget_elements/widget_element.h>
 #include "../api/calypso/calypso_util.h"
-#include "../api/calypso/cards/navigo.h"
+#include "../api/calypso/cards/intercode.h"
 #include <datetime.h>
 #include <stdbool.h>
 

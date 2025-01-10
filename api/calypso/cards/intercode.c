@@ -1,7 +1,7 @@
 #include <stdlib.h>
-#include "navigo.h"
+#include "intercode.h"
 
-CalypsoApp* get_navigo_contract_structure() {
+CalypsoApp* get_intercode_contract_structure() {
     CalypsoApp* NavigoContractStructure = malloc(sizeof(CalypsoApp));
     if(!NavigoContractStructure) {
         return NULL;
@@ -246,7 +246,7 @@ CalypsoApp* get_navigo_contract_structure() {
     return NavigoContractStructure;
 }
 
-CalypsoApp* get_navigo_event_structure() {
+CalypsoApp* get_intercode_event_structure() {
     CalypsoApp* NavigoEventStructure = malloc(sizeof(CalypsoApp));
     if(!NavigoEventStructure) {
         return NULL;

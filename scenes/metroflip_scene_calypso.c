@@ -7,7 +7,7 @@
 
 #include <nfc/protocols/iso14443_4b/iso14443_4b_poller.h>
 
-#define TAG "Metroflip:Scene:Navigo"
+#define TAG "Metroflip:Scene:Calypso"
 
 int select_new_app(
     int new_app_directory,
@@ -896,7 +896,7 @@ static NfcCommand metroflip_scene_navigo_poller_callback(NfcGenericEvent event, 
                 }
 
                 // Prepare calypso structure
-                CalypsoApp* NavigoContractStructure = get_navigo_contract_structure();
+                CalypsoApp* NavigoContractStructure = get_intercode_contract_structure();
                 if(!NavigoContractStructure) {
                     FURI_LOG_E(TAG, "Failed to load Navigo Contract structure");
                     break;
@@ -1267,7 +1267,7 @@ static NfcCommand metroflip_scene_navigo_poller_callback(NfcGenericEvent event, 
                 }
 
                 // Load the calypso structure for events
-                CalypsoApp* NavigoEventStructure = get_navigo_event_structure();
+                CalypsoApp* NavigoEventStructure = get_intercode_event_structure();
                 if(!NavigoEventStructure) {
                     FURI_LOG_E(TAG, "Failed to load Navigo Event structure");
                     break;
