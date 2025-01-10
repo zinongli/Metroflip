@@ -688,7 +688,7 @@ void update_widget_elements(void* context) {
     Metroflip* app = context;
     NavigoContext* ctx = app->navigo_context;
     Widget* widget = app->widget;
-    if(ctx->page_id < 5) {
+    if(ctx->page_id < 7) {
         widget_add_button_element(
             widget, GuiButtonTypeRight, "Next", metroflip_next_button_widget_callback, context);
     } else {
