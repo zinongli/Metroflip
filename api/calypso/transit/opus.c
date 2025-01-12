@@ -41,12 +41,13 @@ const char* get_opus_transport_line(int route_number) {
     if(OPUS_LINES_LIST[route_number]) {
         return OPUS_LINES_LIST[route_number];
     } else {
-        char* line = malloc(4 * sizeof(char));
-        if(!line) {
+        // Return hex
+        char* route_str = malloc(9 * sizeof(char));
+        if(!route_str) {
             return "Unknown";
         }
-        snprintf(line, 4, "%d", route_number);
-        return line;
+        snprintf(route_str, 9, "0x%02X", route_number);
+        return route_str;
     }
 }
 
