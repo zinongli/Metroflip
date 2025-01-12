@@ -1316,6 +1316,10 @@ static NfcCommand metroflip_scene_navigo_poller_callback(NfcGenericEvent event, 
                         card->opus->events[i - 1].date.minute = ((decimal_value * 60) % 3600) / 60;
                         card->opus->events[i - 1].date.second = ((decimal_value * 60) % 3600) % 60;
                     }
+
+                    // Free the calypso structure
+                    free_calypso_structure(OpusEventStructure);
+
                     break;
                 }
                 default:
@@ -1422,6 +1426,7 @@ void metroflip_scene_navigo_on_exit(void* context) {
     if(app->calypso_context) {
         CalypsoContext* ctx = app->calypso_context;
         free(ctx->card->navigo);
+        free(ctx->card->opus);
         free(ctx->card);
         furi_mutex_free(ctx->mutex);
         free(ctx);
