@@ -18,6 +18,7 @@ void metroflip_scene_credits_on_enter(void* context) {
     furi_string_cat_printf(str, "\e#Parser Credits:\n\n");
     furi_string_cat_printf(str, "Rav-Kav Parser: luu176\n\n");
     furi_string_cat_printf(str, "Navigo Parser: \n luu176, DocSystem \n\n");
+    furi_string_cat_printf(str, "Opus Parser: DocSystem\n\n");
     furi_string_cat_printf(str, "Metromoney Parser:\n Leptopt1los\n\n");
     furi_string_cat_printf(str, "Bip! Parser:\n rbasoalto, gornekich\n\n");
     furi_string_cat_printf(str, "CharlieCard Parser:\n zacharyweiss\n\n");

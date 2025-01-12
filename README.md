@@ -67,18 +67,19 @@ This is a list of metro cards and transit systems that need support or have part
 
 ## ✅ Supported Cards
 
-| **Card / Agency** | **Country / City**                  | **Card Type**     |
-|--------------------|-------------------------------------|-------------------|
-| **Bip!**          | 🇨🇱 Santiago de Chile, Chile        | Mifare Classic    |
-| **Charliecard**    | 🇺🇸 Boston, MA, USA                 | Mifare Classic    |
-| **Clipper**        | 🇺🇸 San Francisco, CA, USA          | Mifare DESFire    |
-| **ITSO**           | 🇬🇧 United Kingdom                 | Mifare DESFire    |
-| **Metromoney**     | 🇬🇪 Tbilisi, Georgia                | Mifare Classic    |
-| **myki**           | 🇦🇺 Melbourne (and surrounds), VIC, Australia | Mifare DESFire |
-| **Navigo**         | 🇫🇷 Paris, France                   | Calypso           |
-| **Opal**           | 🇦🇺 Sydney (and surrounds), NSW, Australia | Mifare DESFire |
-| **Rav-Kav**        | 🇮🇱 Israel                          | Calypso           |
-| **Troika**         | 🇷🇺 Moscow, Russia                  | Mifare Classic    |
+| **Card / Agency**  | **Country / City**                          | **Card Type**     |
+|--------------------|---------------------------------------------|-------------------|
+| **Bip!**           | 🇨🇱 Santiago de Chile, Chile                  | Mifare Classic    |
+| **Charliecard**    | 🇺🇸 Boston, MA, USA                           | Mifare Classic    |
+| **Clipper**        | 🇺🇸 San Francisco, CA, USA                    | Mifare DESFire    |
+| **ITSO**           | 🇬🇧 United Kingdom                            | Mifare DESFire    |
+| **Metromoney**     | 🇬🇪 Tbilisi, Georgia                          | Mifare Classic    |
+| **myki**           | 🇦🇺 Melbourne (and surrounds), VIC, Australia | Mifare DESFire    |
+| **Navigo**         | 🇫🇷 Paris, France                             | Calypso           |
+| **Opus**           | 🇨🇦 Montreal, QC, Canada                      | Calypso           |
+| **Opal**           | 🇦🇺 Sydney (and surrounds), NSW, Australia    | Mifare DESFire    |
+| **Rav-Kav**        | 🇮🇱 Israel                                    | Calypso           |
+| **Troika**         | 🇷🇺 Moscow, Russia                            | Mifare Classic    |
 
 
 
@@ -89,6 +90,7 @@ This is a list of metro cards and transit systems that need support or have part
 - **Charliecard Parser**: [@zacharyweiss](https://github.com/zacharyweiss)
 - **Rav-Kav Parser**: [@luu176](https://github.com/luu176)
 - **Navigo Parser**: [@luu176](https://github.com/luu176), [@DocSystem](https://github.com/DocSystem)
+- **Opus Parser**: [@DocSystem](https://github.com/DocSystem)
 - **Metromoney Parser**: [@Leptopt1los](https://github.com/Leptopt1los)
 - **Bip! Parser**: [@rbasoalto](https://github.com/rbasoalto), [@gornekich](https://github.com/gornekich)
 - **Clipper Parser**: [@ke6jjj](https://github.com/ke6jjj)
