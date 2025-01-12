@@ -34,23 +34,46 @@ CalypsoElement make_calypso_bitmap_element(const char* key, int size, CalypsoEle
     return bitmap_element;
 }
 
+CalypsoElement
+    make_calypso_container_element(const char* key, int size, CalypsoElement* elements) {
+    CalypsoElement container_element = {};
+
+    container_element.type = CALYPSO_ELEMENT_TYPE_CONTAINER;
+    container_element.container = malloc(sizeof(CalypsoContainerElement));
+    container_element.container->size = size;
+    container_element.container->elements = malloc(size * sizeof(CalypsoElement));
+    for(int i = 0; i < size; i++) {
+        container_element.container->elements[i] = elements[i];
+    }
+    strncpy(container_element.container->key, key, 36);
+
+    return container_element;
+}
+
 void free_calypso_element(CalypsoElement* element) {
     if(element->type == CALYPSO_ELEMENT_TYPE_FINAL) {
         free(element->final);
-    } else {
+    } else if(element->type == CALYPSO_ELEMENT_TYPE_BITMAP) {
         for(int i = 0; i < element->bitmap->size; i++) {
             free_calypso_element(&element->bitmap->elements[i]);
         }
         free(element->bitmap->elements);
         free(element->bitmap);
+    } else if(element->type == CALYPSO_ELEMENT_TYPE_CONTAINER) {
+        for(int i = 0; i < element->container->size; i++) {
+            free_calypso_element(&element->container->elements[i]);
+        }
+        free(element->container->elements);
+        free(element->container);
     }
 }
 
 void free_calypso_structure(CalypsoApp* structure) {
-    for(int i = 0; i < structure->elements_size; i++) {
-        free_calypso_element(&structure->elements[i]);
+    for(int i = 0; i < structure->container->size; i++) {
+        free_calypso_element(&structure->container->elements[i]);
     }
-    free(structure->elements);
+    free(structure->container->elements);
+    free(structure->container);
     free(structure);
 }
 
@@ -118,25 +141,25 @@ bool is_calypso_subnode_present(
 
 bool is_calypso_node_present(const char* binary_string, const char* key, CalypsoApp* structure) {
     int offset = 0;
-    for(int i = 0; i < structure->elements_size; i++) {
-        if(structure->elements[i].type == CALYPSO_ELEMENT_TYPE_FINAL) {
-            if(strcmp(structure->elements[i].final->key, key) == 0) {
+    for(int i = 0; i < structure->container->size; i++) {
+        if(structure->container->elements[i].type == CALYPSO_ELEMENT_TYPE_FINAL) {
+            if(strcmp(structure->container->elements[i].final->key, key) == 0) {
                 return true;
             }
-            offset += structure->elements[i].final->size;
+            offset += structure->container->elements[i].final->size;
         } else {
-            if(strcmp(structure->elements[i].bitmap->key, key) == 0) {
+            if(strcmp(structure->container->elements[i].bitmap->key, key) == 0) {
                 return true;
             }
-            int sub_binary_string_size = structure->elements[i].bitmap->size;
+            int sub_binary_string_size = structure->container->elements[i].bitmap->size;
             char bit_slice[sub_binary_string_size + 1];
             strncpy(bit_slice, binary_string, sub_binary_string_size);
             bit_slice[sub_binary_string_size] = '\0';
             if(is_calypso_subnode_present(
-                   binary_string + offset, key, structure->elements[i].bitmap)) {
+                   binary_string + offset, key, structure->container->elements[i].bitmap)) {
                 return true;
             }
-            offset += structure->elements[i].bitmap->size;
+            offset += structure->container->elements[i].bitmap->size;
         }
     }
     return false;
@@ -145,68 +168,72 @@ bool is_calypso_node_present(const char* binary_string, const char* key, Calypso
 int get_calypso_subnode_offset(
     const char* binary_string,
     const char* key,
-    CalypsoBitmapElement* bitmap,
+    CalypsoElement* elem,
     bool* found) {
-    char bit_slice[bitmap->size + 1];
-    strncpy(bit_slice, binary_string, bitmap->size);
-    bit_slice[bitmap->size] = '\0';
+    // recursive function to get the offset of a subnode in a calypso binary string
+    if(elem->type == CALYPSO_ELEMENT_TYPE_FINAL) {
+        if(strcmp(elem->final->key, key) == 0) {
+            *found = true;
+            return 0;
+        }
+        return elem->final->size;
+    } else if(elem->type == CALYPSO_ELEMENT_TYPE_BITMAP) {
+        CalypsoBitmapElement* bitmap = elem->bitmap;
 
-    int count = 0;
-    int* positions = get_bit_positions(bit_slice, &count);
+        char bit_slice[bitmap->size + 1];
+        strncpy(bit_slice, binary_string, bitmap->size);
+        bit_slice[bitmap->size] = '\0';
 
-    int count_offset = bitmap->size;
-    for(int i = 0; i < count; i++) {
-        CalypsoElement element = bitmap->elements[positions[i]];
-        if(element.type == CALYPSO_ELEMENT_TYPE_FINAL) {
-            if(strcmp(element.final->key, key) == 0) {
+        int count = 0;
+        int* positions = get_bit_positions(bit_slice, &count);
+        bool f = false;
+
+        int count_offset = bitmap->size;
+        for(int i = 0; i < count; i++) {
+            CalypsoElement element = bitmap->elements[positions[i]];
+            count_offset +=
+                get_calypso_subnode_offset(binary_string + count_offset, key, &element, &f);
+            if(f) {
                 *found = true;
-                free(positions);
-                return count_offset;
-            }
-            count_offset += element.final->size;
-        } else {
-            if(strcmp(element.bitmap->key, key) == 0) {
-                *found = true;
-                free(positions);
-                return count_offset;
-            }
-            count_offset += get_calypso_subnode_offset(
-                binary_string + count_offset, key, element.bitmap, found);
-            if(*found) {
                 free(positions);
                 return count_offset;
             }
         }
+
+        free(positions);
+        return count_offset;
+    } else if(elem->type == CALYPSO_ELEMENT_TYPE_CONTAINER) {
+        // same as bitmap but without bitmap at the beginning
+        CalypsoContainerElement* container = elem->container;
+
+        int count_offset = 0;
+        bool f = false;
+        for(int i = 0; i < container->size; i++) {
+            CalypsoElement element = container->elements[i];
+            count_offset +=
+                get_calypso_subnode_offset(binary_string + count_offset, key, &element, &f);
+            if(f) {
+                *found = true;
+                return count_offset;
+            }
+        }
+
+        return count_offset;
     }
-    free(positions);
-    return count_offset;
+    return 0;
 }
 
 int get_calypso_node_offset(const char* binary_string, const char* key, CalypsoApp* structure) {
-    int count = 0;
-    bool found = false;
-    for(int i = 0; i < structure->elements_size; i++) {
-        if(structure->elements[i].type == CALYPSO_ELEMENT_TYPE_FINAL) {
-            if(strcmp(structure->elements[i].final->key, key) == 0) {
-                return count;
-            }
-            count += structure->elements[i].final->size;
-        } else {
-            if(strcmp(structure->elements[i].bitmap->key, key) == 0) {
-                return count;
-            }
-            int sub_binary_string_size = structure->elements[i].bitmap->size;
-            char bit_slice[sub_binary_string_size + 1];
-            strncpy(bit_slice, binary_string + count, sub_binary_string_size);
-            bit_slice[sub_binary_string_size] = '\0';
-            count += get_calypso_subnode_offset(
-                binary_string + count, key, structure->elements[i].bitmap, &found);
-            if(found) {
-                return count;
-            }
-        }
+    CalypsoElement* element = malloc(sizeof(CalypsoElement));
+    element->type = CALYPSO_ELEMENT_TYPE_CONTAINER;
+    element->container = structure->container;
+    bool found;
+    int offset = get_calypso_subnode_offset(binary_string, key, element, &found);
+    if(!found) {
+        FURI_LOG_E("Metroflip:Scene:Calypso", "Key %s not found in calypso structure", key);
     }
-    return 0;
+    free(element);
+    return offset;
 }
 
 int get_calypso_subnode_size(const char* key, CalypsoElement* element) {
@@ -214,7 +241,7 @@ int get_calypso_subnode_size(const char* key, CalypsoElement* element) {
         if(strcmp(element->final->key, key) == 0) {
             return element->final->size;
         }
-    } else {
+    } else if(element->type == CALYPSO_ELEMENT_TYPE_BITMAP) {
         if(strcmp(element->bitmap->key, key) == 0) {
             return element->bitmap->size;
         }
@@ -224,28 +251,81 @@ int get_calypso_subnode_size(const char* key, CalypsoElement* element) {
                 return size;
             }
         }
+    } else if(element->type == CALYPSO_ELEMENT_TYPE_CONTAINER) {
+        if(strcmp(element->container->key, key) == 0) {
+            return element->container->size;
+        }
+        for(int i = 0; i < element->container->size; i++) {
+            int size = get_calypso_subnode_size(key, &element->container->elements[i]);
+            if(size != 0) {
+                return size;
+            }
+        }
     }
     return 0;
 }
 
 int get_calypso_node_size(const char* key, CalypsoApp* structure) {
-    for(int i = 0; i < structure->elements_size; i++) {
-        if(structure->elements[i].type == CALYPSO_ELEMENT_TYPE_FINAL) {
-            if(strcmp(structure->elements[i].final->key, key) == 0) {
-                return structure->elements[i].final->size;
-            }
-        } else {
-            if(strcmp(structure->elements[i].bitmap->key, key) == 0) {
-                return structure->elements[i].bitmap->size;
-            }
-            for(int j = 0; j < structure->elements[i].bitmap->size; j++) {
-                int size =
-                    get_calypso_subnode_size(key, &structure->elements[i].bitmap->elements[j]);
-                if(size != 0) {
-                    return size;
-                }
-            }
+    CalypsoElement* element = malloc(sizeof(CalypsoElement));
+    element->type = CALYPSO_ELEMENT_TYPE_CONTAINER;
+    element->container = structure->container;
+    int count = get_calypso_subnode_size(key, element);
+    free(element);
+    return count;
+}
+
+CALYPSO_CARD_TYPE guess_card_type(int country_num, int network_num) {
+    switch(country_num) {
+    case 250:
+        switch(network_num) {
+        case 901:
+            return CALYPSO_CARD_NAVIGO;
+        default:
+            return CALYPSO_CARD_UNKNOWN;
         }
+    case 124:
+        switch(network_num) {
+        case 1:
+            return CALYPSO_CARD_OPUS;
+        default:
+            return CALYPSO_CARD_UNKNOWN;
+        }
+    default:
+        return CALYPSO_CARD_UNKNOWN;
     }
-    return 0;
+}
+
+const char* get_country_string(int country_num) {
+    switch(country_num) {
+    case 250:
+        return "France";
+    case 124:
+        return "Canada";
+    default: {
+        char* country = malloc(4 * sizeof(char));
+        snprintf(country, 4, "%d", country_num);
+        return country;
+    }
+    }
+}
+
+const char* get_network_string(int country_num, int network_num) {
+    switch(country_num) {
+    case 250:
+        switch(network_num) {
+        case 901:
+            return "IDFM";
+        default:
+            return "Unknown";
+        }
+    case 124:
+        switch(network_num) {
+        case 1:
+            return "Opus";
+        default:
+            return "Unknown";
+        }
+    default:
+        return "Unknown";
+    }
 }

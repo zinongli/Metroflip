@@ -1,6 +1,8 @@
 #include <datetime.h>
 #include <stdbool.h>
-#include <furi.h>
+
+#ifndef NAVIGO_I_H
+#define NAVIGO_I_H
 
 typedef struct {
     int transport_type;
@@ -70,12 +72,6 @@ typedef struct {
     NavigoCardHolder holder;
     NavigoCardContract contracts[4];
     NavigoCardEvent events[3];
-    unsigned int card_number;
 } NavigoCardData;
 
-typedef struct {
-    NavigoCardData* card;
-    int page_id;
-    // mutex
-    FuriMutex* mutex;
-} NavigoContext;
+#endif // NAVIGO_I_H
