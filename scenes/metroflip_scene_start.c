@@ -35,6 +35,9 @@ void metroflip_scene_start_on_enter(void* context) {
         app);
 
     submenu_add_item(
+        submenu, "OV-Chipkaart", MetroflipSceneOVC, metroflip_scene_start_submenu_callback, app);
+
+    submenu_add_item(
         submenu, "myki", MetroflipSceneMyki, metroflip_scene_start_submenu_callback, app);
 
     submenu_add_item(

@@ -19,22 +19,12 @@
 #define MAX_BLOCKS          64
 #define MAX_DATE_ITERATIONS 366
 
-uint8_t sector_num = 0;
+uint8_t smartrider_sector_num = 0;
 
 static const uint8_t STANDARD_KEYS[3][6] = {
     {0x20, 0x31, 0xD1, 0xE5, 0x7A, 0x3B},
     {0x4C, 0xA6, 0x02, 0x9F, 0x94, 0x73},
     {0x19, 0x19, 0x53, 0x98, 0xE3, 0x2F}};
-
-void uid_to_string(const uint8_t* uid, size_t uid_len, char* uid_str, size_t max_len) {
-    size_t pos = 0;
-
-    for(size_t i = 0; i < uid_len && pos + 2 < max_len; ++i) {
-        pos += snprintf(&uid_str[pos], max_len - pos, "%02X", uid[i]);
-    }
-
-    uid_str[pos] = '\0'; // Null-terminate the string
-}
 
 typedef struct {
     uint32_t timestamp;
@@ -258,35 +248,6 @@ static bool smartrider_parse(const NfcDevice* device, FuriString* parsed_data) {
 
 // made with love by jay candel <3
 
-void handle_keyfile_case(
-    Metroflip* app,
-    const char* message_title,
-    const char* log_message,
-    FuriString* parsed_data) {
-    FURI_LOG_I(TAG, log_message);
-    dolphin_deed(DolphinDeedNfcReadSuccess);
-    furi_string_reset(parsed_data);
-
-    furi_string_printf(
-        parsed_data,
-        "\e#%s\n\n"
-        "To read a SmartRider, \nyou need to read \nit in NFC "
-        "app on \nthe flipper, and it\nneeds to show \n32/32 keys and\n"
-        "16/16 sectors read\n"
-        "Here is a guide to \nfollow to read \nMIFARE Classic:\n"
-        "https://flipper.wiki/mifareclassic/\n"
-        "Once completed, Scan again",
-        message_title);
-
-    widget_add_text_scroll_element(app->widget, 0, 0, 128, 64, furi_string_get_cstr(parsed_data));
-
-    widget_add_button_element(
-        app->widget, GuiButtonTypeRight, "Exit", metroflip_exit_widget_callback, app);
-
-    view_dispatcher_switch_to_view(app->view_dispatcher, MetroflipViewWidget);
-    metroflip_app_blink_stop(app);
-}
-
 static NfcCommand
     metroflip_scene_smartrider_poller_callback(NfcGenericEvent event, void* context) {
     furi_assert(context);
@@ -317,16 +278,21 @@ static NfcCommand
 
         char uid_str[uid_len * 2 + 1];
         uid_to_string(uid, uid_len, uid_str, sizeof(uid_str));
-        KeyfileManager manage = manage_keyfiles(uid_str);
+        uint64_t smartrider_key_mask_a_required = 12299; // 11000000001011
+        KeyfileManager manage = manage_keyfiles(
+            uid_str, uid, uid_len, app->mfc_key_cache, smartrider_key_mask_a_required, 0);
+
+        char card_type[] = "SmartRider";
 
         switch(manage) {
         case MISSING_KEYFILE:
-            handle_keyfile_case(app, "No keys found", "Missing keyfile", parsed_data);
+            handle_keyfile_case(app, "No keys found", "Missing keyfile", parsed_data, card_type);
             command = NfcCommandStop;
             break;
 
         case INCOMPLETE_KEYFILE:
-            handle_keyfile_case(app, "Incomplete keyfile", "incomplete keyfile", parsed_data);
+            handle_keyfile_case(
+                app, "Incomplete keyfile", "incomplete keyfile", parsed_data, card_type);
             command = NfcCommandStop;
             break;
 
@@ -336,11 +302,12 @@ static NfcCommand
             break;
         }
     } else if(mfc_event->type == MfClassicPollerEventTypeRequestReadSector) {
-        FURI_LOG_I(TAG, "sec_num: %d", sector_num);
+        FURI_LOG_I(TAG, "sec_num: %d", smartrider_sector_num);
         MfClassicKey key = {};
         MfClassicKeyType key_type = MfClassicKeyTypeA;
-        if(mf_classic_key_cache_get_next_key(app->mfc_key_cache, &sector_num, &key, &key_type)) {
-            mfc_event->data->read_sector_request_data.sector_num = sector_num;
+        if(mf_classic_key_cache_get_next_key(
+               app->mfc_key_cache, &smartrider_sector_num, &key, &key_type)) {
+            mfc_event->data->read_sector_request_data.sector_num = smartrider_sector_num;
             mfc_event->data->read_sector_request_data.key = key;
             mfc_event->data->read_sector_request_data.key_type = key_type;
             mfc_event->data->read_sector_request_data.key_provided = true;

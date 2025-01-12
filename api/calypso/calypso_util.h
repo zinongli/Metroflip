@@ -81,7 +81,7 @@ CalypsoElement make_calypso_container_element(const char* key, int size, Calypso
 
 void free_calypso_structure(CalypsoApp* structure);
 
-int* get_bit_positions(const char* binary_string, int* count);
+int* get_bitmap_positions(const char* binary_string, int* count);
 
 int is_bit_present(int* positions, int count, int bit);
 

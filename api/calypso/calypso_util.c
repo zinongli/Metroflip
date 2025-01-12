@@ -77,7 +77,7 @@ void free_calypso_structure(CalypsoApp* structure) {
     free(structure);
 }
 
-int* get_bit_positions(const char* binary_string, int* count) {
+int* get_bitmap_positions(const char* binary_string, int* count) {
     int length = strlen(binary_string);
     int* positions = malloc(length * sizeof(int));
     int pos_index = 0;
@@ -109,7 +109,7 @@ bool is_calypso_subnode_present(
     strncpy(bit_slice, binary_string, bitmap->size);
     bit_slice[bitmap->size] = '\0';
     int count = 0;
-    int* positions = get_bit_positions(bit_slice, &count);
+    int* positions = get_bitmap_positions(bit_slice, &count);
     int offset = bitmap->size;
     for(int i = 0; i < count; i++) {
         CalypsoElement* element = &bitmap->elements[positions[i]];
@@ -185,7 +185,7 @@ int get_calypso_subnode_offset(
         bit_slice[bitmap->size] = '\0';
 
         int count = 0;
-        int* positions = get_bit_positions(bit_slice, &count);
+        int* positions = get_bitmap_positions(bit_slice, &count);
         bool f = false;
 
         int count_offset = bitmap->size;

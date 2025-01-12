@@ -1,6 +1,12 @@
 
 #include "metroflip_i.h"
 
+struct MfClassicKeyCache {
+    MfClassicDeviceKeys keys;
+    MfClassicKeyType current_key_type;
+    uint8_t current_sector;
+};
+
 static bool metroflip_custom_event_callback(void* context, uint32_t event) {
     furi_assert(context);
     Metroflip* app = context;
@@ -192,11 +198,15 @@ uint8_t select_app[8] = {0x94, 0xA4, 0x00, 0x00, 0x02, 0x20, 0x00, 0x00};
 
 uint8_t apdu_success[2] = {0x90, 0x00};
 
-int bit_slice_to_dec(const char* bit_representation, int start, int end) {
-    char bit_slice[end - start + 2];
+char* bit_slice(const char* bit_representation, int start, int end) {
+    static char bit_slice[32 * 8 + 1];
     strncpy(bit_slice, bit_representation + start, end - start + 1);
     bit_slice[end - start + 1] = '\0';
-    return binary_to_decimal(bit_slice);
+    return bit_slice;
+}
+
+int bit_slice_to_dec(const char* bit_representation, int start, int end) {
+    return binary_to_decimal(bit_slice(bit_representation, start, end));
 }
 
 extern int32_t metroflip(void* p) {
@@ -216,16 +226,24 @@ void dec_to_bits(char dec_representation, char* bit_representation) {
     }
 }
 
-KeyfileManager manage_keyfiles(char uid_str[]) {
+KeyfileManager manage_keyfiles(
+    char uid_str[],
+    const uint8_t* uid,
+    size_t uid_len,
+    MfClassicKeyCache* instance,
+    uint64_t key_mask_a_required,
+    uint64_t key_mask_b_required) {
     Storage* storage = furi_record_open(RECORD_STORAGE);
     File* source = storage_file_alloc(storage);
     char source_path[64];
+    UNUSED(key_mask_b_required);
 
     FURI_LOG_I("TAG", "%s", uid_str);
     size_t source_required_size =
         strlen("/ext/nfc/.cache/") + strlen(uid_str) + strlen(".keys") + 1;
     snprintf(source_path, source_required_size, "/ext/nfc/.cache/%s.keys", uid_str);
     bool cache_file = storage_file_open(source, source_path, FSAM_READ, FSOM_OPEN_EXISTING);
+
     /*-----------------Open assets cache file (if exists)------------*/
 
     File* dest = storage_file_alloc(storage);
@@ -234,7 +252,6 @@ KeyfileManager manage_keyfiles(char uid_str[]) {
         strlen("/ext/nfc/assets/.") + strlen(uid_str) + strlen(".keys") + 1;
     snprintf(dest_path, dest_required_size, "/ext/nfc/assets/.%s.keys", uid_str);
     bool dest_cache_file = storage_file_open(dest, dest_path, FSAM_READ, FSOM_OPEN_EXISTING);
-
     /*-----------------Check cache file------------*/
     if(!cache_file) {
         /*-----------------Check assets cache file------------*/
@@ -268,8 +285,15 @@ KeyfileManager manage_keyfiles(char uid_str[]) {
             return SUCCESSFUL;
         }
     } else {
+        FURI_LOG_I("TAG", "testing 1");
         size_t source_file_length = storage_file_size(source);
-        if(source_file_length > 1216) {
+        FURI_LOG_I("TAG", "testing 2");
+
+        storage_file_close(source);
+        mf_classic_key_cache_load(instance, uid, uid_len);
+
+        if(KEY_MASK_BIT_CHECK(key_mask_a_required, instance->keys.key_a_mask) &&
+           KEY_MASK_BIT_CHECK(key_mask_b_required, instance->keys.key_b_mask)) {
             FURI_LOG_I("TAG", "cache exist, creating assets cache if not already exists");
             storage_file_close(dest);
             storage_file_close(source);
@@ -295,4 +319,45 @@ KeyfileManager manage_keyfiles(char uid_str[]) {
     FURI_LOG_I("TAG", "proceeding to read");
     storage_file_close(source);
     storage_file_close(dest);
+}
+
+void uid_to_string(const uint8_t* uid, size_t uid_len, char* uid_str, size_t max_len) {
+    size_t pos = 0;
+
+    for(size_t i = 0; i < uid_len && pos + 2 < max_len; ++i) {
+        pos += snprintf(&uid_str[pos], max_len - pos, "%02X", uid[i]);
+    }
+
+    uid_str[pos] = '\0'; // Null-terminate the string
+}
+
+void handle_keyfile_case(
+    Metroflip* app,
+    const char* message_title,
+    const char* log_message,
+    FuriString* parsed_data,
+    char card_type[]) {
+    FURI_LOG_I(card_type, log_message);
+    dolphin_deed(DolphinDeedNfcReadSuccess);
+    furi_string_reset(parsed_data);
+
+    furi_string_printf(
+        parsed_data,
+        "\e#%s\n\n"
+        "To read a %s, \nyou need to read \nit in NFC "
+        "app on \nthe flipper, and it\nneeds to show \n32/32 keys and\n"
+        "16/16 sectors read\n"
+        "Here is a guide to \nfollow to read \nMIFARE Classic:\n"
+        "https://flipper.wiki/mifareclassic/\n"
+        "Once completed, Scan again\n\n",
+        message_title,
+        card_type);
+
+    widget_add_text_scroll_element(app->widget, 0, 0, 128, 64, furi_string_get_cstr(parsed_data));
+
+    widget_add_button_element(
+        app->widget, GuiButtonTypeRight, "Exit", metroflip_exit_widget_callback, app);
+
+    view_dispatcher_switch_to_view(app->view_dispatcher, MetroflipViewWidget);
+    metroflip_app_blink_stop(app);
 }
