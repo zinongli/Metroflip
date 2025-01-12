@@ -97,6 +97,6 @@ CALYPSO_CARD_TYPE guess_card_type(int country_num, int network_num);
 
 const char* get_country_string(int country_num);
 
-const char* get_network_string(int country_num, int network_num);
+const char* get_network_string(CALYPSO_CARD_TYPE card_type);
 
 #endif // CALYPSO_UTIL_H

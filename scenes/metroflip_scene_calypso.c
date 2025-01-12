@@ -99,6 +99,14 @@ int check_response(
 void update_page_info(void* context, FuriString* parsed_data) {
     Metroflip* app = context;
     CalypsoContext* ctx = app->calypso_context;
+    if(ctx->card->card_type != CALYPSO_CARD_NAVIGO && ctx->card->card_type != CALYPSO_CARD_OPUS) {
+        furi_string_cat_printf(
+            parsed_data,
+            "\e#%s %u:\n",
+            get_network_string(ctx->card->card_type),
+            ctx->card->card_number);
+        return;
+    }
     if(ctx->page_id == 0 || ctx->page_id == 1 || ctx->page_id == 2 || ctx->page_id == 3) {
         switch(ctx->card->card_type) {
         case CALYPSO_CARD_NAVIGO: {
@@ -165,6 +173,11 @@ void update_widget_elements(void* context) {
     Metroflip* app = context;
     CalypsoContext* ctx = app->calypso_context;
     Widget* widget = app->widget;
+    if(ctx->card->card_type != CALYPSO_CARD_NAVIGO && ctx->card->card_type != CALYPSO_CARD_OPUS) {
+        widget_add_button_element(
+            widget, GuiButtonTypeRight, "Exit", metroflip_next_button_widget_callback, context);
+        return;
+    }
     if(ctx->page_id < 7) {
         widget_add_button_element(
             widget, GuiButtonTypeRight, "Next", metroflip_next_button_widget_callback, context);
@@ -234,6 +247,13 @@ void metroflip_next_button_widget_callback(GuiButtonType result, InputType type,
 
         FURI_LOG_I(TAG, "Page ID: %d -> %d", ctx->page_id, ctx->page_id + 1);
 
+        if(ctx->card->card_type != CALYPSO_CARD_NAVIGO &&
+           ctx->card->card_type != CALYPSO_CARD_OPUS) {
+            ctx->page_id = 0;
+            scene_manager_search_and_switch_to_previous_scene(
+                app->scene_manager, MetroflipSceneStart);
+            return;
+        }
         if(ctx->page_id < 7) {
             if(ctx->page_id == 0 && ctx->card->contracts_count < 2) {
                 ctx->page_id += 1;
@@ -406,9 +426,7 @@ static NfcCommand metroflip_scene_navigo_poller_callback(NfcGenericEvent event, 
                     bit_slice_to_dec(environment_bit_representation, start, end) * 100 +
                     bit_slice_to_dec(environment_bit_representation, start + 4, end + 4) * 10 +
                     bit_slice_to_dec(environment_bit_representation, start + 8, end + 8);
-                if(guess_card_type(country_num, network_num) != CALYPSO_CARD_UNKNOWN) {
-                    card->card_type = guess_card_type(country_num, network_num);
-                }
+                card->card_type = guess_card_type(country_num, network_num);
                 switch(card->card_type) {
                 case CALYPSO_CARD_NAVIGO: {
                     card->navigo = malloc(sizeof(NavigoCardData));
@@ -1326,6 +1344,24 @@ static NfcCommand metroflip_scene_navigo_poller_callback(NfcGenericEvent event, 
                     // Free the calypso structure
                     free_calypso_structure(OpusEventStructure);
 
+                    break;
+                }
+                case CALYPSO_CARD_UNKNOWN: {
+                    start = 3;
+                    end = 6;
+                    country_num =
+                        bit_slice_to_dec(environment_bit_representation, start, end) * 100 +
+                        bit_slice_to_dec(environment_bit_representation, start + 4, end + 4) * 10 +
+                        bit_slice_to_dec(environment_bit_representation, start + 8, end + 8);
+                    start = 15;
+                    end = 18;
+                    network_num =
+                        bit_slice_to_dec(environment_bit_representation, start, end) * 100 +
+                        bit_slice_to_dec(environment_bit_representation, start + 4, end + 4) * 10 +
+                        bit_slice_to_dec(environment_bit_representation, start + 8, end + 8);
+                    card->card_type = guess_card_type(country_num, network_num);
+                    if(card->card_type == CALYPSO_CARD_RAVKAV) {
+                    }
                     break;
                 }
                 default:

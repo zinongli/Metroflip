@@ -276,10 +276,10 @@ int get_calypso_node_size(const char* key, CalypsoApp* structure) {
 
 CALYPSO_CARD_TYPE guess_card_type(int country_num, int network_num) {
     switch(country_num) {
-    case 250:
+    case 56:
         switch(network_num) {
-        case 901:
-            return CALYPSO_CARD_NAVIGO;
+        case 1:
+            return CALYPSO_CARD_MOBIB;
         default:
             return CALYPSO_CARD_UNKNOWN;
         }
@@ -290,6 +290,36 @@ CALYPSO_CARD_TYPE guess_card_type(int country_num, int network_num) {
         default:
             return CALYPSO_CARD_UNKNOWN;
         }
+    case 131:
+        return CALYPSO_CARD_VIVA;
+    case 250:
+        switch(network_num) {
+        case 0:
+            return CALYPSO_CARD_PASSPASS;
+        case 64:
+            return CALYPSO_CARD_TAM; // Montpellier
+        case 502:
+            return CALYPSO_CARD_OURA;
+        case 901:
+            return CALYPSO_CARD_NAVIGO;
+        case 908:
+            return CALYPSO_CARD_KORRIGO;
+        case 916:
+            return CALYPSO_CARD_TISSEO;
+        case 920:
+            return CALYPSO_CARD_ENVIBUS;
+        case 921:
+            return CALYPSO_CARD_GIRONDE;
+        default:
+            return CALYPSO_CARD_UNKNOWN;
+        }
+    case 376:
+        switch(network_num) {
+        case 2:
+            return CALYPSO_CARD_RAVKAV;
+        default:
+            return CALYPSO_CARD_UNKNOWN;
+        }
     default:
         return CALYPSO_CARD_UNKNOWN;
     }
@@ -297,10 +327,16 @@ CALYPSO_CARD_TYPE guess_card_type(int country_num, int network_num) {
 
 const char* get_country_string(int country_num) {
     switch(country_num) {
-    case 250:
-        return "France";
+    case 56:
+        return "Belgium";
     case 124:
         return "Canada";
+    case 131:
+        return "Portugal";
+    case 250:
+        return "France";
+    case 376:
+        return "Israel";
     default: {
         char* country = malloc(4 * sizeof(char));
         snprintf(country, 4, "%d", country_num);
@@ -309,22 +345,32 @@ const char* get_country_string(int country_num) {
     }
 }
 
-const char* get_network_string(int country_num, int network_num) {
-    switch(country_num) {
-    case 250:
-        switch(network_num) {
-        case 901:
-            return "IDFM";
-        default:
-            return "Unknown";
-        }
-    case 124:
-        switch(network_num) {
-        case 1:
-            return "Opus";
-        default:
-            return "Unknown";
-        }
+const char* get_network_string(CALYPSO_CARD_TYPE card_type) {
+    switch(card_type) {
+    case CALYPSO_CARD_MOBIB:
+        return "Mobib";
+    case CALYPSO_CARD_OPUS:
+        return "Opus";
+    case CALYPSO_CARD_VIVA:
+        return "Viva";
+    case CALYPSO_CARD_PASSPASS:
+        return "PassPass";
+    case CALYPSO_CARD_TAM:
+        return "TAM";
+    case CALYPSO_CARD_OURA:
+        return "Oura";
+    case CALYPSO_CARD_NAVIGO:
+        return "IDFM";
+    case CALYPSO_CARD_KORRIGO:
+        return "KorriGo";
+    case CALYPSO_CARD_TISSEO:
+        return "Tisseo";
+    case CALYPSO_CARD_ENVIBUS:
+        return "Envibus";
+    case CALYPSO_CARD_GIRONDE:
+        return "Gironde";
+    case CALYPSO_CARD_RAVKAV:
+        return "Rav-Kav";
     default:
         return "Unknown";
     }

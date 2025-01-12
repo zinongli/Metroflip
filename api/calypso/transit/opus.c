@@ -118,7 +118,7 @@ void show_opus_environment_info(OpusCardEnv* environment, FuriString* parsed_dat
     furi_string_cat_printf(
         parsed_data,
         "Network: %s\n",
-        get_network_string(environment->country_num, environment->network_num));
+        get_network_string(guess_card_type(environment->country_num, environment->network_num)));
     furi_string_cat_printf(parsed_data, "End of validity:\n");
     locale_format_datetime_cat(parsed_data, &environment->end_dt, false);
     furi_string_cat_printf(parsed_data, "\n");
