@@ -314,12 +314,7 @@ CALYPSO_CARD_TYPE guess_card_type(int country_num, int network_num) {
             return CALYPSO_CARD_UNKNOWN;
         }
     case 376:
-        switch(network_num) {
-        case 2:
-            return CALYPSO_CARD_RAVKAV;
-        default:
-            return CALYPSO_CARD_UNKNOWN;
-        }
+        return CALYPSO_CARD_RAVKAV;
     default:
         return CALYPSO_CARD_UNKNOWN;
     }
