@@ -1,70 +1,7 @@
-#include <gui/gui.h>
-#include <gui/modules/widget_elements/widget_element.h>
-#include "../api/calypso/calypso_util.h"
-#include "../api/calypso/cards/navigo.h"
-#include <datetime.h>
-#include <stdbool.h>
+#ifndef NAVIGO_LISTS_H
+#define NAVIGO_LISTS_H
 
-#ifndef METRO_LIST_H
-#define METRO_LIST_H
-
-#ifndef NAVIGO_H
-#define NAVIGO_H
-
-void metroflip_back_button_widget_callback(GuiButtonType result, InputType type, void* context);
-void metroflip_next_button_widget_callback(GuiButtonType result, InputType type, void* context);
-
-// Service Providers
-static const char* SERVICE_PROVIDERS[] = {
-    [2] = "SNCF",
-    [3] = "RATP",
-    [115] = "CSO (VEOLIA)",
-    [116] = "R'Bus (VEOLIA)",
-    [156] = "Phebus",
-    [175] = "RATP (Veolia Transport Nanterre)"};
-
-// Transport Types
-static const char* TRANSPORT_LIST[] = {
-    [1] = "Bus Urbain",
-    [2] = "Bus Interurbain",
-    [3] = "Metro",
-    [4] = "Tram",
-    [5] = "Train",
-    [8] = "Parking"};
-
-typedef enum {
-    BUS_URBAIN = 1,
-    BUS_INTERURBAIN = 2,
-    METRO = 3,
-    TRAM = 4,
-    TRAIN = 5,
-    PARKING = 8
-} TRANSPORT_TYPE;
-
-typedef enum {
-    NAVIGO_EASY = 0,
-    NAVIGO_DECOUVERTE = 1,
-    NAVIGO_STANDARD = 2,
-    NAVIGO_INTEGRAL = 6,
-    IMAGINE_R = 14
-} CARD_STATUS;
-
-// Transition Types
-static const char* TRANSITION_LIST[] = {
-    [1] = "Validation en entree",
-    [2] = "Validation en sortie",
-    [4] = "Controle volant (a bord)",
-    [5] = "Validation de test",
-    [6] = "Validation en correspondance (entree)",
-    [7] = "Validation en correspondance (sortie)",
-    [9] = "Annulation de validation",
-    [10] = "Validation en entree",
-    [13] = "Distribution",
-    [15] = "Invalidation"};
-
-#endif // NAVIGO_H
-
-static const char* METRO_STATION_LIST[32][16] =
+static const char* NAVIGO_METRO_STATION_LIST[32][16] =
     {[1] =
          {[0] = "Cite",
           [1] = "Saint-Michel",
@@ -435,7 +372,7 @@ static const char* METRO_STATION_LIST[32][16] =
          [13] = "Place de Clichy",
          [14] = "La Fourche"}};
 
-static const char* TRAIN_LINES_LIST[77] = {
+static const char* NAVIGO_TRAIN_LINES_LIST[77] = {
     [1] = "RER B",         [3] = "RER B",         [6] = "RER A",         [14] = "RER B",
     [15] = "RER B",        [16] = "RER A",        [17] = "RER A",        [18] = "RER B",
     [20] = "Transilien P", [21] = "Transilien P", [22] = "T4",           [23] = "Transilien P",
@@ -448,7 +385,7 @@ static const char* TRAIN_LINES_LIST[77] = {
     [64] = "RER C",        [65] = "Transilien V", [70] = "RER B",        [72] = "Transilien J",
     [73] = "Transilien J", [75] = "RER C",        [76] = "RER C"};
 
-static const char* TRAIN_STATION_LIST[77][19] = {
+static const char* NAVIGO_TRAIN_STATION_LIST[77][19] = {
     [1] = {[0] = "Châtelet-Les Halles", [1] = "Châtelet-Les Halles", [7] = "Luxembourg"},
     [3] = {[0] = "Saint-Michel Notre-Dame"},
     [6] = {[0] = "Auber", [6] = "Auber"},
@@ -729,4 +666,4 @@ static const char* TRAIN_STATION_LIST[77][19] = {
          [15] = "Dourdan | Dourdan-la-Foret"},
 };
 
-#endif // METRO_LIST_H
+#endif

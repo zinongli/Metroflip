@@ -15,7 +15,7 @@ void metroflip_scene_start_on_enter(void* context) {
         submenu, "Rav-Kav", MetroflipSceneRavKav, metroflip_scene_start_submenu_callback, app);
 
     submenu_add_item(
-        submenu, "Navigo", MetroflipSceneNavigo, metroflip_scene_start_submenu_callback, app);
+        submenu, "Calypso", MetroflipSceneCalypso, metroflip_scene_start_submenu_callback, app);
 
     submenu_add_item(
         submenu,
