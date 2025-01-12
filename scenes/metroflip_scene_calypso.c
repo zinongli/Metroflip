@@ -462,6 +462,9 @@ static NfcCommand metroflip_scene_navigo_poller_callback(NfcGenericEvent event, 
                     card->navigo->holder.commercial_id =
                         bit_slice_to_dec(environment_bit_representation, start, end);
 
+                    // Free the calypso structure
+                    free_calypso_structure(IntercodeEnvHolderStructure);
+
                     // Select app for contracts
                     error = select_new_app(
                         0x20, 0x20, tx_buffer, rx_buffer, iso14443_4b_poller, app, &stage);
@@ -1039,6 +1042,9 @@ static NfcCommand metroflip_scene_navigo_poller_callback(NfcGenericEvent event, 
                           1;
                     card->opus->holder.commercial_id =
                         bit_slice_to_dec(environment_bit_representation, start, end);
+
+                    // Free the calypso structure
+                    free_calypso_structure(OpusEnvHolderStructure);
 
                     // Select app for contracts
                     error = select_new_app(
