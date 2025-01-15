@@ -273,14 +273,16 @@ const char* get_navigo_train_station(int station_group_id, int station_id) {
 
 const char* get_navigo_tram_line(int route_number) {
     switch(route_number) {
+    case 1:
+        return "T3a";
     case 16:
         return "T6";
     default: {
-        char* line = malloc(3 * sizeof(char));
+        char* line = malloc(5 * sizeof(char));
         if(!line) {
             return "Unknown";
         }
-        snprintf(line, 3, "T%d", route_number);
+        snprintf(line, 5, "?%d?", route_number);
         return line;
     }
     }
@@ -384,10 +386,17 @@ void show_navigo_event_info(
             parsed_data,
             "Transporter: %s\n",
             get_navigo_service_provider(event->service_provider));
-        furi_string_cat_printf(
-            parsed_data,
-            "Station: %s\n",
-            get_navigo_train_station(event->station_group_id, event->station_id));
+        if(event->service_provider == 2) {
+            furi_string_cat_printf(
+                parsed_data,
+                "Station: %s\n",
+                get_navigo_train_station(event->station_group_id, event->station_id));
+        } else if(event->service_provider == 3) {
+            furi_string_cat_printf(
+                parsed_data,
+                "Station: %s\n",
+                get_navigo_metro_station(event->station_group_id, event->station_id));
+        }
         /* if(event->route_number_available) {
             furi_string_cat_printf(parsed_data, "Route: %d\n", event->route_number);
         } */
