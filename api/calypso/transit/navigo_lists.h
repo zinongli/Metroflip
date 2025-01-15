@@ -184,6 +184,7 @@ static const char* NAVIGO_METRO_STATION_LIST[32][16] =
           [8] = "Glaciere",
           [9] = "Saint-Jacques",
           [10] = "Raspail",
+          [13] = "Denfert-Rochereau",
           [14] = "Denfert-Rochereau"},
      [16] =
          {[0] = "Felix Faure",
