@@ -453,13 +453,28 @@ void show_navigo_event_info(
 }
 
 void show_navigo_contract_info(NavigoCardContract* contract, FuriString* parsed_data) {
+    // Core type and ticket info
     furi_string_cat_printf(parsed_data, "Type: %s\n", get_navigo_tariff(contract->tariff));
     if(is_ticket_count_available(contract->tariff)) {
         furi_string_cat_printf(parsed_data, "Remaining Tickets: %d\n", contract->counter.count);
     }
+
+    // Validity period
+    furi_string_cat_printf(parsed_data, "Valid from: ");
+    locale_format_datetime_cat(parsed_data, &contract->start_date, false);
+    furi_string_cat_printf(parsed_data, "\n");
+    if(contract->end_date_available) {
+        furi_string_cat_printf(parsed_data, "\nto: ");
+        locale_format_datetime_cat(parsed_data, &contract->end_date, false);
+        furi_string_cat_printf(parsed_data, "\n");
+    }
+
+    // Serial number (if available)
     if(contract->serial_number_available) {
         furi_string_cat_printf(parsed_data, "TCN Number: %d\n", contract->serial_number);
     }
+
+    // Payment and pricing details
     if(contract->pay_method_available) {
         furi_string_cat_printf(
             parsed_data, "Payment Method: %s\n", get_pay_method(contract->pay_method));
@@ -467,17 +482,8 @@ void show_navigo_contract_info(NavigoCardContract* contract, FuriString* parsed_
     if(contract->price_amount_available) {
         furi_string_cat_printf(parsed_data, "Amount: %.2f EUR\n", contract->price_amount);
     }
-    if(contract->end_date_available) {
-        furi_string_cat_printf(parsed_data, "Valid\nfrom: ");
-        locale_format_datetime_cat(parsed_data, &contract->start_date, false);
-        furi_string_cat_printf(parsed_data, "\nto: ");
-        locale_format_datetime_cat(parsed_data, &contract->end_date, false);
-        furi_string_cat_printf(parsed_data, "\n");
-    } else {
-        furi_string_cat_printf(parsed_data, "Valid from\n");
-        locale_format_datetime_cat(parsed_data, &contract->start_date, false);
-        furi_string_cat_printf(parsed_data, "\n");
-    }
+
+    // Zone and sales details
     if(contract->zones_available) {
         furi_string_cat_printf(parsed_data, "%s\n", get_zones(contract->zones));
     }
@@ -487,6 +493,8 @@ void show_navigo_contract_info(NavigoCardContract* contract, FuriString* parsed_
     furi_string_cat_printf(
         parsed_data, "Sales Agent: %s\n", get_navigo_service_provider(contract->sale_agent));
     furi_string_cat_printf(parsed_data, "Sales Terminal: %d\n", contract->sale_device);
+
+    // Status and authenticity
     if(contract->status == 1) {
         furi_string_cat_printf(parsed_data, "Status: OK\n");
     } else {
