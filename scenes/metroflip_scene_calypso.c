@@ -1521,6 +1521,9 @@ static NfcCommand metroflip_scene_navigo_poller_callback(NfcGenericEvent event, 
                             card->opus->events[i - 1].used_contract =
                                 bit_slice_to_dec(event_bit_representation, start, end);
                             card->opus->events[i - 1].used_contract_available = true;
+                            if(card->opus->events[i - 1].used_contract > 0) {
+                                card->events_count++;
+                            }
                         }
 
                         // EventDate + EventTime
