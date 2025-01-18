@@ -927,6 +927,7 @@ static NfcCommand metroflip_scene_navigo_poller_callback(NfcGenericEvent event, 
                                 bit_slice_to_dec(event_bit_representation, start, end);
                             card->navigo->events[i - 1].station_group_id = decimal_value >> 9;
                             card->navigo->events[i - 1].station_id = (decimal_value >> 4) & 31;
+                            card->navigo->events[i - 1].station_sub_id = decimal_value & 15;
                         }
 
                         // 9. EventLocationGate
@@ -1153,6 +1154,8 @@ static NfcCommand metroflip_scene_navigo_poller_callback(NfcGenericEvent event, 
                                                                                    9;
                             card->navigo->special_events[i - 1].station_id = (decimal_value >> 4) &
                                                                              31;
+                            card->navigo->special_events[i - 1].station_sub_id = decimal_value &
+                                                                                 15;
                         }
 
                         // 10. EventDevice

@@ -10,7 +10,11 @@
 
 const char* get_navigo_type(int type);
 
-const char* get_navigo_station(int station_group_id, int station_id, int service_provider);
+char* get_navigo_station(
+    int station_group_id,
+    int station_id,
+    int station_sub_id,
+    int service_provider);
 
 const char* get_navigo_sncf_train_line(int station_group_id);
 

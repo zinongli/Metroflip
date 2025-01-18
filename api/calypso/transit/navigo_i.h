@@ -10,6 +10,7 @@ typedef struct {
     int service_provider;
     int station_group_id;
     int station_id;
+    int station_sub_id;
     int location_gate;
     bool location_gate_available;
     int device;
@@ -34,6 +35,7 @@ typedef struct {
     int service_provider;
     int station_group_id;
     int station_id;
+    int station_sub_id;
     int device;
     bool device_available;
     int route_number;
