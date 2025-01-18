@@ -252,7 +252,10 @@ char* get_navigo_station(
         if(station_group_id < 32 && station_id < 16) {
             const char* station_name = NAVIGO_RATP_LOCATION_LIST[station_group_id][station_id];
             if(station_name) {
-                return strdup(station_name);
+                char* station;
+                if((station = strdup(station_name)) != NULL) {
+                    return station;
+                }
             }
         }
         // cast station_group_id-station_id to a string
