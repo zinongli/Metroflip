@@ -620,7 +620,13 @@ const char* get_intercode_string_event_result(int result) {
     case 0xA:
         return "Invalidation impossible";
     case 0x30:
-        return "Double validation";
+        return "Double validation (Entry)";
+    case 0x31:
+        return "Invalid zone";
+    case 0x32:
+        return "Contract expired";
+    case 0x33:
+        return "Double validation (Exit)";
     default: {
         char* result_str = malloc(6 * sizeof(char));
         if(!result_str) {
