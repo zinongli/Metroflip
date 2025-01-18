@@ -28,6 +28,20 @@ typedef struct {
 } NavigoCardEvent;
 
 typedef struct {
+    int transport_type;
+    int transition;
+    int result;
+    int service_provider;
+    int station_group_id;
+    int station_id;
+    int device;
+    bool device_available;
+    int route_number;
+    bool route_number_available;
+    DateTime date;
+} NavigoCardSpecialEvent;
+
+typedef struct {
     int app_version;
     int country_num;
     int network_num;
@@ -72,6 +86,7 @@ typedef struct {
     NavigoCardHolder holder;
     NavigoCardContract contracts[4];
     NavigoCardEvent events[3];
+    NavigoCardSpecialEvent special_events[3];
 } NavigoCardData;
 
 #endif // NAVIGO_I_H

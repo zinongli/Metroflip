@@ -606,3 +606,28 @@ const char* get_intercode_string_transition_type(int transition) {
     }
     }
 }
+
+const char* get_intercode_string_event_result(int result) {
+    switch(result) {
+    case 0x0:
+        return "OK";
+    case 0x7:
+        return "Transfer / Dysfunction";
+    case 0x8:
+        return "Disabled due to fraud";
+    case 0x9:
+        return "Disabled due to monetary fraud";
+    case 0xA:
+        return "Invalidation impossible";
+    case 0x30:
+        return "Double validation";
+    default: {
+        char* result_str = malloc(6 * sizeof(char));
+        if(!result_str) {
+            return "Unknown";
+        }
+        snprintf(result_str, 6, "%d", result);
+        return result_str;
+    }
+    }
+}

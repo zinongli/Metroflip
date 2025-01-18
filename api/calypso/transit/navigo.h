@@ -23,6 +23,8 @@ void show_navigo_event_info(
     NavigoCardContract* contracts,
     FuriString* parsed_data);
 
+void show_navigo_special_event_info(NavigoCardSpecialEvent* event, FuriString* parsed_data);
+
 void show_navigo_contract_info(NavigoCardContract* contract, FuriString* parsed_data);
 
 void show_navigo_environment_info(NavigoCardEnv* environment, FuriString* parsed_data);
@@ -43,7 +45,7 @@ typedef enum {
     NAVIGO_PROVIDER_VEOLIA_CSO = 115,
     NAVIGO_PROVIDER_VEOLIA_RBUS = 116,
     NAVIGO_PROVIDER_PHEBUS = 156,
-    NAVIGO_PROVIDER_RATP_VEOLIA_SERVICE = 175
+    NAVIGO_PROVIDER_RATP_VEOLIA_NANTERRE = 175
 } NAVIGO_SERVICE_PROVIDER;
 
 #endif // NAVIGO_H

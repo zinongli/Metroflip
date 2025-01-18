@@ -29,6 +29,8 @@ typedef struct {
     unsigned int card_number;
 
     int contracts_count;
+    int events_count;
+    int special_events_count;
 } CalypsoCardData;
 
 typedef struct {

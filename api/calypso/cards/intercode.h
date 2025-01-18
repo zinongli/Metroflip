@@ -13,6 +13,8 @@ CalypsoApp* get_intercode_structure_counter();
 
 const char* get_intercode_string_transition_type(int transition);
 
+const char* get_intercode_string_event_result(int result);
+
 typedef enum {
     URBAN_BUS = 1,
     INTERURBAN_BUS = 2,
