@@ -3,11 +3,13 @@
 #ifndef INTERCODE_STRUCTURES_H
 #define INTERCODE_STRUCTURES_H
 
+CalypsoApp* get_intercode_structure_env_holder();
+
 CalypsoApp* get_intercode_structure_contract();
 
 CalypsoApp* get_intercode_structure_event();
 
-CalypsoApp* get_intercode_structure_env_holder();
+CalypsoApp* get_intercode_structure_counter();
 
 const char* get_intercode_string_transition_type(int transition);
 
