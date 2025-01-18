@@ -4,15 +4,15 @@
 
 const char* get_navigo_transport_type(int type) {
     switch(type) {
-    case BUS_URBAIN:
+    case URBAN_BUS:
         return "Bus Urbain";
-    case BUS_INTERURBAIN:
+    case INTERURBAN_BUS:
         return "Bus Interurbain";
     case METRO:
         return "Metro";
     case TRAM:
         return "Tram";
-    case TRAIN:
+    case COMMUTER_TRAIN:
         return "Train";
     case PARKING:
         return "Parking";
@@ -29,6 +29,8 @@ const char* get_navigo_service_provider(int provider) {
         return "RATP";
     case 4:
         return "IDF Mobilites";
+    case 8:
+        return "ORA";
     case 10:
         return "IDF Mobilites";
     case 115:
@@ -39,39 +41,10 @@ const char* get_navigo_service_provider(int provider) {
         return "Phebus";
     case 175:
         return "RATP (Veolia Transport Nanterre)";
-    default:
-        return "Unknown";
-    }
-}
-
-const char* get_transition_type(int transition) {
-    switch(transition) {
-    case 1:
-        return "Entry";
-    case 2:
-        return "Exit";
-    case 4:
-        return "Controle volant (a bord)";
-    case 5:
-        return "Test validation";
-    case 6:
-        return "Interchange - Entry";
-    case 7:
-        return "Interchange - Exit";
-    case 9:
-        return "Validation cancelled";
-    case 10:
-        return "Entry";
-    case 11:
-        return "Exit";
-    case 13:
-        return "Distribution";
-    case 15:
-        return "Invalidation";
     default: {
-        char* transition_str = malloc(6 * sizeof(char));
-        snprintf(transition_str, 6, "%d", transition);
-        return transition_str;
+        char* provider_str = malloc(6 * sizeof(char));
+        snprintf(provider_str, 6, "%d", provider);
+        return provider_str;
     }
     }
 }
@@ -237,38 +210,56 @@ int get_intercode_subversion(int version) {
     return version & 0x07;
 }
 
-const char* get_navigo_metro_station(int station_group_id, int station_id) {
-    // Use NAVIGO_H constants
-    if(station_group_id < 32 && station_id < 16) {
-        return NAVIGO_METRO_STATION_LIST[station_group_id][station_id];
+const char* get_navigo_station(int station_group_id, int station_id, int service_provider) {
+    switch(service_provider) {
+    case NAVIGO_PROVIDER_SNCF: {
+        if(station_group_id < 77 && station_id < 19) {
+            const char* station_name = NAVIGO_SNCF_LOCATION_LIST[station_group_id][station_id];
+            if(station_name) {
+                return station_name;
+            }
+        }
+        // cast station_group_id-station_id to a string
+        char* station = malloc(12 * sizeof(char));
+        if(!station) {
+            return "Unknown";
+        }
+        snprintf(station, 10, "%d-%d", station_group_id, station_id);
+        return station;
     }
-    // cast station_group_id-station_id to a string
-    char* station = malloc(12 * sizeof(char));
-    if(!station) {
-        return "Unknown";
+    case NAVIGO_PROVIDER_RATP:
+    case NAVIGO_PROVIDER_ORA: {
+        if(station_group_id < 32 && station_id < 16) {
+            const char* station_name = NAVIGO_RATP_LOCATION_LIST[station_group_id][station_id];
+            if(station_name) {
+                return station_name;
+            }
+        }
+        // cast station_group_id-station_id to a string
+        char* station = malloc(12 * sizeof(char));
+        if(!station) {
+            return "Unknown";
+        }
+        snprintf(station, 10, "%d-%d", station_group_id, station_id);
+        return station;
     }
-    snprintf(station, 10, "%d-%d", station_group_id, station_id);
-    return station;
+    default: {
+        // cast station_group_id-station_id to a string
+        char* station = malloc(12 * sizeof(char));
+        if(!station) {
+            return "Unknown";
+        }
+        snprintf(station, 10, "%d-%d", station_group_id, station_id);
+        return station;
+    }
+    }
 }
 
-const char* get_navigo_train_line(int station_group_id) {
+const char* get_navigo_sncf_train_line(int station_group_id) {
     if(station_group_id < 77) {
-        return NAVIGO_TRAIN_LINES_LIST[station_group_id];
+        return NAVIGO_SNCF_TRAIN_LINES_LIST[station_group_id];
     }
     return "Unknown";
-}
-
-const char* get_navigo_train_station(int station_group_id, int station_id) {
-    if(station_group_id < 77 && station_id < 19) {
-        return NAVIGO_TRAIN_STATION_LIST[station_group_id][station_id];
-    }
-    // cast station_group_id-station_id to a string
-    char* station = malloc(12 * sizeof(char));
-    if(!station) {
-        return "Unknown";
-    }
-    snprintf(station, 10, "%d-%d", station_group_id, station_id);
-    return station;
 }
 
 const char* get_navigo_tram_line(int route_number) {
@@ -296,7 +287,7 @@ void show_navigo_event_info(
         furi_string_cat_printf(parsed_data, "No event data\n");
         return;
     }
-    if(event->transport_type == BUS_URBAIN || event->transport_type == BUS_INTERURBAIN ||
+    if(event->transport_type == URBAN_BUS || event->transport_type == INTERURBAN_BUS ||
        event->transport_type == METRO || event->transport_type == TRAM) {
         if(event->route_number_available) {
             if(event->transport_type == METRO && event->route_number == 103) {
@@ -304,48 +295,43 @@ void show_navigo_event_info(
                     parsed_data,
                     "%s 3 bis\n%s\n",
                     get_navigo_transport_type(event->transport_type),
-                    get_transition_type(event->transition));
+                    get_intercode_string_transition_type(event->transition));
             } else if(event->transport_type == TRAM) {
                 furi_string_cat_printf(
                     parsed_data,
                     "%s %s\n%s\n",
                     get_navigo_transport_type(event->transport_type),
                     get_navigo_tram_line(event->route_number),
-                    get_transition_type(event->transition));
+                    get_intercode_string_transition_type(event->transition));
             } else {
                 furi_string_cat_printf(
                     parsed_data,
                     "%s %d\n%s\n",
                     get_navigo_transport_type(event->transport_type),
                     event->route_number,
-                    get_transition_type(event->transition));
+                    get_intercode_string_transition_type(event->transition));
             }
         } else {
             furi_string_cat_printf(
                 parsed_data,
                 "%s\n%s\n",
                 get_navigo_transport_type(event->transport_type),
-                get_transition_type(event->transition));
+                get_intercode_string_transition_type(event->transition));
         }
         furi_string_cat_printf(
             parsed_data,
             "Transporter: %s\n",
             get_navigo_service_provider(event->service_provider));
-        if(event->transport_type == METRO) {
-            furi_string_cat_printf(
-                parsed_data,
-                "Station: %s\nSector: %s\n",
-                get_navigo_metro_station(event->station_group_id, event->station_id),
-                get_navigo_metro_station(event->station_group_id, 0));
-        } else {
-            furi_string_cat_printf(
-                parsed_data, "Station ID: %d-%d\n", event->station_group_id, event->station_id);
-        }
+        furi_string_cat_printf(
+            parsed_data,
+            "Station: %s\nSector: %s\n",
+            get_navigo_station(event->station_group_id, event->station_id, event->service_provider),
+            get_navigo_station(event->station_group_id, 0, event->service_provider));
         if(event->location_gate_available) {
             furi_string_cat_printf(parsed_data, "Gate: %d\n", event->location_gate);
         }
         if(event->device_available) {
-            if(event->transport_type == BUS_URBAIN || event->transport_type == BUS_INTERURBAIN) {
+            if(event->transport_type == URBAN_BUS || event->transport_type == INTERURBAN_BUS) {
                 const char* side = event->side == 0 ? "right" : "left";
                 furi_string_cat_printf(parsed_data, "Door: %d\nSide: %s\n", event->door, side);
             } else {
@@ -367,36 +353,30 @@ void show_navigo_event_info(
         }
         locale_format_datetime_cat(parsed_data, &event->date, true);
         furi_string_cat_printf(parsed_data, "\n");
-    } else if(event->transport_type == TRAIN) {
+    } else if(event->transport_type == COMMUTER_TRAIN) {
         if(event->route_number_available) {
             furi_string_cat_printf(
                 parsed_data,
                 "RER %c\n%s\n",
                 (65 + event->route_number - 17),
-                get_transition_type(event->transition));
+                get_intercode_string_transition_type(event->transition));
         } else {
             furi_string_cat_printf(
                 parsed_data,
                 "%s %s\n%s\n",
                 get_navigo_transport_type(event->transport_type),
-                get_navigo_train_line(event->station_group_id),
-                get_transition_type(event->transition));
+                get_navigo_sncf_train_line(event->station_group_id),
+                get_intercode_string_transition_type(event->transition));
         }
         furi_string_cat_printf(
             parsed_data,
             "Transporter: %s\n",
             get_navigo_service_provider(event->service_provider));
-        if(event->service_provider == 2) {
-            furi_string_cat_printf(
-                parsed_data,
-                "Station: %s\n",
-                get_navigo_train_station(event->station_group_id, event->station_id));
-        } else if(event->service_provider == 3) {
-            furi_string_cat_printf(
-                parsed_data,
-                "Station: %s\n",
-                get_navigo_metro_station(event->station_group_id, event->station_id));
-        }
+        furi_string_cat_printf(
+            parsed_data,
+            "Station: %s\n",
+            get_navigo_station(
+                event->station_group_id, event->station_id, event->service_provider));
         /* if(event->route_number_available) {
             furi_string_cat_printf(parsed_data, "Route: %d\n", event->route_number);
         } */
@@ -430,7 +410,7 @@ void show_navigo_event_info(
             parsed_data,
             "%s - %s\n",
             get_navigo_transport_type(event->transport_type),
-            get_transition_type(event->transition));
+            get_intercode_string_transition_type(event->transition));
         furi_string_cat_printf(
             parsed_data,
             "Transporter: %s\n",

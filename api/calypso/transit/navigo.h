@@ -10,11 +10,11 @@
 
 const char* get_navigo_type(int type);
 
-const char* get_navigo_metro_station(int station_group_id, int station_id);
+const char* get_navigo_station(int station_group_id, int station_id, int service_provider);
 
-const char* get_navigo_train_line(int station_group_id);
+const char* get_navigo_sncf_train_line(int station_group_id);
 
-const char* get_navigo_train_station(int station_group_id, int station_id);
+const char* get_navigo_sncf_station(int station_group_id, int station_id);
 
 const char* get_navigo_tram_line(int route_number);
 
@@ -28,20 +28,22 @@ void show_navigo_contract_info(NavigoCardContract* contract, FuriString* parsed_
 void show_navigo_environment_info(NavigoCardEnv* environment, FuriString* parsed_data);
 
 typedef enum {
-    BUS_URBAIN = 1,
-    BUS_INTERURBAIN = 2,
-    METRO = 3,
-    TRAM = 4,
-    TRAIN = 5,
-    PARKING = 8
-} NAVIGO_TRANSPORT_TYPE;
-
-typedef enum {
     NAVIGO_EASY = 0,
     NAVIGO_DECOUVERTE = 1,
     NAVIGO_STANDARD = 2,
     NAVIGO_INTEGRAL = 6,
     IMAGINE_R = 14
 } NAVIGO_CARD_STATUS;
+
+typedef enum {
+    NAVIGO_PROVIDER_SNCF = 2,
+    NAVIGO_PROVIDER_RATP = 3,
+    NAVIGO_PROVIDER_IDFM = 4,
+    NAVIGO_PROVIDER_ORA = 8,
+    NAVIGO_PROVIDER_VEOLIA_CSO = 115,
+    NAVIGO_PROVIDER_VEOLIA_RBUS = 116,
+    NAVIGO_PROVIDER_PHEBUS = 156,
+    NAVIGO_PROVIDER_RATP_VEOLIA_SERVICE = 175
+} NAVIGO_SERVICE_PROVIDER;
 
 #endif // NAVIGO_H

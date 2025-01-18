@@ -1,7 +1,7 @@
 #include <stdlib.h>
 #include "intercode.h"
 
-CalypsoApp* get_intercode_contract_structure() {
+CalypsoApp* get_intercode_structure_contract() {
     CalypsoApp* IntercodeContractStructure = malloc(sizeof(CalypsoApp));
     if(!IntercodeContractStructure) {
         return NULL;
@@ -248,7 +248,7 @@ CalypsoApp* get_intercode_contract_structure() {
     return IntercodeContractStructure;
 }
 
-CalypsoApp* get_intercode_event_structure() {
+CalypsoApp* get_intercode_structure_event() {
     CalypsoApp* IntercodeEventStructure = malloc(sizeof(CalypsoApp));
     if(!IntercodeEventStructure) {
         return NULL;
@@ -382,7 +382,7 @@ CalypsoApp* get_intercode_event_structure() {
     return IntercodeEventStructure;
 }
 
-CalypsoApp* get_intercode_env_holder_structure() {
+CalypsoApp* get_intercode_structure_env_holder() {
     CalypsoApp* IntercodeEnvHolderStructure = malloc(sizeof(CalypsoApp));
     if(!IntercodeEnvHolderStructure) {
         return NULL;
@@ -547,4 +547,36 @@ CalypsoApp* get_intercode_env_holder_structure() {
         });
 
     return IntercodeEnvHolderStructure;
+}
+
+const char* get_intercode_string_transition_type(int transition) {
+    switch(transition) {
+    case 0x1:
+        return "Entry (First validation)";
+    case 0x2:
+        return "Exit";
+    case 0x4:
+        return "Inspection";
+    case 0x5:
+        return "Test validation";
+    case 0x6:
+        return "Entry (Interchange)";
+    case 0x7:
+        return "Exit (Interchange)";
+    case 0x9:
+        return "Validation cancelled";
+    case 0xA:
+        return "Entry (Public road)";
+    case 0xB:
+        return "Exit (Public road)";
+    case 0xD:
+        return "Distribution";
+    case 0xF:
+        return "Invalidation";
+    default: {
+        char* transition_str = malloc(6 * sizeof(char));
+        snprintf(transition_str, 6, "%d", transition);
+        return transition_str;
+    }
+    }
 }

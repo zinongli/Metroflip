@@ -434,7 +434,7 @@ static NfcCommand metroflip_scene_navigo_poller_callback(NfcGenericEvent event, 
                     card->navigo->environment.country_num = country_num;
                     card->navigo->environment.network_num = network_num;
 
-                    CalypsoApp* IntercodeEnvHolderStructure = get_intercode_env_holder_structure();
+                    CalypsoApp* IntercodeEnvHolderStructure = get_intercode_structure_env_holder();
 
                     // EnvApplicationVersionNumber
                     const char* env_key = "EnvApplicationVersionNumber";
@@ -499,7 +499,7 @@ static NfcCommand metroflip_scene_navigo_poller_callback(NfcGenericEvent event, 
                     }
 
                     // Prepare calypso structure
-                    CalypsoApp* IntercodeContractStructure = get_intercode_contract_structure();
+                    CalypsoApp* IntercodeContractStructure = get_intercode_structure_contract();
                     if(!IntercodeContractStructure) {
                         FURI_LOG_E(TAG, "Failed to load Intercode Contract structure");
                         break;
@@ -804,7 +804,7 @@ static NfcCommand metroflip_scene_navigo_poller_callback(NfcGenericEvent event, 
                     }
 
                     // Load the calypso structure for events
-                    CalypsoApp* IntercodeEventStructure = get_intercode_event_structure();
+                    CalypsoApp* IntercodeEventStructure = get_intercode_structure_event();
                     if(!IntercodeEventStructure) {
                         FURI_LOG_E(TAG, "Failed to load Intercode Event structure");
                         break;
