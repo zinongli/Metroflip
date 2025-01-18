@@ -1526,27 +1526,26 @@ static NfcCommand metroflip_scene_navigo_poller_callback(NfcGenericEvent event, 
                             }
                         }
 
-                        // EventDate + EventTime
-                        event_key = "EventDate";
+                        // EventDateStamp
+                        event_key = "EventDateStamp";
                         int positionOffset = get_calypso_node_offset(
                             event_bit_representation, event_key, OpusEventStructure);
                         int start = positionOffset,
                             end = positionOffset +
                                   get_calypso_node_size(event_key, OpusEventStructure) - 1;
-                        uint64_t date_timestamp =
-                            (bit_slice_to_dec(event_bit_representation, start, end) +
-                             (float)epoch) +
-                            3600;
+                        int decimal_value = bit_slice_to_dec(event_bit_representation, start, end);
+                        uint64_t date_timestamp = (decimal_value * 24 * 3600) + epoch + 3600;
                         datetime_timestamp_to_datetime(
                             date_timestamp, &card->opus->events[i - 1].date);
 
-                        event_key = "EventTime";
+                        // EventTimeStamp
+                        event_key = "EventTimeStamp";
                         positionOffset = get_calypso_node_offset(
                             event_bit_representation, event_key, OpusEventStructure);
                         start = positionOffset,
                         end = positionOffset +
                               get_calypso_node_size(event_key, OpusEventStructure) - 1;
-                        int decimal_value = bit_slice_to_dec(event_bit_representation, start, end);
+                        decimal_value = bit_slice_to_dec(event_bit_representation, start, end);
                         card->opus->events[i - 1].date.hour = (decimal_value * 60) / 3600;
                         card->opus->events[i - 1].date.minute = ((decimal_value * 60) % 3600) / 60;
                         card->opus->events[i - 1].date.second = ((decimal_value * 60) % 3600) % 60;
