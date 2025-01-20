@@ -44,6 +44,7 @@ extern const Icon I_RFIDDolphinReceive_97x61;
 #include "scenes/metroflip_scene.h"
 
 #include "scenes/navigo_structs.h"
+#include "scenes/suica_structs.h"
 
 typedef struct {
     Gui* gui;
@@ -75,6 +76,9 @@ typedef struct {
 
     // Navigo specific context
     NavigoContext* navigo_context;
+
+    // Suica specific context
+    SuicaContext* suica_context;
 } Metroflip;
 
 enum MetroflipCustomEvent {
@@ -115,6 +119,7 @@ typedef enum {
     MetroflipViewTextBox,
     MetroflipViewWidget,
     MetroflipViewUart,
+    MetroflipViewCanvas,
 } MetroflipView;
 
 void metroflip_app_blink_start(Metroflip* metroflip);

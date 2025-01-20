@@ -3,7 +3,10 @@ App(
     name="Metroflip",
     apptype=FlipperAppType.EXTERNAL,
     entry_point="metroflip",
-    stack_size=2 * 1024,
+    requires=[
+        "gui",
+    ],
+    stack_size=8 * 1024,
     fap_category="NFC",
     fap_version="0.4",
     fap_icon="icon.png",
