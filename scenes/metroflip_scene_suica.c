@@ -51,13 +51,9 @@ static NfcCommand metroflip_scene_suica_poller_callback(NfcGenericEvent event, v
 
     const FelicaPollerEvent* felica_event = event.event_data;
     FelicaPollerReadCommandResponse* rx_resp;
-    rx_resp->SF1 = 0;
-    rx_resp->SF2 = 0;
     uint8_t blocks[1] = {0x00};
     FelicaPoller* felica_poller = event.instance;
 
-    BitBuffer* tx_buffer = bit_buffer_alloc(FELICA_POLLER_MAX_BUFFER_SIZE);
-    BitBuffer* rx_buffer = bit_buffer_alloc(FELICA_POLLER_MAX_BUFFER_SIZE);
     if(felica_event->type == FelicaPollerEventTypeRequestAuthContext) {
         if(stage == MetroflipPollerEventTypeStart) {
             nfc_device_set_data(
@@ -105,9 +101,7 @@ static NfcCommand metroflip_scene_suica_poller_callback(NfcGenericEvent event, v
             view_dispatcher_switch_to_view(app->view_dispatcher, MetroflipViewWidget);
             furi_string_free(parsed_data);
         }
-    }
-    bit_buffer_free(tx_buffer);
-    bit_buffer_free(rx_buffer);            
+    }           
     command = NfcCommandStop;
     return command;
 }
