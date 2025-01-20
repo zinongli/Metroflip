@@ -32,6 +32,11 @@
 #define BLOCK_COUNT                 1
 #define TAG                         "Metroflip:Scene:Suica"
 
+const char* suica_service_names[] = {
+    "Travel History",
+    "Taps Log",
+};
+
 static NfcCommand metroflip_scene_suica_poller_callback(NfcGenericEvent event, void* context) {
     furi_assert(event.protocol == NfcProtocolFelica);
     NfcCommand command = NfcCommandContinue;
@@ -67,16 +72,14 @@ static NfcCommand metroflip_scene_suica_poller_callback(NfcGenericEvent event, v
                 rx_resp->SF2 = 0;
                 blocks[0] = 0;
                 furi_string_cat_printf(
-                    parsed_data, "Service Code: %04X\n", service_code[service_code_index]);
+                    parsed_data, "%s: \n", suica_service_names[service_code_index]);
                 
                 while((rx_resp->SF1 + rx_resp->SF2) == 0) {
                     error = felica_poller_read_blocks(
                         felica_poller, 1, blocks, service_code[service_code_index], &rx_resp);
-                    blocks[0]++;
                     furi_string_cat_printf(parsed_data, "Block %02X\n", blocks[0]);
-                    // FURI_LOG_I(TAG, "Received Response: %s", bit_buffer_get_data(rx_buffer));
+                    blocks[0]++;
                     for(size_t i = 0; i < FELICA_DATA_BLOCK_SIZE; i++) {
-                        // FURI_LOG_I(TAG, "%02X", bit_buffer_get_byte((const BitBuffer*)rx_resp->data, i));
                         furi_string_cat_printf(parsed_data, "%02X", rx_resp->data[i]);
                     }
                     furi_string_cat_printf(parsed_data, "\n");
