@@ -12,6 +12,9 @@ void metroflip_scene_start_on_enter(void* context) {
     submenu_set_header(submenu, "Metroflip");
 
     submenu_add_item(
+        submenu, "Suica", MetroflipSceneSuica, metroflip_scene_start_submenu_callback, app);
+
+    submenu_add_item(
         submenu, "Rav-Kav", MetroflipSceneRavKav, metroflip_scene_start_submenu_callback, app);
 
     submenu_add_item(
