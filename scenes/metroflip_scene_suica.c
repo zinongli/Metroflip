@@ -38,7 +38,7 @@
 #define TERMINAL_POS_AND_TAXI       0xC7
 #define TERMINAL_VENDING_MACHINE    0xC8
 #define TERMINAL_TURNSTILE          0x16
-#define ARROW_ANIMATION_FRAME_MS    400
+#define ARROW_ANIMATION_FRAME_MS    500
 
 const char* suica_service_names[] = {
     "Travel History",
@@ -171,6 +171,199 @@ static SuicaTravelHistory suica_parse(uint8_t block[16]) {
     return history;
 }
 
+static void
+    suica_draw_train_page_1(Canvas* canvas, SuicaTravelHistory history, SuicaHistoryViewModel* model) {
+    FuriString* buffer = furi_string_alloc();
+    canvas_draw_circle(canvas, 32, 36, 13);
+    canvas_draw_circle(canvas, 96, 36, 13);
+    canvas_draw_circle(canvas, 32, 36, 16);
+    canvas_draw_circle(canvas, 96, 36, 16);
+
+    // Entry Station Logo
+    canvas_set_font(canvas, FontPrimary);
+    canvas_draw_str_aligned(
+        canvas, 33, 32, AlignCenter, AlignCenter, history.entry_line.short_name);
+    // canvas_draw_str(canvas, 27, 36, furi_string_get_cstr(buffer));
+    furi_string_printf(buffer, "%02d", history.entry_station.station_number);
+    canvas_set_font(canvas, FontKeyboard);
+    canvas_draw_str_aligned(
+        canvas, 33, 43, AlignCenter, AlignCenter, furi_string_get_cstr(buffer));
+    // canvas_draw_str(canvas, 26, 46, furi_string_get_cstr(buffer));
+
+    // Entry Station Logo
+    canvas_set_font(canvas, FontPrimary);
+    canvas_draw_str_aligned(
+        canvas, 97, 32, AlignCenter, AlignCenter, history.exit_line.short_name);
+    // canvas_draw_str(canvas, 81, 36, furi_string_get_cstr(buffer));
+    furi_string_printf(buffer, "%02d", history.exit_station.station_number);
+    canvas_set_font(canvas, FontKeyboard);
+    canvas_draw_str_aligned(
+        canvas, 97, 43, AlignCenter, AlignCenter, furi_string_get_cstr(buffer));
+    // canvas_draw_str(canvas, 80, 46, furi_string_get_cstr(buffer));
+    // Arrow
+    if(model->animator_tick > 5) {
+        // 4 steps of animation
+        model->animator_tick = 0;
+    }
+    canvas_draw_xbm(canvas, 50 + model->animator_tick * 2, 29, 18, 15, ArrowRight);
+    furi_string_free(buffer);
+}
+
+static void
+    suica_draw_train_page_2(Canvas* canvas, SuicaTravelHistory history, SuicaHistoryViewModel* model) {
+    // Exit logo
+    switch(history.exit_line.type) {
+    case SuicaKeikyu:
+        canvas_draw_xbm(canvas, 2, 11, 21, 15, KeikyuLogo);
+        break;
+    case SuicaEastJR:
+        canvas_draw_xbm(canvas, 1, 12, 23, 12, JRLogo);
+        break;
+    case SuicaTokyoMetro:
+        canvas_draw_xbm(canvas, 2, 12, 21, 13, TokyoMetroLogo);
+        break;
+    case SuicaToei:
+        canvas_draw_xbm(canvas, 4, 11, 17, 15, ToeiLogo);
+        break;
+    default:
+        break;
+    }
+
+    // Exit
+    canvas_set_font(canvas, FontPrimary);
+    canvas_draw_str(canvas, 26, 22, history.exit_line.long_name);
+
+    canvas_set_font(canvas, FontKeyboard);
+    canvas_draw_str(canvas, 2, 34, history.exit_station.name);
+
+    // Separator
+    canvas_draw_xbm(canvas, 0, 37, 95, 1, DashLine);
+
+    // Entry logo
+    switch(history.entry_line.type) {
+    case SuicaKeikyu:
+        canvas_draw_xbm(canvas, 2, 39, 21, 15, KeikyuLogo);
+        break;
+    case SuicaEastJR:
+        canvas_draw_xbm(canvas, 1, 40, 23, 12, JRLogo);
+        break;
+    case SuicaTokyoMetro:
+        canvas_draw_xbm(canvas, 2, 40, 21, 13, TokyoMetroLogo);
+        break;
+    case SuicaToei:
+        canvas_draw_xbm(canvas, 4, 39, 17, 15, ToeiLogo);
+        break;
+    default:
+        break;
+    }
+
+    // Entry
+    canvas_set_font(canvas, FontPrimary);
+    canvas_draw_str(canvas, 26, 52, history.entry_line.long_name);
+
+    canvas_set_font(canvas, FontKeyboard);
+    canvas_draw_str(canvas, 2, 62, history.entry_station.name);
+
+    // Arrow
+    if(model->animator_tick > 7) {
+        // 9 steps of animation
+        model->animator_tick = 0;
+    }
+    canvas_draw_xbm(canvas, 112, 42 - model->animator_tick * 4, 15, 18, ArrowUp);
+}
+
+static void
+    suica_draw_balance_page(Canvas* canvas, SuicaTravelHistory history, SuicaHistoryViewModel* model) {
+    FuriString* buffer = furi_string_alloc();
+
+    // Balance
+    canvas_set_font(canvas, FontBigNumbers);
+    canvas_draw_xbm(canvas, 0, 48, 12, 16, YenSign);
+    canvas_draw_xbm(canvas, 111, 48, 16, 16, YenKanji);
+
+    furi_string_printf(buffer, "%d", history.balance);
+    canvas_draw_str_aligned(
+        canvas, 109, 64, AlignRight, AlignBottom, furi_string_get_cstr(buffer));
+
+    furi_string_printf(buffer, "%d", history.previous_balance);
+    canvas_draw_str_aligned(
+        canvas, 109, 26, AlignRight, AlignBottom, furi_string_get_cstr(buffer));
+
+    furi_string_printf(buffer, "%d", history.balance_change);
+    canvas_draw_str_aligned(
+        canvas, 109, 43, AlignRight, AlignBottom, furi_string_get_cstr(buffer));
+
+    // Separator
+    canvas_draw_line(canvas, 26, 45, 128, 45);
+    canvas_draw_line(canvas, 26, 46, 128, 46);
+
+    if(history.balance_sign == SuicaBalanceAdd) {
+        // Animate plus sign
+        if(model->animator_tick > 2) {
+            // 9 steps of animation
+            model->animator_tick = 0;
+        }
+        switch(model->animator_tick) {
+        case 0:
+            canvas_draw_xbm(canvas, 28, 28, 14, 14, PlusSign1);
+            break;
+        case 1:
+            canvas_draw_xbm(canvas, 27, 27, 16, 16, PlusSign2);
+            break;
+        case 2:
+            canvas_draw_xbm(canvas, 26, 26, 18, 18, PlusSign3);
+            break;
+        default:
+            break;
+        }
+    } else if(history.balance_sign == SuicaBalanceSub) {
+        // Animate plus sign
+        if(model->animator_tick > 12) {
+            // 9 steps of animation
+            model->animator_tick = 0;
+        }
+        switch(model->animator_tick) {
+        case 0:
+        case 1:
+        case 2:
+        case 3:
+            canvas_draw_xbm(canvas, 28, 32, 14, 6, MinusSign0);
+            break;
+        case 4:
+            canvas_draw_xbm(canvas, 28, 32, 14, 6, MinusSign1);
+            break;
+        case 5:
+            canvas_draw_xbm(canvas, 28, 32, 14, 6, MinusSign2);
+            break;
+        case 6:
+            canvas_draw_xbm(canvas, 28, 32, 14, 6, MinusSign3);
+            break;
+        case 7:
+            canvas_draw_xbm(canvas, 28, 32, 14, 6, MinusSign4);
+            break;
+        case 8:
+            canvas_draw_xbm(canvas, 28, 32, 14, 6, MinusSign5);
+            break;
+        case 9:
+            canvas_draw_xbm(canvas, 28, 32, 14, 6, MinusSign6);
+            break;
+        case 10:
+            canvas_draw_xbm(canvas, 28, 32, 14, 6, MinusSign7);
+            break;
+        case 11:
+            canvas_draw_xbm(canvas, 28, 32, 14, 6, MinusSign8);
+            break;
+        case 12:
+            canvas_draw_xbm(canvas, 28, 32, 14, 6, MinusSign9);
+            break;
+        default:
+            break;
+        }
+    } else {
+        canvas_draw_str(canvas, 30, 28, "=");
+    }
+}
+
 static void suica_history_draw_callback(Canvas* canvas, void* model) {
     canvas_set_bitmap_mode(canvas, true);
     SuicaHistoryViewModel* my_model = (SuicaHistoryViewModel*)model;
@@ -234,195 +427,21 @@ static void suica_history_draw_callback(Canvas* canvas, void* model) {
     switch((uint8_t)my_model->page) {
     case 0:
         if(history.history_type == SuicaHistoryTrain) {
-            // Station Logos Circle
-            canvas_draw_circle(canvas, 32, 36, 13);
-            canvas_draw_circle(canvas, 96, 36, 13);
-            canvas_draw_circle(canvas, 32, 36, 16);
-            canvas_draw_circle(canvas, 96, 36, 16);
-
-            // Entry Station Logo
-            canvas_set_font(canvas, FontPrimary);
-            canvas_draw_str_aligned(
-                canvas, 33, 32, AlignCenter, AlignCenter, history.entry_line.short_name);
-            // canvas_draw_str(canvas, 27, 36, furi_string_get_cstr(buffer));
-            furi_string_printf(buffer, "%02d", history.entry_station.station_number);
-            canvas_set_font(canvas, FontKeyboard);
-            canvas_draw_str_aligned(
-                canvas, 33, 43, AlignCenter, AlignCenter, furi_string_get_cstr(buffer));
-            // canvas_draw_str(canvas, 26, 46, furi_string_get_cstr(buffer));
-
-            // Exit Station Logo
-            canvas_set_font(canvas, FontPrimary);
-            canvas_draw_str_aligned(
-                canvas, 97, 32, AlignCenter, AlignCenter, history.exit_line.short_name);
-            furi_string_printf(buffer, "%02d", history.exit_station.station_number);
-            canvas_set_font(canvas, FontKeyboard);
-            canvas_draw_str_aligned(
-                canvas, 97, 43, AlignCenter, AlignCenter, furi_string_get_cstr(buffer));
-            // canvas_draw_str(canvas, 91, 46, furi_string_get_cstr(buffer));
-
-            // Arrow
-            if(my_model->animator_tick > 10) {
-                // 4 steps of animation
-                my_model->animator_tick = 0;
-            }
-            canvas_draw_xbm(canvas, 50 + my_model->animator_tick, 29, 18, 15, ArrowRight);
+            suica_draw_train_page_1(canvas, history, my_model);
         }
         break;
     case 1:
         if(history.history_type == SuicaHistoryTrain) {
-            // Exit logo
-            switch(history.exit_line.type) {
-            case SuicaKeikyu:
-            case SuicaEastJR:
-                canvas_draw_xbm(canvas, 1, 12, 23, 12, JRLogo);
-                break;
-            case SuicaTokyoMetro:
-                canvas_draw_xbm(canvas, 2, 12, 21, 13, TokyoMetroLogo);
-                break;
-            case SuicaToei:
-                canvas_draw_xbm(canvas, 4, 11, 17, 15, ToeiLogo);
-                break;
-            default:
-                break;
-            }
-
-            // Exit
-            canvas_set_font(canvas, FontPrimary);
-            canvas_draw_str(canvas, 26, 22, history.exit_line.long_name);
-
-            canvas_set_font(canvas, FontKeyboard);
-            canvas_draw_str(canvas, 2, 34, history.exit_station.name);
-
-            // Separator
-            canvas_draw_xbm(canvas, 0, 37, 95, 1, DashLine);
-
-            // Entry logo
-            switch(history.entry_line.type) {
-            case SuicaKeikyu:
-            case SuicaEastJR:
-                canvas_draw_xbm(canvas, 1, 40, 23, 12, JRLogo);
-                break;
-            case SuicaTokyoMetro:
-                canvas_draw_xbm(canvas, 2, 40, 21, 13, TokyoMetroLogo);
-                break;
-            case SuicaToei:
-                canvas_draw_xbm(canvas, 4, 39, 17, 15, ToeiLogo);
-                break;
-            default:
-                break;
-            }
-
-            // Entry
-            canvas_set_font(canvas, FontPrimary);
-            canvas_draw_str(canvas, 26, 52, history.entry_line.long_name);
-
-            canvas_set_font(canvas, FontKeyboard);
-            canvas_draw_str(canvas, 2, 62, history.entry_station.name);
-
-            // Arrow
-            if(my_model->animator_tick > 14) {
-                // 9 steps of animation
-                my_model->animator_tick = 0;
-            }
-            canvas_draw_xbm(canvas, 112, 42 - my_model->animator_tick * 2, 15, 18, ArrowUp);
+            suica_draw_train_page_2(canvas, history, my_model);
         }
         break;
     case 2:
-        // Balance
-        canvas_set_font(canvas, FontBigNumbers);
-        canvas_draw_xbm(canvas, 0, 48, 12, 16, YenSign);
-        canvas_draw_xbm(canvas, 111, 48, 16, 16, YenKanji);
-
-        furi_string_printf(buffer, "%d", history.balance);
-        canvas_draw_str_aligned(
-            canvas, 109, 64, AlignRight, AlignBottom, furi_string_get_cstr(buffer));
-
-        furi_string_printf(buffer, "%d", history.previous_balance);
-        canvas_draw_str_aligned(
-            canvas, 109, 26, AlignRight, AlignBottom, furi_string_get_cstr(buffer));
-
-        furi_string_printf(buffer, "%d", history.balance_change);
-        canvas_draw_str_aligned(
-            canvas, 109, 43, AlignRight, AlignBottom, furi_string_get_cstr(buffer));
-
-        // Separator
-        canvas_draw_line(canvas, 26, 45, 128, 45);
-        canvas_draw_line(canvas, 26, 46, 128, 46);
-
-        if(history.balance_sign == SuicaBalanceAdd) {
-            // Animate plus sign
-            if(my_model->animator_tick > 5) {
-                // 9 steps of animation
-                my_model->animator_tick = 0;
-            }
-            switch(my_model->animator_tick) {
-            case 0:
-            case 1:
-                canvas_draw_xbm(canvas, 28, 28, 14, 14, PlusSign1);
-                break;
-            case 2:
-            case 3:
-                canvas_draw_xbm(canvas, 27, 27, 16, 16, PlusSign2);
-                break;
-            case 4:
-            case 5:
-                canvas_draw_xbm(canvas, 26, 26, 18, 18, PlusSign3);
-                break;
-            default:
-                break;
-            }
-        } else if(history.balance_sign == SuicaBalanceSub) {
-            // Animate plus sign
-            if(my_model->animator_tick > 12) {
-                // 9 steps of animation
-                my_model->animator_tick = 0;
-            }
-            switch(my_model->animator_tick) {
-            case 0:
-            case 1:
-            case 2:
-            case 3:
-                canvas_draw_xbm(canvas, 28, 32, 14, 6, MinusSign0);
-                break;
-            case 4:
-                canvas_draw_xbm(canvas, 28, 32, 14, 6, MinusSign1);
-                break;
-            case 5:
-                canvas_draw_xbm(canvas, 28, 32, 14, 6, MinusSign2);
-                break;
-            case 6:
-                canvas_draw_xbm(canvas, 28, 32, 14, 6, MinusSign3);
-                break;
-            case 7:
-                canvas_draw_xbm(canvas, 28, 32, 14, 6, MinusSign4);
-                break;
-            case 8:
-                canvas_draw_xbm(canvas, 28, 32, 14, 6, MinusSign5);
-                break;
-            case 9:
-                canvas_draw_xbm(canvas, 28, 32, 14, 6, MinusSign6);
-                break;
-            case 10:
-                canvas_draw_xbm(canvas, 28, 32, 14, 6, MinusSign7);
-                break;
-            case 11:
-                canvas_draw_xbm(canvas, 28, 32, 14, 6, MinusSign8);
-                break;
-            case 12:
-                canvas_draw_xbm(canvas, 28, 32, 14, 6, MinusSign9);
-                break;
-            default:
-                break;
-            }
-        } else {
-            canvas_draw_str(canvas, 30, 28, "=");
-        }
-
+        suica_draw_balance_page(canvas, history, my_model);
         break;
     default:
         break;
     }
+    furi_string_free(buffer);
 }
 
 static void suica_parse_detail_callback(GuiButtonType result, InputType type, void* context) {
