@@ -7,7 +7,7 @@ typedef struct {
     uint8_t* travel_history; // Dynamic array for raw 16-byte entries
     size_t size; // Number of entries currently stored
     size_t capacity; // Allocated capacity
-    uint8_t arrow_flow; // Arrow flow step
+    uint8_t animator_tick; // Counter for the animations
 } SuicaHistoryViewModel;
 
 typedef enum {

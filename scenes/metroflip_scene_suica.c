@@ -38,8 +38,7 @@
 #define TERMINAL_POS_AND_TAXI       0xC7
 #define TERMINAL_VENDING_MACHINE    0xC8
 #define TERMINAL_TURNSTILE          0x16
-
-#define ARROW_ANIMATION_FRAME_MS 500
+#define ARROW_ANIMATION_FRAME_MS    400
 
 const char* suica_service_names[] = {
     "Travel History",
@@ -57,6 +56,7 @@ static void suica_model_initialize(SuicaHistoryViewModel* model, size_t initial_
     model->capacity = initial_capacity;
     model->entry = 1;
     model->page = 0;
+    model->animator_tick = 0;
 }
 
 static void suica_add_entry(SuicaHistoryViewModel* model, const uint8_t* entry) {
@@ -83,6 +83,16 @@ static void suica_add_entry(SuicaHistoryViewModel* model, const uint8_t* entry) 
 
 static SuicaTravelHistory suica_parse(uint8_t block[16]) {
     SuicaTravelHistory history;
+    if(((uint8_t)block[4] + (uint8_t)block[5]) != 0) {
+        history.year = ((uint8_t)block[4] & 0xFE) >> 1;
+        history.month = (((uint8_t)block[4] & 0x01) << 3) | (((uint8_t)block[5] & 0xE0) >> 5);
+        history.day = (uint8_t)block[5] & 0x1F;
+    } else {
+        history.year = 0;
+        history.month = 0;
+        history.day = 0;
+    }
+    history.balance = ((uint16_t)block[11] << 8) | (uint16_t)block[10];
     // FURI_LOG_I(TAG,"%02X", (uint8_t)block[0]);
     switch((uint8_t)block[0]) {
     case TERMINAL_NULL:
@@ -107,6 +117,7 @@ static SuicaTravelHistory suica_parse(uint8_t block[16]) {
         history.history_type = SuicaHistoryTrain;
         uint8_t entry_line = block[6];
         uint8_t entry_station = block[7];
+        // Match exsit line and station
         for(size_t i = 0; i < RAILWAY_NUM; i++) {
             if(RailwaysList[i].line_code == entry_line) {
                 history.entry_line = RailwaysList[i];
@@ -122,48 +133,39 @@ static SuicaTravelHistory suica_parse(uint8_t block[16]) {
         if(block[0] > 0x15) {
             uint8_t exit_line = block[8];
             uint8_t exit_station = block[9];
-            FURI_LOG_I(TAG, "Exit Line %02X, Exit Station %02X", exit_line, exit_station);
-            history.rail_region = block[15];
+            FURI_LOG_D(TAG, "Exit Line %02X, Exit Station %02X", exit_line, exit_station);
 
+            // Add 1 to the area code if the exit line is greater than 0x80. Source:
+            // https://github.com/metrodroid/metrodroid/wiki/IC-(Japan)#station-codestore-code
+            history.area_code = block[15] + ((exit_line > 0x80) ? 1 : 0);
+
+            // Match exsit line and station
             for(size_t i = 0; i < RAILWAY_NUM; i++) {
                 if(RailwaysList[i].line_code == exit_line) {
                     history.exit_line = RailwaysList[i];
                     break;
                 }
             }
-            for(size_t j = 0; j < history.entry_line.station_num; j++) {
+            for(size_t j = 0; j < history.exit_line.station_num; j++) {
                 FURI_LOG_I(
                     TAG,
                     "Matching Exit Station Code %02X",
                     history.exit_line.line[j].station_code);
-                FURI_LOG_I(TAG, "Decoded Station Code %02X", exit_station);
+                FURI_LOG_D(TAG, "Decoded Station Code %02X", exit_station);
                 if(history.exit_line.line[j].station_code == exit_station) {
                     history.exit_station = history.exit_line.line[j];
                     break;
                 }
             }
-            FURI_LOG_I(
-                TAG,
-                "Exit Line %s, Exit Station Num %02X, station name %s",
-                RailwaysList->long_name,
-                history.exit_station.station_number,
-                history.exit_station.name);
         }
         if(((uint8_t)block[4] + (uint8_t)block[5]) != 0) {
             history.year = ((uint8_t)block[4] & 0xFE) >> 1;
             history.month = (((uint8_t)block[4] & 0x01) << 3) | (((uint8_t)block[5] & 0xE0) >> 5);
             history.day = (uint8_t)block[5] & 0x1F;
-            history.balance = ((uint16_t)block[10] << 8) | (uint16_t)block[11];
         }
         break;
 
     default:
-        if(((uint8_t)block[4] + (uint8_t)block[5]) != 0) {
-            history.year = ((uint8_t)block[4] & 0xFE) >> 1;
-            history.month = (((uint8_t)block[4] & 0x01) << 3) | (((uint8_t)block[5] & 0xE0) >> 5);
-            history.day = (uint8_t)block[5] & 0x1F;
-            history.balance = ((uint16_t)block[10] << 8) | (uint16_t)block[11];
-        }
         break;
     }
     return history;
@@ -181,10 +183,31 @@ static void suica_history_draw_callback(Canvas* canvas, void* model) {
     uint8_t current_block[FELICA_DATA_BLOCK_SIZE];
     FuriString* buffer = furi_string_alloc();
 
+    // Parse the current block/entry
     for(size_t i = 0; i < FELICA_DATA_BLOCK_SIZE; i++) {
         current_block[i] = my_model->travel_history[((my_model->entry - 1) * 16) + i];
     }
     SuicaTravelHistory history = suica_parse(current_block);
+
+    // Get previous balance if we are not at the earliest entry
+    if(my_model->entry < my_model->size) {
+        history.previous_balance = my_model->travel_history[(my_model->entry * 16) + 10];
+        history.previous_balance |= my_model->travel_history[(my_model->entry * 16) + 11] << 8;
+    } else {
+        history.previous_balance = 0;
+    }
+    // Calculate balance change
+    if(history.previous_balance < history.balance) {
+        history.balance_change = history.balance - history.previous_balance;
+        history.balance_sign = SuicaBalanceAdd;
+    } else if(history.previous_balance > history.balance) {
+        history.balance_change = history.previous_balance - history.balance;
+        history.balance_sign = SuicaBalanceSub;
+    } else {
+        history.balance_change = 0;
+        history.balance_sign = SuicaBalanceEqual;
+    }
+
     // Main title
     canvas_set_font(canvas, FontPrimary);
     canvas_draw_str(canvas, 0, 8, "Suica");
@@ -204,95 +227,198 @@ static void suica_history_draw_callback(Canvas* canvas, void* model) {
     furi_string_printf(buffer, "%02d/%02d", my_model->entry, my_model->size);
     canvas_set_font(canvas, FontKeyboard);
     canvas_draw_str(canvas, 99, 8, furi_string_get_cstr(buffer));
-    FURI_LOG_I(TAG, "History Type %d", history.history_type);
 
     // Floor
     canvas_draw_line(canvas, 0, 9, 128, 9);
 
     switch((uint8_t)my_model->page) {
     case 0:
-        
-
         if(history.history_type == SuicaHistoryTrain) {
             // Station Logos Circle
-            canvas_draw_circle(canvas, 33, 36, 13);
-            canvas_draw_circle(canvas, 98, 36, 13);
-            canvas_draw_circle(canvas, 33, 36, 16);
-            canvas_draw_circle(canvas, 98, 36, 16);
+            canvas_draw_circle(canvas, 32, 36, 13);
+            canvas_draw_circle(canvas, 96, 36, 13);
+            canvas_draw_circle(canvas, 32, 36, 16);
+            canvas_draw_circle(canvas, 96, 36, 16);
 
             // Entry Station Logo
-            furi_string_set(buffer, history.entry_line.short_name);
             canvas_set_font(canvas, FontPrimary);
-            canvas_draw_str(canvas, 27, 36, furi_string_get_cstr(buffer));
-            furi_string_printf(buffer, "%d", history.entry_station.station_number);
+            canvas_draw_str_aligned(
+                canvas, 33, 32, AlignCenter, AlignCenter, history.entry_line.short_name);
+            // canvas_draw_str(canvas, 27, 36, furi_string_get_cstr(buffer));
+            furi_string_printf(buffer, "%02d", history.entry_station.station_number);
             canvas_set_font(canvas, FontKeyboard);
-            canvas_draw_str(canvas, 28, 46, furi_string_get_cstr(buffer));
+            canvas_draw_str_aligned(
+                canvas, 33, 43, AlignCenter, AlignCenter, furi_string_get_cstr(buffer));
+            // canvas_draw_str(canvas, 26, 46, furi_string_get_cstr(buffer));
 
             // Exit Station Logo
-            furi_string_set(buffer, history.exit_line.short_name);
             canvas_set_font(canvas, FontPrimary);
-            canvas_draw_str(canvas, 92, 36, furi_string_get_cstr(buffer));
-            FURI_LOG_I(TAG, "Exit station %d", history.exit_station.station_number);
-            furi_string_printf(buffer, "%d", history.exit_station.station_number);
+            canvas_draw_str_aligned(
+                canvas, 97, 32, AlignCenter, AlignCenter, history.exit_line.short_name);
+            furi_string_printf(buffer, "%02d", history.exit_station.station_number);
             canvas_set_font(canvas, FontKeyboard);
-            canvas_draw_str(canvas, 93, 46, furi_string_get_cstr(buffer));
+            canvas_draw_str_aligned(
+                canvas, 97, 43, AlignCenter, AlignCenter, furi_string_get_cstr(buffer));
+            // canvas_draw_str(canvas, 91, 46, furi_string_get_cstr(buffer));
 
             // Arrow
-            if(my_model->arrow_flow > 4) {
+            if(my_model->animator_tick > 10) {
                 // 4 steps of animation
-                my_model->arrow_flow = 0;
+                my_model->animator_tick = 0;
             }
-            canvas_draw_xbm(canvas, 51 + my_model->arrow_flow * 3, 29, 18, 15, ArrowRight);
-            my_model->arrow_flow++;
+            canvas_draw_xbm(canvas, 50 + my_model->animator_tick, 29, 18, 15, ArrowRight);
         }
         break;
     case 1:
         if(history.history_type == SuicaHistoryTrain) {
-            // Logo
-            canvas_draw_xbm(canvas, 2, 13, 21, 13, TokyoMetroLogo);
-            canvas_draw_xbm(canvas, 1, 42, 23, 12, JRLogo);
-            
-
-            // Entry
-            canvas_set_font(canvas, FontPrimary);
-            canvas_draw_str(canvas, 26, 25, history.entry_line.long_name);
-
-            canvas_set_font(canvas, FontKeyboard);
-            canvas_draw_str(canvas, 2, 35, history.entry_station.name);
-
-            // Separator
-            canvas_draw_xbm(canvas, 0, 39, 91, 1, DashLine);
+            // Exit logo
+            switch(history.exit_line.type) {
+            case SuicaKeikyu:
+            case SuicaEastJR:
+                canvas_draw_xbm(canvas, 1, 12, 23, 12, JRLogo);
+                break;
+            case SuicaTokyoMetro:
+                canvas_draw_xbm(canvas, 2, 12, 21, 13, TokyoMetroLogo);
+                break;
+            case SuicaToei:
+                canvas_draw_xbm(canvas, 4, 11, 17, 15, ToeiLogo);
+                break;
+            default:
+                break;
+            }
 
             // Exit
             canvas_set_font(canvas, FontPrimary);
-            canvas_draw_str(canvas, 26, 54, history.exit_line.long_name);
+            canvas_draw_str(canvas, 26, 22, history.exit_line.long_name);
 
             canvas_set_font(canvas, FontKeyboard);
-            canvas_draw_str(canvas, 2, 64, history.exit_station.name);
+            canvas_draw_str(canvas, 2, 34, history.exit_station.name);
+
+            // Separator
+            canvas_draw_xbm(canvas, 0, 37, 95, 1, DashLine);
+
+            // Entry logo
+            switch(history.entry_line.type) {
+            case SuicaKeikyu:
+            case SuicaEastJR:
+                canvas_draw_xbm(canvas, 1, 40, 23, 12, JRLogo);
+                break;
+            case SuicaTokyoMetro:
+                canvas_draw_xbm(canvas, 2, 40, 21, 13, TokyoMetroLogo);
+                break;
+            case SuicaToei:
+                canvas_draw_xbm(canvas, 4, 39, 17, 15, ToeiLogo);
+                break;
+            default:
+                break;
+            }
+
+            // Entry
+            canvas_set_font(canvas, FontPrimary);
+            canvas_draw_str(canvas, 26, 52, history.entry_line.long_name);
+
+            canvas_set_font(canvas, FontKeyboard);
+            canvas_draw_str(canvas, 2, 62, history.entry_station.name);
 
             // Arrow
-            if(my_model->arrow_flow > 9) {
-                // 11 steps of animation
-                my_model->arrow_flow = 0;
+            if(my_model->animator_tick > 14) {
+                // 9 steps of animation
+                my_model->animator_tick = 0;
             }
-            canvas_draw_xbm(canvas, 110, 43 - my_model->arrow_flow * 3, 15, 18, ArrowUp);
-            my_model->arrow_flow++;
+            canvas_draw_xbm(canvas, 112, 42 - my_model->animator_tick * 2, 15, 18, ArrowUp);
         }
         break;
     case 2:
         // Balance
-        furi_string_printf(buffer, "%d", history.balance);
         canvas_set_font(canvas, FontBigNumbers);
-        canvas_draw_str_aligned(
-            canvas,
-            64,
-            32,
-            AlignCenter,
-            AlignCenter,
-            furi_string_get_cstr(buffer)); // Centered
+        canvas_draw_xbm(canvas, 0, 48, 12, 16, YenSign);
+        canvas_draw_xbm(canvas, 111, 48, 16, 16, YenKanji);
 
-        canvas_draw_xbm(canvas, 19, 24, 12, 16, YenSign);
-        canvas_draw_xbm(canvas, 95, 24, 16, 16, YenKanji);
+        furi_string_printf(buffer, "%d", history.balance);
+        canvas_draw_str_aligned(
+            canvas, 109, 64, AlignRight, AlignBottom, furi_string_get_cstr(buffer));
+
+        furi_string_printf(buffer, "%d", history.previous_balance);
+        canvas_draw_str_aligned(
+            canvas, 109, 26, AlignRight, AlignBottom, furi_string_get_cstr(buffer));
+
+        furi_string_printf(buffer, "%d", history.balance_change);
+        canvas_draw_str_aligned(
+            canvas, 109, 43, AlignRight, AlignBottom, furi_string_get_cstr(buffer));
+
+        // Separator
+        canvas_draw_line(canvas, 26, 45, 128, 45);
+        canvas_draw_line(canvas, 26, 46, 128, 46);
+
+        if(history.balance_sign == SuicaBalanceAdd) {
+            // Animate plus sign
+            if(my_model->animator_tick > 5) {
+                // 9 steps of animation
+                my_model->animator_tick = 0;
+            }
+            switch(my_model->animator_tick) {
+            case 0:
+            case 1:
+                canvas_draw_xbm(canvas, 28, 28, 14, 14, PlusSign1);
+                break;
+            case 2:
+            case 3:
+                canvas_draw_xbm(canvas, 27, 27, 16, 16, PlusSign2);
+                break;
+            case 4:
+            case 5:
+                canvas_draw_xbm(canvas, 26, 26, 18, 18, PlusSign3);
+                break;
+            default:
+                break;
+            }
+        } else if(history.balance_sign == SuicaBalanceSub) {
+            // Animate plus sign
+            if(my_model->animator_tick > 12) {
+                // 9 steps of animation
+                my_model->animator_tick = 0;
+            }
+            switch(my_model->animator_tick) {
+            case 0:
+            case 1:
+            case 2:
+            case 3:
+                canvas_draw_xbm(canvas, 28, 32, 14, 6, MinusSign0);
+                break;
+            case 4:
+                canvas_draw_xbm(canvas, 28, 32, 14, 6, MinusSign1);
+                break;
+            case 5:
+                canvas_draw_xbm(canvas, 28, 32, 14, 6, MinusSign2);
+                break;
+            case 6:
+                canvas_draw_xbm(canvas, 28, 32, 14, 6, MinusSign3);
+                break;
+            case 7:
+                canvas_draw_xbm(canvas, 28, 32, 14, 6, MinusSign4);
+                break;
+            case 8:
+                canvas_draw_xbm(canvas, 28, 32, 14, 6, MinusSign5);
+                break;
+            case 9:
+                canvas_draw_xbm(canvas, 28, 32, 14, 6, MinusSign6);
+                break;
+            case 10:
+                canvas_draw_xbm(canvas, 28, 32, 14, 6, MinusSign7);
+                break;
+            case 11:
+                canvas_draw_xbm(canvas, 28, 32, 14, 6, MinusSign8);
+                break;
+            case 12:
+                canvas_draw_xbm(canvas, 28, 32, 14, 6, MinusSign9);
+                break;
+            default:
+                break;
+            }
+        } else {
+            canvas_draw_str(canvas, 30, 28, "=");
+        }
+
         break;
     default:
         break;
@@ -495,8 +621,8 @@ static bool suica_view_history_custom_event_callback(uint32_t event, void* conte
             bool redraw = true;
             with_view_model(
                 app->suica_context->view_history,
-                SuicaHistoryViewModel * _model,
-                { UNUSED(_model); },
+                SuicaHistoryViewModel * model,
+                { model->animator_tick++; },
                 redraw);
             return true;
         }
