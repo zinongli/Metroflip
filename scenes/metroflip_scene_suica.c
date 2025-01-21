@@ -493,7 +493,8 @@ static NfcCommand metroflip_scene_suica_poller_callback(NfcGenericEvent event, v
                 rx_resp->SF1 = 0;
                 rx_resp->SF2 = 0;
                 blocks[0] = 0;
-                while((rx_resp->SF1 + rx_resp->SF2) == 0) {
+                uint8_t max_blocks = 120; // Arbitrary limit to prevent infinite loops
+                while((rx_resp->SF1 + rx_resp->SF2) == 0 && blocks[0] < max_blocks) {
                     uint8_t block_data[16] = {0};
                     error = felica_poller_read_blocks(
                         felica_poller, 1, blocks, service_code[service_code_index], &rx_resp);
@@ -530,10 +531,9 @@ static NfcCommand metroflip_scene_suica_poller_callback(NfcGenericEvent event, v
                 widget, GuiButtonTypeCenter, "Parse", suica_parse_detail_callback, app);
 
             view_dispatcher_switch_to_view(app->view_dispatcher, MetroflipViewWidget);
-            furi_string_free(parsed_data);
         }
     }
-
+    furi_string_free(parsed_data);
     command = NfcCommandStop;
     return command;
 }
@@ -619,11 +619,6 @@ static void suica_view_history_enter_callback(void* context) {
     furi_timer_start(app->suica_context->timer, period);
 }
 
-/**
- * @brief      Callback when the user exits the game screen.
- * @details    This function is called when the user exits the game screen.  We stop the timer.
- * @param      context  The context - SkeletonApp object.
-*/
 static void suica_view_history_exit_callback(void* context) {
     Metroflip* app = (Metroflip*)context;
     furi_timer_stop(app->suica_context->timer);
@@ -717,6 +712,7 @@ bool metroflip_scene_suica_on_event(void* context, SceneManagerEvent event) {
 void metroflip_scene_suica_on_exit(void* context) {
     Metroflip* app = context;
     widget_reset(app->widget);
+    view_free(app->suica_context->view_history);
     view_dispatcher_remove_view(app->view_dispatcher, MetroflipViewCanvas);
     free(app->suica_context);
     metroflip_app_blink_stop(app);
