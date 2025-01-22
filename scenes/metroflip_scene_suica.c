@@ -186,8 +186,9 @@ static void suica_draw_train_page_1(
     Canvas* canvas,
     SuicaTravelHistory history,
     SuicaHistoryViewModel* model) {
-    // Exit logo
-    switch(history.exit_line.type) {
+
+    // Entry logo
+    switch(history.entry_line.type) {
     case SuicaKeikyu:
         canvas_draw_xbm(canvas, 2, 11, 21, 15, KeikyuLogo);
         break;
@@ -207,18 +208,16 @@ static void suica_draw_train_page_1(
         break;
     }
 
-    // Exit
+    // Entry Text
     canvas_set_font(canvas, FontPrimary);
-    canvas_draw_str(canvas, 26, 22, history.exit_line.long_name);
+    canvas_draw_str(canvas, 26, 23, history.entry_line.long_name);
 
     canvas_set_font(canvas, FontKeyboard);
-    canvas_draw_str(canvas, 2, 34, history.exit_station.name);
+    canvas_draw_str(canvas, 2, 34, history.entry_station.name);
 
-    // Separator
-    canvas_draw_xbm(canvas, 0, 37, 95, 1, DashLine);
 
-    // Entry logo
-    switch(history.entry_line.type) {
+    // Exit logo
+    switch(history.exit_line.type) {
     case SuicaKeikyu:
         canvas_draw_xbm(canvas, 2, 39, 21, 15, KeikyuLogo);
         break;
@@ -237,20 +236,36 @@ static void suica_draw_train_page_1(
     default:
         break;
     }
-
-    // Entry
+    
+    // Exit Text
     canvas_set_font(canvas, FontPrimary);
-    canvas_draw_str(canvas, 26, 52, history.entry_line.long_name);
+    canvas_draw_str(canvas, 26, 51, history.exit_line.long_name);
 
     canvas_set_font(canvas, FontKeyboard);
-    canvas_draw_str(canvas, 2, 62, history.entry_station.name);
+    canvas_draw_str(canvas, 2, 62, history.exit_station.name);
+
+
+    // Separator
+    canvas_draw_xbm(canvas, 0, 37, 103, 1, DashLine);
 
     // Arrow
-    if(model->animator_tick > 7) {
-        // 9 steps of animation
+    uint8_t arrow_bits[4] = {0b1000, 0b0100, 0b0010, 0b0001};
+
+    // Arrow
+    if(model->animator_tick > 3) {
+        // 4 steps of animation
         model->animator_tick = 0;
     }
-    canvas_draw_xbm(canvas, 112, 42 - model->animator_tick * 4, 15, 18, ArrowUp);
+    uint8_t current_arrow_bits = arrow_bits[model->animator_tick];
+    canvas_draw_xbm(
+        canvas, 110, 19, 13, 10, (current_arrow_bits & 0b1000) ? FilledArrowDown : EmptyArrowDown);
+    canvas_draw_xbm(
+        canvas, 110, 29, 13, 10, (current_arrow_bits & 0b0100) ? FilledArrowDown : EmptyArrowDown);
+    canvas_draw_xbm(
+        canvas, 110, 39, 13, 10, (current_arrow_bits & 0b0010) ? FilledArrowDown : EmptyArrowDown);
+    canvas_draw_xbm(
+        canvas, 110, 49, 13, 10, (current_arrow_bits & 0b0001) ? FilledArrowDown : EmptyArrowDown);
+
 }
 
 static void suica_draw_train_page_2(
@@ -339,7 +354,7 @@ static void suica_draw_train_page_2(
         break;
     }
 
-    uint8_t arrow_bits[3] = {0b110, 0b011, 0b101};
+    uint8_t arrow_bits[3] = {0b100, 0b010, 0b001};
 
     // Arrow
     if(model->animator_tick > 2) {
@@ -348,11 +363,11 @@ static void suica_draw_train_page_2(
     }
     uint8_t current_arrow_bits = arrow_bits[model->animator_tick];
     canvas_draw_xbm(
-        canvas, 52, 32, 8, 13, (current_arrow_bits & 0b100) ? FilledAngleArrow : EmptyAngleArrow);
+        canvas, 51, 32, 10, 13, (current_arrow_bits & 0b100) ? FilledArrowRight : EmptyArrowRight);
     canvas_draw_xbm(
-        canvas, 60, 32, 8, 13, (current_arrow_bits & 0b010) ? FilledAngleArrow : EmptyAngleArrow);
+        canvas, 59, 32, 10, 13, (current_arrow_bits & 0b010) ? FilledArrowRight : EmptyArrowRight);
     canvas_draw_xbm(
-        canvas, 68, 32, 8, 13, (current_arrow_bits & 0b001) ? FilledAngleArrow : EmptyAngleArrow);
+        canvas, 67, 32, 10, 13, (current_arrow_bits & 0b001) ? FilledArrowRight : EmptyArrowRight);
 
     furi_string_free(buffer);
 }
