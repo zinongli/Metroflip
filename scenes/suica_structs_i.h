@@ -26,7 +26,7 @@ typedef struct {
     uint8_t line_code;
     Station* line;
     const uint8_t* logo;
-    int logo_offset;
+    const int* logo_position;
     const char* long_name;
     uint8_t station_num;
     SuicaRailwayType type;

@@ -264,7 +264,13 @@ static void suica_draw_train_page_2(
     case SuicaKeikyu:
         canvas_draw_xbm(canvas, 0, 14, 49, 49, KeikyuRing);
         canvas_set_font(canvas, FontKeyboard);
-        canvas_draw_xbm(canvas, 16, 24, 17, 9, history.entry_line.logo);
+        canvas_draw_xbm(
+            canvas,
+            16,
+            24,
+            history.entry_line.logo_position[2],
+            history.entry_line.logo_position[3],
+            history.entry_line.logo);
         canvas_set_font(canvas, FontBigNumbers);
         furi_string_printf(buffer, "%02d", history.entry_station.station_number);
         canvas_draw_str(canvas, 14, 52, furi_string_get_cstr(buffer));
@@ -275,7 +281,13 @@ static void suica_draw_train_page_2(
     case SuicaToei:
         canvas_draw_xbm(canvas, 0, 14, 49, 49, TokyoMetroRing);
         canvas_set_font(canvas, FontBigNumbers);
-        canvas_draw_xbm(canvas, 17 + history.entry_line.logo_offset, 23, 16, 16, history.entry_line.logo);
+        canvas_draw_xbm(
+            canvas,
+            17 + history.entry_line.logo_position[0],
+            22 + history.entry_line.logo_position[1],
+            history.entry_line.logo_position[2],
+            history.entry_line.logo_position[3],
+            history.entry_line.logo);
         furi_string_printf(buffer, "%02d", history.entry_station.station_number);
         canvas_draw_str(canvas, 14, 53, furi_string_get_cstr(buffer));
         break;
@@ -292,7 +304,13 @@ static void suica_draw_train_page_2(
     switch(history.exit_line.type) {
     case SuicaKeikyu:
         canvas_draw_xbm(canvas, 79, 14, 49, 49, KeikyuRing);
-        canvas_draw_xbm(canvas, 95, 24, 17, 9, history.exit_line.logo);
+        canvas_draw_xbm(
+            canvas,
+            95,
+            24,
+            history.exit_line.logo_position[2],
+            history.exit_line.logo_position[3],
+            history.exit_line.logo);
         canvas_set_font(canvas, FontBigNumbers);
         furi_string_printf(buffer, "%02d", history.exit_station.station_number);
         canvas_draw_str(canvas, 93, 52, furi_string_get_cstr(buffer));
@@ -302,7 +320,13 @@ static void suica_draw_train_page_2(
     case SuicaTokyoMetro:
     case SuicaToei:
         canvas_draw_xbm(canvas, 79, 14, 49, 49, TokyoMetroRing);
-        canvas_draw_xbm(canvas, 96 + history.entry_line.logo_offset, 23, 15, 15, history.exit_line.logo);
+        canvas_draw_xbm(
+            canvas,
+            96 + history.exit_line.logo_position[0],
+            22 + history.exit_line.logo_position[1],
+            history.exit_line.logo_position[2],
+            history.exit_line.logo_position[3],
+            history.exit_line.logo);
         canvas_set_font(canvas, FontBigNumbers);
         furi_string_printf(buffer, "%02d", history.exit_station.station_number);
         canvas_draw_str(canvas, 93, 53, furi_string_get_cstr(buffer));
