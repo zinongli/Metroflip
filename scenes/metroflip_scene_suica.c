@@ -147,10 +147,6 @@ static SuicaTravelHistory suica_parse(uint8_t block[16]) {
                 }
             }
             for(size_t j = 0; j < history.exit_line.station_num; j++) {
-                FURI_LOG_I(
-                    TAG,
-                    "Matching Exit Station Code %02X",
-                    history.exit_line.line[j].station_code);
                 FURI_LOG_D(TAG, "Decoded Station Code %02X", exit_station);
                 if(history.exit_line.line[j].station_code == exit_station) {
                     history.exit_station = history.exit_line.line[j];
@@ -171,46 +167,10 @@ static SuicaTravelHistory suica_parse(uint8_t block[16]) {
     return history;
 }
 
-static void
-    suica_draw_train_page_1(Canvas* canvas, SuicaTravelHistory history, SuicaHistoryViewModel* model) {
-    FuriString* buffer = furi_string_alloc();
-    canvas_draw_circle(canvas, 32, 36, 13);
-    canvas_draw_circle(canvas, 96, 36, 13);
-    canvas_draw_circle(canvas, 32, 36, 16);
-    canvas_draw_circle(canvas, 96, 36, 16);
-
-    // Entry Station Logo
-    canvas_set_font(canvas, FontPrimary);
-    canvas_draw_str_aligned(
-        canvas, 33, 32, AlignCenter, AlignCenter, history.entry_line.short_name);
-    // canvas_draw_str(canvas, 27, 36, furi_string_get_cstr(buffer));
-    furi_string_printf(buffer, "%02d", history.entry_station.station_number);
-    canvas_set_font(canvas, FontKeyboard);
-    canvas_draw_str_aligned(
-        canvas, 33, 43, AlignCenter, AlignCenter, furi_string_get_cstr(buffer));
-    // canvas_draw_str(canvas, 26, 46, furi_string_get_cstr(buffer));
-
-    // Entry Station Logo
-    canvas_set_font(canvas, FontPrimary);
-    canvas_draw_str_aligned(
-        canvas, 97, 32, AlignCenter, AlignCenter, history.exit_line.short_name);
-    // canvas_draw_str(canvas, 81, 36, furi_string_get_cstr(buffer));
-    furi_string_printf(buffer, "%02d", history.exit_station.station_number);
-    canvas_set_font(canvas, FontKeyboard);
-    canvas_draw_str_aligned(
-        canvas, 97, 43, AlignCenter, AlignCenter, furi_string_get_cstr(buffer));
-    // canvas_draw_str(canvas, 80, 46, furi_string_get_cstr(buffer));
-    // Arrow
-    if(model->animator_tick > 5) {
-        // 4 steps of animation
-        model->animator_tick = 0;
-    }
-    canvas_draw_xbm(canvas, 50 + model->animator_tick * 2, 29, 18, 15, ArrowRight);
-    furi_string_free(buffer);
-}
-
-static void
-    suica_draw_train_page_2(Canvas* canvas, SuicaTravelHistory history, SuicaHistoryViewModel* model) {
+static void suica_draw_train_page_1(
+    Canvas* canvas,
+    SuicaTravelHistory history,
+    SuicaHistoryViewModel* model) {
     // Exit logo
     switch(history.exit_line.type) {
     case SuicaKeikyu:
@@ -272,8 +232,89 @@ static void
     canvas_draw_xbm(canvas, 112, 42 - model->animator_tick * 4, 15, 18, ArrowUp);
 }
 
-static void
-    suica_draw_balance_page(Canvas* canvas, SuicaTravelHistory history, SuicaHistoryViewModel* model) {
+static void suica_draw_train_page_2(
+    Canvas* canvas,
+    SuicaTravelHistory history,
+    SuicaHistoryViewModel* model) {
+    FuriString* buffer = furi_string_alloc();
+
+    // Entry
+    switch(history.entry_line.type) {
+    case SuicaKeikyu:
+        canvas_draw_circle(canvas, 24, 38, 24);
+        canvas_draw_circle(canvas, 24, 38, 21);
+        canvas_set_font(canvas, FontKeyboard);
+        canvas_draw_xbm(
+        canvas, 16, 24, 17, 9, history.entry_line.logo);
+        canvas_set_font(canvas, FontBigNumbers);
+        furi_string_printf(buffer, "%02d", history.entry_station.station_number);
+        canvas_draw_str(canvas, 14, 52, furi_string_get_cstr(buffer));
+        break;
+    case SuicaEastJR:
+        break;
+    case SuicaTokyoMetro:
+    case SuicaToei:
+        canvas_draw_circle(canvas, 24, 38, 24);
+        canvas_draw_circle(canvas, 24, 38, 19);
+        canvas_set_font(canvas, FontBigNumbers);
+canvas_draw_xbm(
+        canvas, 17, 22, 15, 15, history.entry_line.logo);        
+        furi_string_printf(buffer, "%02d", history.entry_station.station_number);
+        canvas_draw_str(canvas, 14, 52, furi_string_get_cstr(buffer));
+        break;
+    default:
+        break;
+    }
+
+    // Exit
+    switch(history.exit_line.type) {
+    case SuicaKeikyu:
+        canvas_draw_circle(canvas, 103, 38, 24);
+        canvas_draw_circle(canvas, 103, 38, 21);
+        canvas_draw_xbm(
+        canvas, 95, 24, 17, 9, history.exit_line.logo);
+        canvas_set_font(canvas, FontBigNumbers);
+        furi_string_printf(buffer, "%02d", history.exit_station.station_number);
+        canvas_draw_str(canvas, 93, 52, furi_string_get_cstr(buffer));
+        break;
+    case SuicaEastJR:
+        break;
+    case SuicaTokyoMetro:
+    case SuicaToei:
+        canvas_draw_circle(canvas, 103, 38, 24);
+        canvas_draw_circle(canvas, 103, 38, 19);
+        canvas_draw_xbm(
+        canvas, 96, 22, 15, 15, history.exit_line.logo);
+        canvas_set_font(canvas, FontBigNumbers);
+        furi_string_printf(buffer, "%02d", history.exit_station.station_number);
+        canvas_draw_str(canvas, 93, 52, furi_string_get_cstr(buffer));
+        break;
+    default:
+        break;
+    }
+
+    uint8_t arrow_bits[3] = {0b110, 0b011, 0b101};
+
+    // Arrow
+    if(model->animator_tick > 2) {
+        // 4 steps of animation
+        model->animator_tick = 0;
+    }
+    uint8_t current_arrow_bits = arrow_bits[model->animator_tick];
+    canvas_draw_xbm(
+        canvas, 52, 32, 8, 13, (current_arrow_bits & 0b100) ? FilledAngleArrow : EmptyAngleArrow);
+    canvas_draw_xbm(
+        canvas, 60, 32, 8, 13, (current_arrow_bits & 0b010) ? FilledAngleArrow : EmptyAngleArrow);
+    canvas_draw_xbm(
+        canvas, 68, 32, 8, 13, (current_arrow_bits & 0b001) ? FilledAngleArrow : EmptyAngleArrow);
+
+    furi_string_free(buffer);
+}
+
+static void suica_draw_balance_page(
+    Canvas* canvas,
+    SuicaTravelHistory history,
+    SuicaHistoryViewModel* model) {
     FuriString* buffer = furi_string_alloc();
 
     // Balance
