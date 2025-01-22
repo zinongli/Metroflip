@@ -117,43 +117,58 @@ static SuicaTravelHistory suica_parse(uint8_t block[16]) {
         history.history_type = SuicaHistoryTrain;
         uint8_t entry_line = block[6];
         uint8_t entry_station = block[7];
-        // Match exsit line and station
+        bool entry_line_and_station_found = false;
+        bool exit_line_and_station_found = false;
+        // Match entry line and station
         for(size_t i = 0; i < RAILWAY_NUM; i++) {
             if(RailwaysList[i].line_code == entry_line) {
-                history.entry_line = RailwaysList[i];
+                for(size_t j = 0; j < RailwaysList[i].station_num; j++) {
+                    if(RailwaysList[i].line[j].station_code == entry_station) {
+                        history.entry_line = RailwaysList[i];
+                        history.entry_station = RailwaysList[i].line[j];
+                        entry_line_and_station_found = true;
+                        break;
+                    }
+                }
                 break;
             }
         }
-        for(size_t j = 0; j < history.entry_line.station_num; j++) {
-            if(history.entry_line.line[j].station_code == entry_station) {
-                history.entry_station = history.entry_line.line[j];
+
+        if(!entry_line_and_station_found) {
+            history.entry_line = RailwaysList[RAILWAY_NUM];
+            history.entry_line.type = SuicaRailwayTypeMax;
+            history.entry_station = UnknownLine[0];
+        }
+
+        uint8_t exit_line = block[8];
+        uint8_t exit_station = block[9];
+        FURI_LOG_D(TAG, "Exit Line %02X, Exit Station %02X", exit_line, exit_station);
+
+        // Add 1 to the area code if the exit line is greater than 0x80. Source:
+        // https://github.com/metrodroid/metrodroid/wiki/IC-(Japan)#station-codestore-code
+        history.area_code = block[15] + ((exit_line > 0x80) ? 1 : 0);
+
+        // Match exsit line and station
+        for(size_t i = 0; i < RAILWAY_NUM; i++) {
+            if(RailwaysList[i].line_code == exit_line) {
+                for(size_t j = 0; j < RailwaysList[i].station_num; j++) {
+                    if(RailwaysList[i].line[j].station_code == exit_station) {
+                        history.exit_line = RailwaysList[i];
+                        history.exit_station = RailwaysList[i].line[j];
+                        exit_line_and_station_found = true;
+                        break;
+                    }
+                }
                 break;
             }
         }
-        if(block[0] > 0x15) {
-            uint8_t exit_line = block[8];
-            uint8_t exit_station = block[9];
-            FURI_LOG_D(TAG, "Exit Line %02X, Exit Station %02X", exit_line, exit_station);
 
-            // Add 1 to the area code if the exit line is greater than 0x80. Source:
-            // https://github.com/metrodroid/metrodroid/wiki/IC-(Japan)#station-codestore-code
-            history.area_code = block[15] + ((exit_line > 0x80) ? 1 : 0);
-
-            // Match exsit line and station
-            for(size_t i = 0; i < RAILWAY_NUM; i++) {
-                if(RailwaysList[i].line_code == exit_line) {
-                    history.exit_line = RailwaysList[i];
-                    break;
-                }
-            }
-            for(size_t j = 0; j < history.exit_line.station_num; j++) {
-                FURI_LOG_D(TAG, "Decoded Station Code %02X", exit_station);
-                if(history.exit_line.line[j].station_code == exit_station) {
-                    history.exit_station = history.exit_line.line[j];
-                    break;
-                }
-            }
+        if(!exit_line_and_station_found) {
+            history.exit_line = RailwaysList[RAILWAY_NUM];
+            history.exit_line.type = SuicaRailwayTypeMax;
+            history.exit_station = UnknownLine[0];
         }
+
         if(((uint8_t)block[4] + (uint8_t)block[5]) != 0) {
             history.year = ((uint8_t)block[4] & 0xFE) >> 1;
             history.month = (((uint8_t)block[4] & 0x01) << 3) | (((uint8_t)block[5] & 0xE0) >> 5);
@@ -185,6 +200,9 @@ static void suica_draw_train_page_1(
     case SuicaToei:
         canvas_draw_xbm(canvas, 4, 11, 17, 15, ToeiLogo);
         break;
+    case SuicaRailwayTypeMax:
+        canvas_draw_xbm(canvas, 5, 11, 16, 15, QuestionMarkSmall);
+        break;
     default:
         break;
     }
@@ -212,6 +230,9 @@ static void suica_draw_train_page_1(
         break;
     case SuicaToei:
         canvas_draw_xbm(canvas, 4, 39, 17, 15, ToeiLogo);
+        break;
+    case SuicaRailwayTypeMax:
+        canvas_draw_xbm(canvas, 5, 39, 16, 15, QuestionMarkSmall);
         break;
     default:
         break;
@@ -241,11 +262,9 @@ static void suica_draw_train_page_2(
     // Entry
     switch(history.entry_line.type) {
     case SuicaKeikyu:
-        canvas_draw_circle(canvas, 24, 38, 24);
-        canvas_draw_circle(canvas, 24, 38, 21);
+        canvas_draw_xbm(canvas, 0, 14, 49, 49, KeikyuRing);
         canvas_set_font(canvas, FontKeyboard);
-        canvas_draw_xbm(
-        canvas, 16, 24, 17, 9, history.entry_line.logo);
+        canvas_draw_xbm(canvas, 16, 24, 17, 9, history.entry_line.logo);
         canvas_set_font(canvas, FontBigNumbers);
         furi_string_printf(buffer, "%02d", history.entry_station.station_number);
         canvas_draw_str(canvas, 14, 52, furi_string_get_cstr(buffer));
@@ -254,13 +273,16 @@ static void suica_draw_train_page_2(
         break;
     case SuicaTokyoMetro:
     case SuicaToei:
+        canvas_draw_xbm(canvas, 0, 14, 49, 49, TokyoMetroRing);
+        canvas_set_font(canvas, FontBigNumbers);
+        canvas_draw_xbm(canvas, 17 + history.entry_line.logo_offset, 23, 16, 16, history.entry_line.logo);
+        furi_string_printf(buffer, "%02d", history.entry_station.station_number);
+        canvas_draw_str(canvas, 14, 53, furi_string_get_cstr(buffer));
+        break;
+    case SuicaRailwayTypeMax:
         canvas_draw_circle(canvas, 24, 38, 24);
         canvas_draw_circle(canvas, 24, 38, 19);
-        canvas_set_font(canvas, FontBigNumbers);
-canvas_draw_xbm(
-        canvas, 17, 22, 15, 15, history.entry_line.logo);        
-        furi_string_printf(buffer, "%02d", history.entry_station.station_number);
-        canvas_draw_str(canvas, 14, 52, furi_string_get_cstr(buffer));
+        canvas_draw_xbm(canvas, 14, 22, 21, 33, QuestionMarkBig);
         break;
     default:
         break;
@@ -269,10 +291,8 @@ canvas_draw_xbm(
     // Exit
     switch(history.exit_line.type) {
     case SuicaKeikyu:
-        canvas_draw_circle(canvas, 103, 38, 24);
-        canvas_draw_circle(canvas, 103, 38, 21);
-        canvas_draw_xbm(
-        canvas, 95, 24, 17, 9, history.exit_line.logo);
+        canvas_draw_xbm(canvas, 79, 14, 49, 49, KeikyuRing);
+        canvas_draw_xbm(canvas, 95, 24, 17, 9, history.exit_line.logo);
         canvas_set_font(canvas, FontBigNumbers);
         furi_string_printf(buffer, "%02d", history.exit_station.station_number);
         canvas_draw_str(canvas, 93, 52, furi_string_get_cstr(buffer));
@@ -281,14 +301,16 @@ canvas_draw_xbm(
         break;
     case SuicaTokyoMetro:
     case SuicaToei:
-        canvas_draw_circle(canvas, 103, 38, 24);
-        canvas_draw_circle(canvas, 103, 38, 19);
-        canvas_draw_xbm(
-        canvas, 96, 22, 15, 15, history.exit_line.logo);
+        canvas_draw_xbm(canvas, 79, 14, 49, 49, TokyoMetroRing);
+        canvas_draw_xbm(canvas, 96 + history.entry_line.logo_offset, 23, 15, 15, history.exit_line.logo);
         canvas_set_font(canvas, FontBigNumbers);
         furi_string_printf(buffer, "%02d", history.exit_station.station_number);
-        canvas_draw_str(canvas, 93, 52, furi_string_get_cstr(buffer));
+        canvas_draw_str(canvas, 93, 53, furi_string_get_cstr(buffer));
         break;
+    case SuicaRailwayTypeMax:
+        canvas_draw_circle(canvas, 103, 38, 24);
+        canvas_draw_circle(canvas, 103, 38, 19);
+        canvas_draw_xbm(canvas, 93, 22, 21, 33, QuestionMarkBig);
     default:
         break;
     }
