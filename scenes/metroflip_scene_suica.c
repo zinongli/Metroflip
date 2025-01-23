@@ -28,17 +28,20 @@
 #include <datetime.h>
 #include "suica_assets.h"
 
-#define SERVICE_CODE_HISTORY_IN_LE  (0x090FU)
-#define SERVICE_CODE_TAPS_LOG_IN_LE (0x108FU)
-#define BLOCK_COUNT                 1
-#define HISTORY_VIEW_PAGE_NUM       3
-#define TAG                         "Metroflip:Scene:Suica"
-#define TERMINAL_NULL               0x02
-#define TERMINAL_BUS                0x05
-#define TERMINAL_POS_AND_TAXI       0xC7
-#define TERMINAL_VENDING_MACHINE    0xC8
-#define TERMINAL_TURNSTILE          0x16
-#define ARROW_ANIMATION_FRAME_MS    500
+#define SERVICE_CODE_HISTORY_IN_LE      (0x090FU)
+#define SERVICE_CODE_TAPS_LOG_IN_LE     (0x108FU)
+#define BLOCK_COUNT                     1
+#define HISTORY_VIEW_PAGE_NUM           3
+#define TAG                             "Metroflip:Scene:Suica"
+#define TERMINAL_NULL                   0x02
+#define TERMINAL_BUS                    0x05
+#define TERMINAL_POS_AND_TAXI           0xC7
+#define TERMINAL_VENDING_MACHINE        0xC8
+#define TERMINAL_TICKET_VENDING_MACHINE 0x12
+#define TERMINAL_TURNSTILE              0x16
+#define TERMINAL_IN_CAR_SUPP_MACHINE    0x24
+#define PROCESSING_CODE_NEW_ISSUE       0x02
+#define ARROW_ANIMATION_FRAME_MS        500
 
 const char* suica_service_names[] = {
     "Travel History",
@@ -94,6 +97,70 @@ static SuicaTravelHistory suica_parse(uint8_t block[16]) {
     }
     history.balance = ((uint16_t)block[11] << 8) | (uint16_t)block[10];
     // FURI_LOG_I(TAG,"%02X", (uint8_t)block[0]);
+
+    if((uint8_t)block[0] >= TERMINAL_TICKET_VENDING_MACHINE &&
+       (uint8_t)block[0] <= TERMINAL_IN_CAR_SUPP_MACHINE) {
+        // Train rides
+        // Will be overwritton is is ticket sale (TERMINAL_TICKET_VENDING_MACHINE)
+        history.history_type = SuicaHistoryTrain;
+        uint8_t entry_line = block[6];
+        uint8_t entry_station = block[7];
+        bool entry_line_and_station_found = false;
+        bool exit_line_and_station_found = false;
+        // Match entry line and station
+        for(size_t i = 0; i < RAILWAY_NUM; i++) {
+            if(RailwaysList[i].line_code == entry_line) {
+                for(size_t j = 0; j < RailwaysList[i].station_num; j++) {
+                    if(RailwaysList[i].line[j].station_code == entry_station) {
+                        history.entry_line = RailwaysList[i];
+                        history.entry_station = RailwaysList[i].line[j];
+                        entry_line_and_station_found = true;
+                        break;
+                    }
+                }
+            }
+        }
+
+        if(!entry_line_and_station_found) {
+            history.entry_line = RailwaysList[RAILWAY_NUM];
+            history.entry_line.type = SuicaRailwayTypeMax;
+            history.entry_station = UnknownLine[0];
+        }
+
+        uint8_t exit_line = block[8];
+        uint8_t exit_station = block[9];
+        FURI_LOG_D(TAG, "Exit Line %02X, Exit Station %02X", exit_line, exit_station);
+
+        // Add 1 to the area code if the exit line is greater than 0x80. Source:
+        // https://github.com/metrodroid/metrodroid/wiki/IC-(Japan)#station-codestore-code
+        history.area_code = block[15] + ((exit_line > 0x80) ? 1 : 0);
+
+        // Match exit line and station
+        for(size_t i = 0; i < RAILWAY_NUM; i++) {
+            if(RailwaysList[i].line_code == exit_line) {
+                for(size_t j = 0; j < RailwaysList[i].station_num; j++) {
+                    if(RailwaysList[i].line[j].station_code == exit_station) {
+                        history.exit_line = RailwaysList[i];
+                        history.exit_station = RailwaysList[i].line[j];
+                        exit_line_and_station_found = true;
+                        break;
+                    }
+                }
+            }
+        }
+
+        if(!exit_line_and_station_found) {
+            history.exit_line = RailwaysList[RAILWAY_NUM];
+            history.exit_line.type = SuicaRailwayTypeMax;
+            history.exit_station = UnknownLine[0];
+        }
+
+        if(((uint8_t)block[4] + (uint8_t)block[5]) != 0) {
+            history.year = ((uint8_t)block[4] & 0xFE) >> 1;
+            history.month = (((uint8_t)block[4] & 0x01) << 3) | (((uint8_t)block[5] & 0xE0) >> 5);
+            history.day = (uint8_t)block[5] & 0x1F;
+        }
+    }
     switch((uint8_t)block[0]) {
     case TERMINAL_NULL:
         history.history_type = SuicaHistoryNull;
@@ -112,72 +179,14 @@ static SuicaTravelHistory suica_parse(uint8_t block[16]) {
         history.hour = ((uint8_t)block[6] & 0xF8) >> 3;
         history.minute = (((uint8_t)block[6] & 0x07) << 3) | (((uint8_t)block[7] & 0xE0) >> 5);
         break;
-    case TERMINAL_TURNSTILE:
-        // Train rides
-        history.history_type = SuicaHistoryTrain;
-        uint8_t entry_line = block[6];
-        uint8_t entry_station = block[7];
-        bool entry_line_and_station_found = false;
-        bool exit_line_and_station_found = false;
-        // Match entry line and station
-        for(size_t i = 0; i < RAILWAY_NUM; i++) {
-            if(RailwaysList[i].line_code == entry_line) {
-                for(size_t j = 0; j < RailwaysList[i].station_num; j++) {
-                    if(RailwaysList[i].line[j].station_code == entry_station) {
-                        history.entry_line = RailwaysList[i];
-                        history.entry_station = RailwaysList[i].line[j];
-                        entry_line_and_station_found = true;
-                        break;
-                    }
-                }
-                break;
-            }
-        }
-
-        if(!entry_line_and_station_found) {
-            history.entry_line = RailwaysList[RAILWAY_NUM];
-            history.entry_line.type = SuicaRailwayTypeMax;
-            history.entry_station = UnknownLine[0];
-        }
-
-        uint8_t exit_line = block[8];
-        uint8_t exit_station = block[9];
-        FURI_LOG_D(TAG, "Exit Line %02X, Exit Station %02X", exit_line, exit_station);
-
-        // Add 1 to the area code if the exit line is greater than 0x80. Source:
-        // https://github.com/metrodroid/metrodroid/wiki/IC-(Japan)#station-codestore-code
-        history.area_code = block[15] + ((exit_line > 0x80) ? 1 : 0);
-
-        // Match exsit line and station
-        for(size_t i = 0; i < RAILWAY_NUM; i++) {
-            if(RailwaysList[i].line_code == exit_line) {
-                for(size_t j = 0; j < RailwaysList[i].station_num; j++) {
-                    if(RailwaysList[i].line[j].station_code == exit_station) {
-                        history.exit_line = RailwaysList[i];
-                        history.exit_station = RailwaysList[i].line[j];
-                        exit_line_and_station_found = true;
-                        break;
-                    }
-                }
-                break;
-            }
-        }
-
-        if(!exit_line_and_station_found) {
-            history.exit_line = RailwaysList[RAILWAY_NUM];
-            history.exit_line.type = SuicaRailwayTypeMax;
-            history.exit_station = UnknownLine[0];
-        }
-
-        if(((uint8_t)block[4] + (uint8_t)block[5]) != 0) {
-            history.year = ((uint8_t)block[4] & 0xFE) >> 1;
-            history.month = (((uint8_t)block[4] & 0x01) << 3) | (((uint8_t)block[5] & 0xE0) >> 5);
-            history.day = (uint8_t)block[5] & 0x1F;
-        }
+    case TERMINAL_TICKET_VENDING_MACHINE:
+        history.history_type = SuicaHistoryHappyBirthday;
         break;
-
     default:
         break;
+        if((uint8_t)block[1] == PROCESSING_CODE_NEW_ISSUE) {
+            history.history_type = SuicaHistoryHappyBirthday;
+        }
     }
     return history;
 }
@@ -191,7 +200,7 @@ static void suica_draw_train_page_1(
     case SuicaKeikyu:
         canvas_draw_xbm(canvas, 2, 11, 21, 15, KeikyuLogo);
         break;
-    case SuicaEastJR:
+    case SuicaJR:
         canvas_draw_xbm(canvas, 1, 12, 23, 12, JRLogo);
         break;
     case SuicaTokyoMetro:
@@ -219,7 +228,7 @@ static void suica_draw_train_page_1(
     case SuicaKeikyu:
         canvas_draw_xbm(canvas, 2, 39, 21, 15, KeikyuLogo);
         break;
-    case SuicaEastJR:
+    case SuicaJR:
         canvas_draw_xbm(canvas, 1, 40, 23, 12, JRLogo);
         break;
     case SuicaTokyoMetro:
@@ -273,7 +282,10 @@ static void suica_draw_train_page_2(
     // Entry
     switch(history.entry_line.type) {
     case SuicaKeikyu:
-        canvas_draw_xbm(canvas, 0, 14, 49, 49, KeikyuRing);
+        canvas_draw_disc(canvas, 24, 38, 24);
+        canvas_set_color(canvas, ColorWhite);
+        canvas_draw_disc(canvas, 24, 38, 21);
+        canvas_set_color(canvas, ColorBlack);
         canvas_set_font(canvas, FontKeyboard);
         canvas_draw_xbm(
             canvas,
@@ -284,13 +296,39 @@ static void suica_draw_train_page_2(
             history.entry_line.logo);
         canvas_set_font(canvas, FontBigNumbers);
         furi_string_printf(buffer, "%02d", history.entry_station.station_number);
-        canvas_draw_str(canvas, 13, 52, furi_string_get_cstr(buffer));
+        canvas_draw_str(canvas, 13, 51, furi_string_get_cstr(buffer));
         break;
-    case SuicaEastJR:
+    case SuicaJR:
+        if(history.entry_station.jr_header) {
+            canvas_draw_rbox(canvas, 6, 14, 38, 48, 7);
+            canvas_set_color(canvas, ColorWhite);
+            canvas_set_font(canvas, FontPrimary);
+            canvas_draw_str_aligned(
+                canvas, 101, 24, AlignCenter, AlignBottom, history.entry_station.jr_header);
+            canvas_draw_rbox(canvas, 23, 26, 32, 32, 5);
+            canvas_set_color(canvas, ColorBlack);
+            canvas_draw_frame(canvas, 12, 29, 26, 26);
+            canvas_set_font(canvas, FontKeyboard);
+            canvas_draw_str(canvas, 19, 38, history.entry_line.short_name);
+            canvas_set_font(canvas, FontBigNumbers);
+            furi_string_printf(buffer, "%02d", history.entry_station.station_number);
+            canvas_draw_str(canvas, 14, 53, furi_string_get_cstr(buffer));
+        } else {
+            canvas_draw_rframe(canvas, 9, 23, 32, 32, 5);
+            canvas_draw_frame(canvas, 12, 26, 26, 26);
+            canvas_set_font(canvas, FontKeyboard);
+            canvas_draw_str(canvas, 19, 35, history.entry_line.short_name);
+            canvas_set_font(canvas, FontBigNumbers);
+            furi_string_printf(buffer, "%02d", history.entry_station.station_number);
+            canvas_draw_str(canvas, 14, 50, furi_string_get_cstr(buffer));
+        }
         break;
     case SuicaTokyoMetro:
     case SuicaToei:
-        canvas_draw_xbm(canvas, 0, 14, 49, 49, TokyoMetroRing);
+        canvas_draw_disc(canvas, 24, 38, 24);
+        canvas_set_color(canvas, ColorWhite);
+        canvas_draw_disc(canvas, 24, 38, 19);
+        canvas_set_color(canvas, ColorBlack);
         canvas_set_font(canvas, FontBigNumbers);
         canvas_draw_xbm(
             canvas,
@@ -314,7 +352,10 @@ static void suica_draw_train_page_2(
     // Exit
     switch(history.exit_line.type) {
     case SuicaKeikyu:
-        canvas_draw_xbm(canvas, 79, 14, 49, 49, KeikyuRing);
+        canvas_draw_disc(canvas, 103, 38, 24);
+        canvas_set_color(canvas, ColorWhite);
+        canvas_draw_disc(canvas, 103, 38, 21);
+        canvas_set_color(canvas, ColorBlack);
         canvas_draw_xbm(
             canvas,
             95,
@@ -326,11 +367,37 @@ static void suica_draw_train_page_2(
         furi_string_printf(buffer, "%02d", history.exit_station.station_number);
         canvas_draw_str(canvas, 92, 52, furi_string_get_cstr(buffer));
         break;
-    case SuicaEastJR:
+    case SuicaJR:
+        if(history.exit_station.jr_header) {
+            canvas_draw_rbox(canvas, 83, 14, 38, 48, 7);
+            canvas_set_color(canvas, ColorWhite);
+            canvas_set_font(canvas, FontPrimary);
+            canvas_draw_str_aligned(
+                canvas, 101, 24, AlignCenter, AlignBottom, history.exit_station.jr_header);
+            canvas_draw_rbox(canvas, 86, 26, 32, 32, 5);
+            canvas_set_color(canvas, ColorBlack);
+            canvas_draw_frame(canvas, 89, 29, 26, 26);
+            canvas_set_font(canvas, FontKeyboard);
+            canvas_draw_str(canvas, 96, 38, history.exit_line.short_name);
+            canvas_set_font(canvas, FontBigNumbers);
+            furi_string_printf(buffer, "%02d", history.exit_station.station_number);
+            canvas_draw_str(canvas, 91, 53, furi_string_get_cstr(buffer));
+        } else {
+            canvas_draw_rframe(canvas, 86, 23, 32, 32, 5);
+            canvas_draw_frame(canvas, 89, 26, 26, 26);
+            canvas_set_font(canvas, FontKeyboard);
+            canvas_draw_str(canvas, 96, 35, history.exit_line.short_name);
+            canvas_set_font(canvas, FontBigNumbers);
+            furi_string_printf(buffer, "%02d", history.exit_station.station_number);
+            canvas_draw_str(canvas, 91, 50, furi_string_get_cstr(buffer));
+        }
         break;
     case SuicaTokyoMetro:
     case SuicaToei:
-        canvas_draw_xbm(canvas, 79, 14, 49, 49, TokyoMetroRing);
+        canvas_draw_disc(canvas, 103, 38, 24);
+        canvas_set_color(canvas, ColorWhite);
+        canvas_draw_disc(canvas, 103, 38, 19);
+        canvas_set_color(canvas, ColorBlack);
         canvas_draw_xbm(
             canvas,
             96 + history.exit_line.logo_position[0],
@@ -505,28 +572,28 @@ static void suica_history_draw_callback(Canvas* canvas, void* model) {
 
     // Date
     furi_string_printf(buffer, "20%02d-%02d-%02d", history.year, history.month, history.day);
-    canvas_set_font(canvas, FontKeyboard);
+    canvas_set_font(canvas, FontPrimary);
     canvas_draw_str(canvas, 33, 8, furi_string_get_cstr(buffer));
 
     // Entry Num
     furi_string_printf(buffer, "%02d/%02d", my_model->entry, my_model->size);
-    canvas_set_font(canvas, FontKeyboard);
+    canvas_set_font(canvas, FontPrimary);
     canvas_draw_str(canvas, 99, 8, furi_string_get_cstr(buffer));
 
     // Frame
     canvas_draw_line(canvas, 0, 9, 26, 9);
-
-    canvas_draw_line(canvas, 26, 9, 29, 6);
+    canvas_draw_line(canvas, 27, 9, 29, 7);
     canvas_draw_line(canvas, 29, 0, 29, 6);
-    canvas_draw_line(canvas, 32, 9, 29, 6);
 
-    canvas_draw_line(canvas, 32, 9, 92, 9);
+    canvas_draw_line(canvas, 31, 0, 31, 7);
+    canvas_draw_line(canvas, 33, 9, 31, 7);
+    canvas_draw_line(canvas, 90, 9, 34, 9);
+    canvas_draw_line(canvas, 91, 9, 94, 6);
+    canvas_draw_line(canvas, 94, 0, 94, 6);
 
-    canvas_draw_line(canvas, 92, 9, 95, 6);
-    canvas_draw_line(canvas, 95, 0, 95, 6);
-    canvas_draw_line(canvas, 98, 9, 95, 6);
-    
-    canvas_draw_line(canvas, 99, 9, 127, 9);
+    canvas_draw_line(canvas, 96, 0, 96, 6);
+    canvas_draw_line(canvas, 99, 9, 96, 6);
+    canvas_draw_line(canvas, 100, 9, 128, 9);
 
     switch((uint8_t)my_model->page) {
     case 0:

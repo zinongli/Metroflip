@@ -6,7 +6,7 @@ typedef enum {
     SuicaKeikyu,
     SuicaTokyoMetro,
     SuicaToei,
-    SuicaEastJR,
+    SuicaJR,
     SuicaRailwayTypeMax,
 } SuicaRailwayType;
 
@@ -20,6 +20,7 @@ typedef struct {
     uint8_t station_code;
     uint8_t station_number;
     const char* name;
+    const char* jr_header;
 } Station;
 
 typedef struct {
@@ -30,6 +31,7 @@ typedef struct {
     const char* long_name;
     uint8_t station_num;
     SuicaRailwayType type;
+    const char* short_name;
 } Railway;
 
 typedef struct {

@@ -15,6 +15,7 @@ typedef enum {
     SuicaHistoryBus,
     SuicaHistoryPosAndTaxi,
     SuicaHistoryVendingMachine,
+    SuicaHistoryHappyBirthday,
     SuicaHistoryTrain
 } SuicaHistoryType;
 
