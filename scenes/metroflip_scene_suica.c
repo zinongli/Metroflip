@@ -669,12 +669,7 @@ static NfcCommand metroflip_scene_suica_poller_callback(NfcGenericEvent event, v
                     uint8_t block_data[16] = {0};
                     error = felica_poller_read_blocks(
                         felica_poller, 1, blocks, service_code[service_code_index], &rx_resp);
-                    if(error != FelicaErrorNone) {
-                        stage = MetroflipPollerEventTypeFail;
-                        view_dispatcher_send_custom_event(
-                            app->view_dispatcher, MetroflipCustomEventPollerFail);
-                        break;
-                    }
+                    
                     furi_string_cat_printf(parsed_data, "Block %02X\n", blocks[0]);
                     blocks[0]++;
                     for(size_t i = 0; i < FELICA_DATA_BLOCK_SIZE; i++) {
@@ -686,14 +681,19 @@ static NfcCommand metroflip_scene_suica_poller_callback(NfcGenericEvent event, v
                         FURI_LOG_I(TAG, "Service code %d, adding entry", service_code_index);
                         suica_add_entry(model, block_data);
                     }
+
+                    if(error != FelicaErrorNone) {
+                        stage = MetroflipPollerEventTypeFail;
+                        break;
+                    }
                     
                 }
             }
             metroflip_app_blink_stop(app);
             stage = (error == FelicaErrorNone) ? MetroflipPollerEventTypeSuccess :
                                                  MetroflipPollerEventTypeFail;
-            if(model->size = 0) {
-                furi_string_set_printf(
+            if(model->size == 1) { // Have to let the poller run once before knowing we failed
+                furi_string_printf(
                     parsed_data,
                     "\e#Suica\nSorry, no data found.\nPlease let the developer know and we will add support.");
             }
@@ -703,7 +703,7 @@ static NfcCommand metroflip_scene_suica_poller_callback(NfcGenericEvent event, v
             widget_add_button_element(
                 widget, GuiButtonTypeRight, "Exit", metroflip_exit_widget_callback, app);
 
-            if(model->size > 0) {
+            if(model->size > 1) {
                 widget_add_button_element(
                     widget, GuiButtonTypeCenter, "Parse", suica_parse_detail_callback, app);
             }
