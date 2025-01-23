@@ -669,6 +669,12 @@ static NfcCommand metroflip_scene_suica_poller_callback(NfcGenericEvent event, v
                     uint8_t block_data[16] = {0};
                     error = felica_poller_read_blocks(
                         felica_poller, 1, blocks, service_code[service_code_index], &rx_resp);
+                    if(error != FelicaErrorNone) {
+                        stage = MetroflipPollerEventTypeFail;
+                        view_dispatcher_send_custom_event(
+                            app->view_dispatcher, MetroflipCustomEventPollerFail);
+                        break;
+                    }
                     furi_string_cat_printf(parsed_data, "Block %02X\n", blocks[0]);
                     blocks[0]++;
                     for(size_t i = 0; i < FELICA_DATA_BLOCK_SIZE; i++) {
@@ -680,12 +686,7 @@ static NfcCommand metroflip_scene_suica_poller_callback(NfcGenericEvent event, v
                         FURI_LOG_I(TAG, "Service code %d, adding entry", service_code_index);
                         suica_add_entry(model, block_data);
                     }
-                    if(error != FelicaErrorNone) {
-                        stage = MetroflipPollerEventTypeFail;
-                        view_dispatcher_send_custom_event(
-                            app->view_dispatcher, MetroflipCustomEventPollerFail);
-                        break;
-                    }
+                    
                 }
             }
             metroflip_app_blink_stop(app);
