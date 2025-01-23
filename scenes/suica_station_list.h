@@ -3,9 +3,9 @@
 #include <furi.h>
 #include "suica_structs_i.h"
 
-#define RAILWAY_NUM 12
+#define RAILWAY_NUM 16 // Don't count Unknown
 
-// Keikyu
+// Keikyu 2 lines
 static Station KeikyuAirport[6] = {
     {0x01, 11, "Keikyu Kamata"},
     {0x02, 12, "Kojiya"},
@@ -68,7 +68,7 @@ static Station KeikyuMain[50] = {
     {0x36, 64, "Uraga"},
 };
 
-// Tokyo Metro
+// Tokyo Metro 9 lines
 static Station TokyoMetroGinza[19] = {
     {0x2C, 19, "Asakusa"},       {0x2D, 18, "Tawaramachi"},   {0x2E, 17, "Inaricho"},
     {0x2F, 16, "Ueno"},          {0x30, 15, "Ueno-hirokoji"}, {0x31, 14, "Suehirocho"},
@@ -226,7 +226,7 @@ static Station TokyoMetroNamboku[19] = {
     {0x3C, 19, "Akabane-iwabuchi"},
 };
 
-// Toei
+// Toei 5 lines (double Oedo)
 static Station ToeiAsakusa[20] = {
     {0x01, 20, "Oshiage"},       {0x02, 19, "Honjo-azumabashi"}, {0x03, 18, "Asakusa"},
     {0x04, 17, "Kuramae"},       {0x05, 16, "Asakusabashi"},     {0x06, 15, "Higashi-nihombashi"},
@@ -237,6 +237,108 @@ static Station ToeiAsakusa[20] = {
     {0x13, 2, "Magome"},         {0x14, 1, "Nishi-magome"},
 };
 
+static Station ToeiMita[27] = {
+    {0x27, 27, "Nishi-takashimadaira"}, 
+    {0x28, 26, "Shin-takashimadaira"},  
+    {0x29, 25, "Takashimadaira"},       
+    {0x2A, 24, "Nishidai"},             
+    {0x2B, 23, "Hasune"},               
+    {0x2C, 22, "Shimura-sanchome"},     
+    {0x2D, 21, "Shimura-sakaue"},       
+    {0x2E, 20, "Motohasunuma"},         
+    {0x2F, 19, "Itabashi-honcho"},      
+    {0x30, 18, "Itabashikuyakushomae"},
+    {0x31, 17, "Shin-itabashi"},        
+    {0x32, 16, "Nishi-sugamo"},         
+    {0x33, 15, "Sugamo"},               
+    {0x34, 14, "Sengoku"},              
+    {0x35, 13, "Hakusan"},              
+    {0x36, 12, "Kasuga"},               
+    {0x37, 11, "Suidobashi"},           
+    {0x38, 10, "Jimbocho"},             
+    {0x39, 9,  "Otemachi"},             
+    {0x3A, 8,  "Hibiya"},               
+    {0x3B, 7,  "Uchisaiwaicho"},        
+    {0x3C, 6,  "Onarimon"},             
+    {0x3D, 5,  "Shibakoen"},            
+    {0x3E, 4,  "Mita"},                 
+    {0x40, 3,  "Shirokane-takanawa"},   
+    {0x42, 2,  "Shirokanedai"},         
+    {0x44, 1,  "Meguro"},               
+};
+
+static Station ToeiShinjuku[21] = {
+    {0x01, 1, "Shinjuku"},           
+    {0x02, 2, "Shinjuku-sanchome"},  
+    {0x03, 3, "Akebonobashi"},       
+    {0x04, 4, "Ichigaya"},           
+    {0x05, 5, "Kudanshita"},         
+    {0x06, 6, "Jimbocho"},           
+    {0x07, 7, "Ogawamachi"},         
+    {0x08, 8, "Iwamotocho"},         
+    {0x09, 9, "Bakuro-yokoyama"},    
+    {0x0A, 10, "Hamacho"},           
+    {0x0B, 11, "Morishita"},         
+    {0x0C, 12, "Kikukawa"},          
+    {0x0D, 13, "Sumiyoshi"},         
+    {0x0E, 14, "Nishi-ojima"},       
+    {0x0F, 15, "Ojima"},             
+    {0x11, 16, "Higashi-ojima"},     
+    {0x13, 17, "Funabori"},          
+    {0x15, 18, "Ichinoe"},           
+    {0x17, 19, "Mizue"},             
+    {0x19, 20, "Shinozaki"},         
+    {0x1B, 21, "Motoyawata"},        
+};
+
+static Station ToeiOedoPartA[26] = {
+    {0x04, 13, "Morishita"},          
+    {0x06, 14, "Kiyosumi-shirakawa"}, 
+    {0x08, 15, "Monzen-nakacho"},     
+    {0x0A, 16, "Tsukishima"},         
+    {0x0C, 17, "Kachidoki"},          
+    {0x0E, 18, "Tsukiji-shijo"},      
+    {0x10, 19, "Shiodome"},           
+    {0x12, 20, "Daimon"},             
+    {0x14, 21, "Akabanebashi"},       
+    {0x16, 22, "Azabu-juban"},        
+    {0x18, 23, "Roppongi"},           
+    {0x1A, 24, "Aoyama-itchome"},     
+    {0x1C, 25, "Kokuritsu-kyogijo"},  
+    {0x1E, 26, "Yoyogi"},             
+    {0x20, 27, "Shinjuku"},           
+    {0x22, 28, "Tochomae"},           
+    {0x24, 29, "Nishi-shinjuku-gochome"},
+    {0x26, 30, "Nakano-sakaue"},      
+    {0x28, 31, "Higashi-nakano"},      
+    {0x2A, 32, "Nakai"},               
+    {0x2C, 33, "Ochiai-minami-nagasaki"},
+    {0x2E, 34, "Shin-egota"},          
+    {0x30, 35, "Nerima"},              
+    {0x32, 36, "Toshimaen"},           
+    {0x34, 37, "Nerima-kasugacho"},    
+    {0x36, 38, "Hikarigaoka"},       
+};
+
+static Station ToeiOedoPartB[14] = {
+    {0x03, 13, "Morishita"},          
+    {0x05, 12, "Ryogoku"},            
+    {0x07, 11, "Kuramae"},            
+    {0x09, 10, "Shin-okachimachi"},   
+    {0x0B, 9, "Ueno-okachimachi"},   
+    {0x0D, 8, "Hongo-sanchome"},     
+    {0x0F, 7, "Kasuga"},             
+    {0x11, 6, "Iidabashi"},          
+    {0x13, 5, "Ushigome-kagurazaka"},
+    {0x15, 4, "Ushigome-yanagicho"},
+    {0x17, 3, "Wakamatsu-kawada"},  
+    {0x19, 2, "Higashi-shinjuku"},  
+    {0x1B, 1, "Shinjuku-nishiguchi"},
+    {0x1D, 28, "Tochomae"},          
+};
+
+
+// Unknown
 static Station UnknownLine[1] = {
     {0x00, 0, "Unknown"},
 };

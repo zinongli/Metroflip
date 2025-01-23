@@ -212,7 +212,7 @@ static void suica_draw_train_page_1(
     canvas_set_font(canvas, FontPrimary);
     canvas_draw_str(canvas, 26, 23, history.entry_line.long_name);
 
-    canvas_set_font(canvas, FontKeyboard);
+    canvas_set_font(canvas, FontSecondary);
     canvas_draw_str(canvas, 2, 34, history.entry_station.name);
 
 
@@ -241,7 +241,7 @@ static void suica_draw_train_page_1(
     canvas_set_font(canvas, FontPrimary);
     canvas_draw_str(canvas, 26, 51, history.exit_line.long_name);
 
-    canvas_set_font(canvas, FontKeyboard);
+    canvas_set_font(canvas, FontSecondary);
     canvas_draw_str(canvas, 2, 62, history.exit_station.name);
 
 
@@ -288,7 +288,7 @@ static void suica_draw_train_page_2(
             history.entry_line.logo);
         canvas_set_font(canvas, FontBigNumbers);
         furi_string_printf(buffer, "%02d", history.entry_station.station_number);
-        canvas_draw_str(canvas, 14, 52, furi_string_get_cstr(buffer));
+        canvas_draw_str(canvas, 13, 52, furi_string_get_cstr(buffer));
         break;
     case SuicaEastJR:
         break;
@@ -304,7 +304,7 @@ static void suica_draw_train_page_2(
             history.entry_line.logo_position[3],
             history.entry_line.logo);
         furi_string_printf(buffer, "%02d", history.entry_station.station_number);
-        canvas_draw_str(canvas, 14, 53, furi_string_get_cstr(buffer));
+        canvas_draw_str(canvas, 13, 53, furi_string_get_cstr(buffer));
         break;
     case SuicaRailwayTypeMax:
         canvas_draw_circle(canvas, 24, 38, 24);
@@ -328,7 +328,7 @@ static void suica_draw_train_page_2(
             history.exit_line.logo);
         canvas_set_font(canvas, FontBigNumbers);
         furi_string_printf(buffer, "%02d", history.exit_station.station_number);
-        canvas_draw_str(canvas, 93, 52, furi_string_get_cstr(buffer));
+        canvas_draw_str(canvas, 92, 52, furi_string_get_cstr(buffer));
         break;
     case SuicaEastJR:
         break;
@@ -344,7 +344,7 @@ static void suica_draw_train_page_2(
             history.exit_line.logo);
         canvas_set_font(canvas, FontBigNumbers);
         furi_string_printf(buffer, "%02d", history.exit_station.station_number);
-        canvas_draw_str(canvas, 93, 53, furi_string_get_cstr(buffer));
+        canvas_draw_str(canvas, 92, 53, furi_string_get_cstr(buffer));
         break;
     case SuicaRailwayTypeMax:
         canvas_draw_circle(canvas, 103, 38, 24);
