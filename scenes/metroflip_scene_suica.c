@@ -186,7 +186,6 @@ static void suica_draw_train_page_1(
     Canvas* canvas,
     SuicaTravelHistory history,
     SuicaHistoryViewModel* model) {
-
     // Entry logo
     switch(history.entry_line.type) {
     case SuicaKeikyu:
@@ -215,7 +214,6 @@ static void suica_draw_train_page_1(
     canvas_set_font(canvas, FontSecondary);
     canvas_draw_str(canvas, 2, 34, history.entry_station.name);
 
-
     // Exit logo
     switch(history.exit_line.type) {
     case SuicaKeikyu:
@@ -236,14 +234,13 @@ static void suica_draw_train_page_1(
     default:
         break;
     }
-    
+
     // Exit Text
     canvas_set_font(canvas, FontPrimary);
     canvas_draw_str(canvas, 26, 51, history.exit_line.long_name);
 
     canvas_set_font(canvas, FontSecondary);
     canvas_draw_str(canvas, 2, 62, history.exit_station.name);
-
 
     // Separator
     canvas_draw_xbm(canvas, 0, 37, 103, 1, DashLine);
@@ -265,7 +262,6 @@ static void suica_draw_train_page_1(
         canvas, 110, 39, 13, 10, (current_arrow_bits & 0b0010) ? FilledArrowDown : EmptyArrowDown);
     canvas_draw_xbm(
         canvas, 110, 49, 13, 10, (current_arrow_bits & 0b0001) ? FilledArrowDown : EmptyArrowDown);
-
 }
 
 static void suica_draw_train_page_2(
@@ -507,24 +503,30 @@ static void suica_history_draw_callback(Canvas* canvas, void* model) {
     canvas_set_font(canvas, FontPrimary);
     canvas_draw_str(canvas, 0, 8, "Suica");
 
-    // Separator
-    canvas_draw_line(canvas, 29, 0, 29, 8);
-
     // Date
     furi_string_printf(buffer, "20%02d-%02d-%02d", history.year, history.month, history.day);
     canvas_set_font(canvas, FontKeyboard);
     canvas_draw_str(canvas, 33, 8, furi_string_get_cstr(buffer));
-
-    // Separator
-    canvas_draw_line(canvas, 95, 0, 95, 8);
 
     // Entry Num
     furi_string_printf(buffer, "%02d/%02d", my_model->entry, my_model->size);
     canvas_set_font(canvas, FontKeyboard);
     canvas_draw_str(canvas, 99, 8, furi_string_get_cstr(buffer));
 
-    // Floor
-    canvas_draw_line(canvas, 0, 9, 128, 9);
+    // Frame
+    canvas_draw_line(canvas, 0, 9, 26, 9);
+
+    canvas_draw_line(canvas, 26, 9, 29, 6);
+    canvas_draw_line(canvas, 29, 0, 29, 6);
+    canvas_draw_line(canvas, 32, 9, 29, 6);
+
+    canvas_draw_line(canvas, 32, 9, 92, 9);
+
+    canvas_draw_line(canvas, 92, 9, 95, 6);
+    canvas_draw_line(canvas, 95, 0, 95, 6);
+    canvas_draw_line(canvas, 98, 9, 95, 6);
+    
+    canvas_draw_line(canvas, 99, 9, 127, 9);
 
     switch((uint8_t)my_model->page) {
     case 0:
