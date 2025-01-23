@@ -3,7 +3,7 @@
 #include <furi.h>
 #include "suica_structs_i.h"
 
-#define RAILWAY_NUM 18 // Don't count Unknown
+#define RAILWAY_NUM 20 // Don't count Unknown
 
 // Japan Railway East 2 lines
 static Station JRETokaidoMainLine[] = {
@@ -46,6 +46,31 @@ static Station JREKeihinTohoku[] = {
     {0x10, 14, "Shin-koyasu", 0},     
     {0x11, 13, "Higashi-kanagawa", 0},
     {0x12, 12, "Yokohama", "YHM"},        
+};
+
+static Station JRENegishi[] = {
+    {0x04, 2, "Hongodai", 0},     
+    {0x06, 3, "Konandai", 0},     
+    {0x07, 4, "Yokodai", 0},       
+    {0x08, 5, "Shin-sugita", 0},   
+    {0x09, 6, "Isogo", 0},         
+    {0x0A, 7, "Negishi", 0},       
+    {0x0C, 8, "Yamate", 0},        
+    {0x0D, 9, "Ishikawacho", 0},  
+    {0x0E, 10, "Kannai", 0},       
+    {0x0F, 11, "Sakuragicho", 0},  
+};
+
+// Tokyo Waterfront Area Rapid Transit
+static Station TokyoRinkaiLine[] = {
+    {0x01, 1, "Shin-kiba", 0},          // 1 decimal -> 0x01 hex
+    {0x03, 2, "Shinonome", 0},         // 3 decimal -> 0x03 hex
+    {0x04, 3, "Kokusai-tenjijo", 0},   // 4 decimal -> 0x04 hex
+    {0x05, 4, "Tokyo Teleport", 0},    // 5 decimal -> 0x05 hex
+    {0x06, 5, "Tennozu Isle", 0},      // 6 decimal -> 0x06 hex
+    {0x07, 6, "Shinagawa Seaside", 0}, // 7 decimal -> 0x07 hex
+    {0x08, 7, "Oimachi", 0},           // 8 decimal -> 0x08 hex
+    {0x0A, 8, "Osaki", 0},             // 10 decimal -> 0x0A hex
 };
 
 

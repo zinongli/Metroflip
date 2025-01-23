@@ -435,6 +435,31 @@ static void suica_draw_train_page_2(
     furi_string_free(buffer);
 }
 
+static void suica_draw_birthday_page_2(
+    Canvas* canvas,
+    SuicaTravelHistory history,
+    SuicaHistoryViewModel* model) {
+    UNUSED(history);
+    canvas_draw_xbm(canvas, 23, 14, 78, 50, PenguinHappyBirthday);
+    canvas_draw_xbm(canvas, 10, 14, 9, 48, PenguinTodaysVIP);
+    uint8_t star_bits[4] = {0b111010, 0b101111, 0b110011, 0b011101};
+
+    // Arrow
+    if(model->animator_tick > 3) {
+        // 4 steps of animation
+        model->animator_tick = 0;
+    }
+    uint8_t current_star_bits = star_bits[model->animator_tick];
+    canvas_draw_xbm(canvas, 102, 21, 4, 4, (current_star_bits & 0b100000) ? BigStar : Nothing);
+    canvas_draw_xbm(canvas, 83, 30, 4, 4, (current_star_bits & 0b010000) ? BigStar : Nothing);
+
+    canvas_draw_xbm(canvas, 86, 12, 5, 5, (current_star_bits & 0b001000) ? PlusStar : Nothing);
+    canvas_draw_xbm(canvas, 105, 43, 5, 5, (current_star_bits & 0b000100) ? PlusStar : Nothing);
+
+    canvas_draw_xbm(canvas, 99, 12, 3, 3, (current_star_bits & 0b00010) ? SmallStar : Nothing);
+    canvas_draw_xbm(canvas, 95, 34, 3, 3, (current_star_bits & 0b00010) ? SmallStar : Nothing);
+}
+
 static void suica_draw_balance_page(
     Canvas* canvas,
     SuicaTravelHistory history,
@@ -597,13 +622,24 @@ static void suica_history_draw_callback(Canvas* canvas, void* model) {
 
     switch((uint8_t)my_model->page) {
     case 0:
-        if(history.history_type == SuicaHistoryTrain) {
+        switch(history.history_type) {
+        case SuicaHistoryTrain:
             suica_draw_train_page_1(canvas, history, my_model);
+            break;
+        default:
+            break;
         }
         break;
     case 1:
-        if(history.history_type == SuicaHistoryTrain) {
+        switch(history.history_type) {
+        case SuicaHistoryTrain:
             suica_draw_train_page_2(canvas, history, my_model);
+            break;
+        case SuicaHistoryHappyBirthday:
+            suica_draw_birthday_page_2(canvas, history, my_model);
+            break;
+        default:
+            break;
         }
         break;
     case 2:
@@ -669,7 +705,7 @@ static NfcCommand metroflip_scene_suica_poller_callback(NfcGenericEvent event, v
                     uint8_t block_data[16] = {0};
                     error = felica_poller_read_blocks(
                         felica_poller, 1, blocks, service_code[service_code_index], &rx_resp);
-                    
+
                     furi_string_cat_printf(parsed_data, "Block %02X\n", blocks[0]);
                     blocks[0]++;
                     for(size_t i = 0; i < FELICA_DATA_BLOCK_SIZE; i++) {
@@ -686,7 +722,6 @@ static NfcCommand metroflip_scene_suica_poller_callback(NfcGenericEvent event, v
                         stage = MetroflipPollerEventTypeFail;
                         break;
                     }
-                    
                 }
             }
             metroflip_app_blink_stop(app);
