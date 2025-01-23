@@ -691,16 +691,21 @@ static NfcCommand metroflip_scene_suica_poller_callback(NfcGenericEvent event, v
             metroflip_app_blink_stop(app);
             stage = (error == FelicaErrorNone) ? MetroflipPollerEventTypeSuccess :
                                                  MetroflipPollerEventTypeFail;
-
+            if(model->size = 0) {
+                furi_string_set_printf(
+                    parsed_data,
+                    "\e#Suica\nSorry, no data found.\nPlease let the developer know and we will add support.");
+            }
             widget_add_text_scroll_element(
                 widget, 0, 0, 128, 64, furi_string_get_cstr(parsed_data));
 
             widget_add_button_element(
                 widget, GuiButtonTypeRight, "Exit", metroflip_exit_widget_callback, app);
 
-            widget_add_button_element(
-                widget, GuiButtonTypeCenter, "Parse", suica_parse_detail_callback, app);
-
+            if(model->size > 0) {
+                widget_add_button_element(
+                    widget, GuiButtonTypeCenter, "Parse", suica_parse_detail_callback, app);
+            }
             view_dispatcher_switch_to_view(app->view_dispatcher, MetroflipViewWidget);
         }
     }
