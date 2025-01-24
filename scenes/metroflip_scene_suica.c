@@ -346,7 +346,7 @@ static void suica_draw_train_page_2(
             canvas_set_font(canvas, FontPrimary);
             canvas_draw_str_aligned(
                 canvas, 25, 24, AlignCenter, AlignBottom, history.entry_station.jr_header);
-            canvas_draw_rbox(canvas, 23, 26, 32, 32, 5);
+            canvas_draw_rbox(canvas, 12, 26, 32, 32, 5);
             canvas_set_color(canvas, ColorBlack);
             canvas_draw_frame(canvas, 12, 29, 26, 26);
             canvas_set_font(canvas, FontKeyboard);
@@ -555,7 +555,23 @@ static void suica_draw_vending_machine_page_1(
     Canvas* canvas,
     SuicaTravelHistory history,
     SuicaHistoryViewModel* model) {
-    UNUSED(history);
+    FuriString* buffer = furi_string_alloc();
+
+    // Clock Component
+    canvas_set_color(canvas, ColorWhite); // Erase part of old frame to allow for new frame
+    canvas_draw_line(canvas, 91, 9, 94, 6);
+    canvas_draw_line(canvas, 57, 9, 93, 9);
+    canvas_set_color(canvas, ColorBlack);
+    furi_string_printf(buffer, "%02d:%02d", history.hour, history.minute);
+    canvas_draw_line(canvas, 63, 21, 60, 18);
+    canvas_set_font(canvas, FontKeyboard);
+    canvas_draw_str(canvas, 63, 19, furi_string_get_cstr(buffer));
+    canvas_draw_line(canvas, 91, 21, 94, 18);
+    canvas_draw_line(canvas, 64, 21, 91, 21);
+    canvas_draw_line(canvas, 94, 7, 94, 17);
+    canvas_draw_line(canvas, 60, 12, 60, 17);
+    canvas_draw_line(canvas, 60, 12, 57, 9);
+
     canvas_draw_xbm(canvas, 5, 12, 47, 52, VendingMachine);
 
     // Animate Vending Machine Flap
