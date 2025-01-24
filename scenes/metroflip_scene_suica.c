@@ -323,7 +323,9 @@ static void suica_draw_train_page_2(
         canvas_set_color(canvas, ColorWhite);
         canvas_draw_box(canvas, 12, 26, 26, 26);
         canvas_set_color(canvas, ColorBlack);
-        canvas_set_font(canvas, FontKeyboard);
+        canvas_set_font(canvas, FontPrimary);
+        canvas_draw_str_aligned(
+                canvas, 25, 38, AlignCenter, AlignBottom, history.entry_line.short_name);
         canvas_draw_str(canvas, 17, 36, history.entry_line.short_name);
         canvas_set_font(canvas, FontBigNumbers);
         furi_string_printf(buffer, "%02d", history.entry_station.station_number);
@@ -335,12 +337,13 @@ static void suica_draw_train_page_2(
             canvas_set_color(canvas, ColorWhite);
             canvas_set_font(canvas, FontPrimary);
             canvas_draw_str_aligned(
-                canvas, 101, 24, AlignCenter, AlignBottom, history.entry_station.jr_header);
+                canvas, 25, 24, AlignCenter, AlignBottom, history.entry_station.jr_header);
             canvas_draw_rbox(canvas, 23, 26, 32, 32, 5);
             canvas_set_color(canvas, ColorBlack);
             canvas_draw_frame(canvas, 12, 29, 26, 26);
             canvas_set_font(canvas, FontKeyboard);
-            canvas_draw_str(canvas, 19, 38, history.entry_line.short_name);
+            canvas_draw_str_aligned(
+                canvas, 25, 38, AlignCenter, AlignBottom, history.entry_line.short_name);
             canvas_set_font(canvas, FontBigNumbers);
             furi_string_printf(buffer, "%02d", history.entry_station.station_number);
             canvas_draw_str(canvas, 14, 53, furi_string_get_cstr(buffer));
@@ -348,7 +351,8 @@ static void suica_draw_train_page_2(
             canvas_draw_rframe(canvas, 9, 23, 32, 32, 5);
             canvas_draw_frame(canvas, 12, 26, 26, 26);
             canvas_set_font(canvas, FontKeyboard);
-            canvas_draw_str(canvas, 19, 35, history.entry_line.short_name);
+            canvas_draw_str_aligned(
+                canvas, 25, 35, AlignCenter, AlignBottom, history.entry_line.short_name);
             canvas_set_font(canvas, FontBigNumbers);
             furi_string_printf(buffer, "%02d", history.entry_station.station_number);
             canvas_draw_str(canvas, 14, 50, furi_string_get_cstr(buffer));
@@ -421,8 +425,8 @@ static void suica_draw_train_page_2(
         canvas_draw_box(canvas, 89, 26, 26, 26);
         canvas_set_color(canvas, ColorBlack);
         canvas_set_font(canvas, FontPrimary);
-        canvas_draw_str(canvas, 94, 36, history.exit_line.short_name);
-        canvas_set_font(canvas, FontBigNumbers);
+canvas_draw_str_aligned(
+                canvas, 101, 35, AlignCenter, AlignBottom, history.exit_line.short_name);        canvas_set_font(canvas, FontBigNumbers);
         furi_string_printf(buffer, "%02d", history.exit_station.station_number);
         canvas_draw_str(canvas, 91, 51, furi_string_get_cstr(buffer));
         break;
@@ -437,7 +441,8 @@ static void suica_draw_train_page_2(
             canvas_set_color(canvas, ColorBlack);
             canvas_draw_frame(canvas, 89, 29, 26, 26);
             canvas_set_font(canvas, FontKeyboard);
-            canvas_draw_str(canvas, 96, 38, history.exit_line.short_name);
+            canvas_draw_str_aligned(
+                canvas, 102, 38, AlignCenter, AlignBottom, history.exit_line.short_name);
             canvas_set_font(canvas, FontBigNumbers);
             furi_string_printf(buffer, "%02d", history.exit_station.station_number);
             canvas_draw_str(canvas, 91, 53, furi_string_get_cstr(buffer));
@@ -445,7 +450,8 @@ static void suica_draw_train_page_2(
             canvas_draw_rframe(canvas, 86, 23, 32, 32, 5);
             canvas_draw_frame(canvas, 89, 26, 26, 26);
             canvas_set_font(canvas, FontKeyboard);
-            canvas_draw_str(canvas, 96, 35, history.exit_line.short_name);
+            canvas_draw_str_aligned(
+                canvas, 102, 35, AlignCenter, AlignBottom, history.exit_line.short_name);
             canvas_set_font(canvas, FontBigNumbers);
             furi_string_printf(buffer, "%02d", history.exit_station.station_number);
             canvas_draw_str(canvas, 91, 50, furi_string_get_cstr(buffer));
