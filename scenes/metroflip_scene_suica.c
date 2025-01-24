@@ -35,11 +35,12 @@
 #define TAG                             "Metroflip:Scene:Suica"
 #define TERMINAL_NULL                   0x02
 #define TERMINAL_BUS                    0x05
-#define TERMINAL_POS_AND_TAXI           0xC7
-#define TERMINAL_VENDING_MACHINE        0xC8
 #define TERMINAL_TICKET_VENDING_MACHINE 0x12
 #define TERMINAL_TURNSTILE              0x16
+#define TERMINAL_MOBILE_PHONE           0x1B
 #define TERMINAL_IN_CAR_SUPP_MACHINE    0x24
+#define TERMINAL_POS_AND_TAXI           0xC7
+#define TERMINAL_VENDING_MACHINE        0xC8
 #define PROCESSING_CODE_NEW_ISSUE       0x02
 #define ARROW_ANIMATION_FRAME_MS        500
 
@@ -173,20 +174,27 @@ static SuicaTravelHistory suica_parse(uint8_t block[16]) {
     case TERMINAL_POS_AND_TAXI:
         history.history_type = SuicaHistoryPosAndTaxi;
         break;
+    case TERMINAL_MOBILE_PHONE:
+        if((uint8_t)block[1] == PROCESSING_CODE_NEW_ISSUE) {
+            history.hour = ((uint8_t)block[6] & 0xF8) >> 3;
+            history.minute = (((uint8_t)block[6] & 0x07) << 3) | (((uint8_t)block[7] & 0xE0) >> 5);
+        }
+        break;
     case TERMINAL_VENDING_MACHINE:
         // 6 & 7 are hour and minute
         history.history_type = SuicaHistoryVendingMachine;
         history.hour = ((uint8_t)block[6] & 0xF8) >> 3;
         history.minute = (((uint8_t)block[6] & 0x07) << 3) | (((uint8_t)block[7] & 0xE0) >> 5);
         break;
+
     case TERMINAL_TICKET_VENDING_MACHINE:
         history.history_type = SuicaHistoryHappyBirthday;
         break;
     default:
         break;
-        if((uint8_t)block[1] == PROCESSING_CODE_NEW_ISSUE) {
-            history.history_type = SuicaHistoryHappyBirthday;
-        }
+    }
+    if((uint8_t)block[1] == PROCESSING_CODE_NEW_ISSUE) {
+        history.history_type = SuicaHistoryHappyBirthday;
     }
     return history;
 }
@@ -325,7 +333,7 @@ static void suica_draw_train_page_2(
         canvas_set_color(canvas, ColorBlack);
         canvas_set_font(canvas, FontPrimary);
         canvas_draw_str_aligned(
-                canvas, 25, 38, AlignCenter, AlignBottom, history.entry_line.short_name);
+            canvas, 25, 38, AlignCenter, AlignBottom, history.entry_line.short_name);
         canvas_draw_str(canvas, 17, 36, history.entry_line.short_name);
         canvas_set_font(canvas, FontBigNumbers);
         furi_string_printf(buffer, "%02d", history.entry_station.station_number);
@@ -425,8 +433,9 @@ static void suica_draw_train_page_2(
         canvas_draw_box(canvas, 89, 26, 26, 26);
         canvas_set_color(canvas, ColorBlack);
         canvas_set_font(canvas, FontPrimary);
-canvas_draw_str_aligned(
-                canvas, 101, 35, AlignCenter, AlignBottom, history.exit_line.short_name);        canvas_set_font(canvas, FontBigNumbers);
+        canvas_draw_str_aligned(
+            canvas, 101, 35, AlignCenter, AlignBottom, history.exit_line.short_name);
+        canvas_set_font(canvas, FontBigNumbers);
         furi_string_printf(buffer, "%02d", history.exit_station.station_number);
         canvas_draw_str(canvas, 91, 51, furi_string_get_cstr(buffer));
         break;
