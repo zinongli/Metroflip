@@ -61,16 +61,16 @@ static Station JRENegishi[] = {
     {0x0F, 11, "Sakuragicho", 0},  
 };
 
-// Tokyo Waterfront Area Rapid Transit
-static Station TokyoRinkaiLine[] = {
-    {0x01, 1, "Shin-kiba", 0},          // 1 decimal -> 0x01 hex
-    {0x03, 2, "Shinonome", 0},         // 3 decimal -> 0x03 hex
-    {0x04, 3, "Kokusai-tenjijo", 0},   // 4 decimal -> 0x04 hex
-    {0x05, 4, "Tokyo Teleport", 0},    // 5 decimal -> 0x05 hex
-    {0x06, 5, "Tennozu Isle", 0},      // 6 decimal -> 0x06 hex
-    {0x07, 6, "Shinagawa Seaside", 0}, // 7 decimal -> 0x07 hex
-    {0x08, 7, "Oimachi", 0},           // 8 decimal -> 0x08 hex
-    {0x0A, 8, "Osaki", 0},             // 10 decimal -> 0x0A hex
+// Tokyo Waterfront Area Rapid Transit TWR
+static Station TWRRinkaiLine[] = {
+    {0x01, 1, "Shin-kiba", 0},         
+    {0x03, 2, "Shinonome", 0},         
+    {0x04, 3, "Kokusai-tenjijo", 0},   
+    {0x05, 4, "Tokyo Teleport", 0},    
+    {0x06, 5, "Tennozu Isle", 0},      
+    {0x07, 6, "Shinagawa Seaside", 0}, 
+    {0x08, 7, "Oimachi", 0},           
+    {0x0A, 8, "Osaki", 0},             
 };
 
 

@@ -194,7 +194,8 @@ static SuicaTravelHistory suica_parse(uint8_t block[16]) {
 static void suica_draw_train_page_1(
     Canvas* canvas,
     SuicaTravelHistory history,
-    SuicaHistoryViewModel* model) {
+    SuicaHistoryViewModel* model,
+    bool is_birthday) {
     // Entry logo
     switch(history.entry_line.type) {
     case SuicaKeikyu:
@@ -208,6 +209,9 @@ static void suica_draw_train_page_1(
         break;
     case SuicaToei:
         canvas_draw_xbm(canvas, 4, 11, 17, 15, ToeiLogo);
+        break;
+    case SuicaTWR:
+        canvas_draw_xbm(canvas, 0, 12, 25, 13, TWRLogo);
         break;
     case SuicaRailwayTypeMax:
         canvas_draw_xbm(canvas, 5, 11, 16, 15, QuestionMarkSmall);
@@ -223,33 +227,43 @@ static void suica_draw_train_page_1(
     canvas_set_font(canvas, FontSecondary);
     canvas_draw_str(canvas, 2, 34, history.entry_station.name);
 
-    // Exit logo
-    switch(history.exit_line.type) {
-    case SuicaKeikyu:
-        canvas_draw_xbm(canvas, 2, 39, 21, 15, KeikyuLogo);
-        break;
-    case SuicaJR:
-        canvas_draw_xbm(canvas, 1, 40, 23, 12, JRLogo);
-        break;
-    case SuicaTokyoMetro:
-        canvas_draw_xbm(canvas, 2, 40, 21, 13, TokyoMetroLogo);
-        break;
-    case SuicaToei:
-        canvas_draw_xbm(canvas, 4, 39, 17, 15, ToeiLogo);
-        break;
-    case SuicaRailwayTypeMax:
-        canvas_draw_xbm(canvas, 5, 39, 16, 15, QuestionMarkSmall);
-        break;
-    default:
-        break;
+    if(!is_birthday) {
+        // Exit logo
+        switch(history.exit_line.type) {
+        case SuicaKeikyu:
+            canvas_draw_xbm(canvas, 2, 39, 21, 15, KeikyuLogo);
+            break;
+        case SuicaJR:
+            canvas_draw_xbm(canvas, 1, 40, 23, 12, JRLogo);
+            break;
+        case SuicaTokyoMetro:
+            canvas_draw_xbm(canvas, 2, 40, 21, 13, TokyoMetroLogo);
+            break;
+        case SuicaToei:
+            canvas_draw_xbm(canvas, 4, 39, 17, 15, ToeiLogo);
+            break;
+        case SuicaTWR:
+            canvas_draw_xbm(canvas, 0, 40, 25, 13, TWRLogo);
+            break;
+        case SuicaRailwayTypeMax:
+            canvas_draw_xbm(canvas, 5, 39, 16, 15, QuestionMarkSmall);
+            break;
+        default:
+            break;
+        }
+
+        // Exit Text
+        canvas_set_font(canvas, FontPrimary);
+        canvas_draw_str(canvas, 26, 51, history.exit_line.long_name);
+
+        canvas_set_font(canvas, FontSecondary);
+        canvas_draw_str(canvas, 2, 62, history.exit_station.name);
+    } else {
+        // Birthday
+        canvas_draw_xbm(canvas, 5, 42, 15, 19, CrackingEgg);
+        canvas_set_font(canvas, FontPrimary);
+        canvas_draw_str(canvas, 28, 56, "Suica issued");
     }
-
-    // Exit Text
-    canvas_set_font(canvas, FontPrimary);
-    canvas_draw_str(canvas, 26, 51, history.exit_line.long_name);
-
-    canvas_set_font(canvas, FontSecondary);
-    canvas_draw_str(canvas, 2, 62, history.exit_station.name);
 
     // Separator
     canvas_draw_xbm(canvas, 0, 37, 103, 1, DashLine);
@@ -440,9 +454,9 @@ static void suica_draw_birthday_page_2(
     SuicaTravelHistory history,
     SuicaHistoryViewModel* model) {
     UNUSED(history);
-    canvas_draw_xbm(canvas, 23, 14, 78, 50, PenguinHappyBirthday);
-    canvas_draw_xbm(canvas, 10, 14, 9, 48, PenguinTodaysVIP);
-    uint8_t star_bits[4] = {0b111010, 0b101111, 0b110011, 0b011101};
+    canvas_draw_xbm(canvas, 27, 14, 78, 50, PenguinHappyBirthday);
+    canvas_draw_xbm(canvas, 14, 14, 9, 48, PenguinTodaysVIP);
+    uint8_t star_bits[4] = {0b11000000, 0b11110000, 0b11111111, 0b00000000};
 
     // Arrow
     if(model->animator_tick > 3) {
@@ -450,14 +464,14 @@ static void suica_draw_birthday_page_2(
         model->animator_tick = 0;
     }
     uint8_t current_star_bits = star_bits[model->animator_tick];
-    canvas_draw_xbm(canvas, 102, 21, 4, 4, (current_star_bits & 0b100000) ? BigStar : Nothing);
-    canvas_draw_xbm(canvas, 83, 30, 4, 4, (current_star_bits & 0b010000) ? BigStar : Nothing);
-
-    canvas_draw_xbm(canvas, 86, 12, 5, 5, (current_star_bits & 0b001000) ? PlusStar : Nothing);
-    canvas_draw_xbm(canvas, 105, 43, 5, 5, (current_star_bits & 0b000100) ? PlusStar : Nothing);
-
-    canvas_draw_xbm(canvas, 99, 12, 3, 3, (current_star_bits & 0b00010) ? SmallStar : Nothing);
-    canvas_draw_xbm(canvas, 95, 34, 3, 3, (current_star_bits & 0b00010) ? SmallStar : Nothing);
+    canvas_draw_xbm(canvas, 87, 30, 4, 4, (current_star_bits & 0b10000000) ? BigStar : Nothing);
+    canvas_draw_xbm(canvas, 90, 12, 5, 5, (current_star_bits & 0b01000000) ? PlusStar : Nothing);
+    canvas_draw_xbm(canvas, 99, 34, 3, 3, (current_star_bits & 0b00100000) ? SmallStar : Nothing);
+    canvas_draw_xbm(canvas, 103, 12, 3, 3, (current_star_bits & 0b00010000) ? SmallStar : Nothing);
+    canvas_draw_xbm(canvas, 106, 21, 4, 4, (current_star_bits & 0b00001000) ? BigStar : Nothing);
+    canvas_draw_xbm(canvas, 109, 43, 5, 5, (current_star_bits & 0b00000100) ? PlusStar : Nothing);
+    canvas_draw_xbm(canvas, 117, 28, 4, 4, (current_star_bits & 0b00000010) ? BigStar : Nothing);
+    canvas_draw_xbm(canvas, 115, 16, 5, 5, (current_star_bits & 0b00000100) ? PlusStar : Nothing);
 }
 
 static void suica_draw_balance_page(
@@ -624,7 +638,10 @@ static void suica_history_draw_callback(Canvas* canvas, void* model) {
     case 0:
         switch(history.history_type) {
         case SuicaHistoryTrain:
-            suica_draw_train_page_1(canvas, history, my_model);
+            suica_draw_train_page_1(canvas, history, my_model, false);
+            break;
+        case SuicaHistoryHappyBirthday:
+            suica_draw_train_page_1(canvas, history, my_model, true);
             break;
         default:
             break;
