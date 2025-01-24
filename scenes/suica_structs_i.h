@@ -8,8 +8,9 @@ typedef enum {
     SuicaToei,
     SuicaJR,
     SuicaTWR,
+    SuicaTokyoMonorail,
     SuicaRailwayTypeMax,
-} SuicaRailwayType;
+} SuicaRailwayCompany;
 
 typedef enum {
     SuicaBalanceAdd,
@@ -31,7 +32,7 @@ typedef struct {
     const int* logo_position;
     const char* long_name;
     uint8_t station_num;
-    SuicaRailwayType type;
+    SuicaRailwayCompany type;
     const char* short_name;
 } Railway;
 

@@ -213,6 +213,9 @@ static void suica_draw_train_page_1(
     case SuicaTWR:
         canvas_draw_xbm(canvas, 0, 12, 25, 13, TWRLogo);
         break;
+    case SuicaTokyoMonorail:
+        canvas_draw_xbm(canvas, 0, 11, 25, 15, TokyoMonorailLogo);
+        break;
     case SuicaRailwayTypeMax:
         canvas_draw_xbm(canvas, 5, 11, 16, 15, QuestionMarkSmall);
         break;
@@ -244,6 +247,9 @@ static void suica_draw_train_page_1(
             break;
         case SuicaTWR:
             canvas_draw_xbm(canvas, 0, 40, 25, 13, TWRLogo);
+            break;
+        case SuicaTokyoMonorail:
+            canvas_draw_xbm(canvas, 0, 39, 25, 15, TokyoMonorailLogo);
             break;
         case SuicaRailwayTypeMax:
             canvas_draw_xbm(canvas, 5, 39, 16, 15, QuestionMarkSmall);
@@ -311,6 +317,17 @@ static void suica_draw_train_page_2(
         canvas_set_font(canvas, FontBigNumbers);
         furi_string_printf(buffer, "%02d", history.entry_station.station_number);
         canvas_draw_str(canvas, 13, 51, furi_string_get_cstr(buffer));
+        break;
+    case SuicaTokyoMonorail:
+        canvas_draw_rbox(canvas, 9, 23, 32, 32, 5);
+        canvas_set_color(canvas, ColorWhite);
+        canvas_draw_box(canvas, 12, 26, 26, 26);
+        canvas_set_color(canvas, ColorBlack);
+        canvas_set_font(canvas, FontKeyboard);
+        canvas_draw_str(canvas, 17, 36, history.entry_line.short_name);
+        canvas_set_font(canvas, FontBigNumbers);
+        furi_string_printf(buffer, "%02d", history.entry_station.station_number);
+        canvas_draw_str(canvas, 14, 51, furi_string_get_cstr(buffer));
         break;
     case SuicaJR:
         if(history.entry_station.jr_header) {
@@ -397,6 +414,17 @@ static void suica_draw_train_page_2(
         canvas_set_font(canvas, FontBigNumbers);
         furi_string_printf(buffer, "%02d", history.exit_station.station_number);
         canvas_draw_str(canvas, 92, 52, furi_string_get_cstr(buffer));
+        break;
+    case SuicaTokyoMonorail:
+        canvas_draw_rbox(canvas, 86, 23, 32, 32, 5);
+        canvas_set_color(canvas, ColorWhite);
+        canvas_draw_box(canvas, 89, 26, 26, 26);
+        canvas_set_color(canvas, ColorBlack);
+        canvas_set_font(canvas, FontPrimary);
+        canvas_draw_str(canvas, 94, 36, history.exit_line.short_name);
+        canvas_set_font(canvas, FontBigNumbers);
+        furi_string_printf(buffer, "%02d", history.exit_station.station_number);
+        canvas_draw_str(canvas, 91, 51, furi_string_get_cstr(buffer));
         break;
     case SuicaJR:
         if(history.exit_station.jr_header) {

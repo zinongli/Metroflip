@@ -3,10 +3,10 @@
 #include <furi.h>
 #include "suica_structs_i.h"
 
-#define RAILWAY_NUM 20 // Don't count Unknown
+#define RAILWAY_NUM 21 // Don't count Unknown
 
 // Japan Railway East 2 lines
-static Station JRETokaidoMainLine[] = {
+static Station JRETokaidoMainLine[21] = {
     {0x01, 1, "Tokyo", "TYO"},            
     {0x03, 2, "Shimbashi", "SMB"},        
     {0x07, 3, "Shinagawa", "SGW"},        
@@ -30,7 +30,7 @@ static Station JRETokaidoMainLine[] = {
     {0x2B, 21, "Atami", 0},           
 };
 
-static Station JREKeihinTohoku[] = {
+static Station JREKeihinTohoku[14] = {
     {0x01, 26, "Tokyo", "TYO"},            
     {0x02, 25, "Yurakucho", 0},        
     {0x03, 24, "Shimbashi", "SMB"},        
@@ -48,7 +48,7 @@ static Station JREKeihinTohoku[] = {
     {0x12, 12, "Yokohama", "YHM"},        
 };
 
-static Station JRENegishi[] = {
+static Station JRENegishi[10] = {
     {0x04, 2, "Hongodai", 0},     
     {0x06, 3, "Konandai", 0},     
     {0x07, 4, "Yokodai", 0},       
@@ -62,7 +62,7 @@ static Station JRENegishi[] = {
 };
 
 // Tokyo Waterfront Area Rapid Transit TWR
-static Station TWRRinkaiLine[] = {
+static Station TWRRinkaiLine[8] = {
     {0x01, 1, "Shin-kiba", 0},         
     {0x03, 2, "Shinonome", 0},         
     {0x04, 3, "Kokusai-tenjijo", 0},   
@@ -71,6 +71,21 @@ static Station TWRRinkaiLine[] = {
     {0x07, 6, "Shinagawa Seaside", 0}, 
     {0x08, 7, "Oimachi", 0},           
     {0x0A, 8, "Osaki", 0},             
+};
+
+// Tokyo Monorail
+static Station TokyoMonorail[11] = {
+    {0x01, 1, "Monorail Hamamatsucho", 0}, 
+    {0x03, 2, "Tennozu Isle", 0},          
+    {0x04, 3, "Oi Keibajo Mae", 0},         
+    {0x05, 4, "Ryutsu Center", 0},         
+    {0x06, 5, "Showajima", 0},             
+    {0x07, 6, "Seibijo", 0},               
+    {0x09, 7, "Tenkubashi", 0},            
+    {0x0A, 8, "Haneda Airport T3", 0}, 
+    {0x0B, 9, "Shinseibijo", 0},          
+    {0x0C, 10, "Haneda Airport T1", 0},
+    {0x0D, 11, "Haneda Airport T2", 0},
 };
 
 
