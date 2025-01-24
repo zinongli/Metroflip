@@ -354,6 +354,24 @@ static void suica_draw_train_page_2(
         furi_string_printf(buffer, "%02d", history.entry_station.station_number);
         canvas_draw_str(canvas, 13, 53, furi_string_get_cstr(buffer));
         break;
+    case SuicaTWR:
+        canvas_draw_circle(canvas, 24, 38, 24);
+        canvas_draw_circle(canvas, 24, 38, 20);
+        canvas_draw_disc(canvas, 24, 38, 18);
+        canvas_set_color(canvas, ColorWhite);
+        canvas_draw_xbm(
+            canvas,
+            20,
+            23,
+            history.entry_line.logo_position[2],
+            history.entry_line.logo_position[3],
+            history.entry_line.logo);
+        canvas_set_font(canvas, FontBigNumbers);
+        furi_string_printf(buffer, "%02d", history.entry_station.station_number);
+        canvas_draw_str(canvas, 13, 53, furi_string_get_cstr(buffer));
+        canvas_set_color(canvas, ColorBlack);
+        break;
+
     case SuicaRailwayTypeMax:
         canvas_draw_circle(canvas, 24, 38, 24);
         canvas_draw_circle(canvas, 24, 38, 19);
@@ -422,6 +440,23 @@ static void suica_draw_train_page_2(
         canvas_set_font(canvas, FontBigNumbers);
         furi_string_printf(buffer, "%02d", history.exit_station.station_number);
         canvas_draw_str(canvas, 92, 53, furi_string_get_cstr(buffer));
+        break;
+    case SuicaTWR:
+        canvas_draw_circle(canvas, 103, 38, 24);
+        canvas_draw_circle(canvas, 103, 38, 20);
+        canvas_draw_disc(canvas, 103, 38, 18);
+        canvas_set_color(canvas, ColorWhite);
+        canvas_draw_xbm(
+            canvas,
+            99,
+            23,
+            history.exit_line.logo_position[2],
+            history.exit_line.logo_position[3],
+            history.exit_line.logo);
+        canvas_set_font(canvas, FontBigNumbers);
+        furi_string_printf(buffer, "%02d", history.exit_station.station_number);
+        canvas_draw_str(canvas, 92, 53, furi_string_get_cstr(buffer));
+        canvas_set_color(canvas, ColorBlack);
         break;
     case SuicaRailwayTypeMax:
         canvas_draw_circle(canvas, 103, 38, 24);
