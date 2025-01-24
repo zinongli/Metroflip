@@ -371,7 +371,6 @@ static void suica_draw_train_page_2(
         canvas_draw_str(canvas, 13, 53, furi_string_get_cstr(buffer));
         canvas_set_color(canvas, ColorBlack);
         break;
-
     case SuicaRailwayTypeMax:
         canvas_draw_circle(canvas, 24, 38, 24);
         canvas_draw_circle(canvas, 24, 38, 19);
