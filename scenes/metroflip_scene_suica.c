@@ -551,6 +551,56 @@ static void suica_draw_birthday_page_2(
     canvas_draw_xbm(canvas, 115, 16, 5, 5, (current_star_bits & 0b00000100) ? PlusStar : Nothing);
 }
 
+static void suica_draw_vending_machine_page_1(
+    Canvas* canvas,
+    SuicaTravelHistory history,
+    SuicaHistoryViewModel* model) {
+    UNUSED(history);
+    canvas_draw_xbm(canvas, 5, 12, 47, 52, VendingMachine);
+
+    // Animate Vending Machine Flap
+    if(model->animator_tick > 6) {
+        // 6 steps of animation
+        model->animator_tick = 0;
+    }
+    switch(model->animator_tick) {
+    case 0:
+        canvas_draw_xbm(canvas, 44, 40, 5, 14, VendingFlapHollow);
+        canvas_draw_xbm(canvas, 44, 40, 5, 15, VendingFlap1);
+        break;
+    case 1:
+        canvas_draw_xbm(canvas, 44, 40, 5, 14, VendingFlapHollow);
+        canvas_draw_xbm(canvas, 44, 40, 13, 13, VendingFlap2);
+        break;
+    case 2:
+        canvas_draw_xbm(canvas, 44, 40, 5, 14, VendingFlapHollow);
+        canvas_draw_xbm(canvas, 44, 40, 17, 5, VendingFlap3);
+        break;
+    case 3:
+        canvas_draw_xbm(canvas, 44, 40, 5, 14, VendingFlapHollow);
+        canvas_draw_xbm(canvas, 44, 40, 17, 5, VendingFlap3);
+        canvas_draw_xbm(canvas, 59, 45, 9, 9, VendingCan1);
+        break;
+    case 4:
+        canvas_draw_xbm(canvas, 44, 40, 5, 14, VendingFlapHollow);
+        canvas_draw_xbm(canvas, 44, 40, 17, 5, VendingFlap3);
+        canvas_draw_xbm(canvas, 74, 48, 6, 10, VendingCan2);
+        break;
+    case 5:
+        canvas_draw_xbm(canvas, 44, 40, 5, 14, VendingFlapHollow);
+        canvas_draw_xbm(canvas, 44, 40, 17, 5, VendingFlap3);
+        canvas_draw_xbm(canvas, 89, 51, 9, 9, VendingCan3);
+        break;
+    case 6:
+        canvas_draw_xbm(canvas, 44, 40, 5, 14, VendingFlapHollow);
+        canvas_draw_xbm(canvas, 44, 40, 17, 5, VendingFlap3);
+        canvas_draw_xbm(canvas, 110, 54, 10, 6, VendingCan4);
+        break;
+    default:
+        break;
+    }
+}
+
 static void suica_draw_balance_page(
     Canvas* canvas,
     SuicaTravelHistory history,
@@ -719,6 +769,9 @@ static void suica_history_draw_callback(Canvas* canvas, void* model) {
             break;
         case SuicaHistoryHappyBirthday:
             suica_draw_train_page_1(canvas, history, my_model, true);
+            break;
+        case SuicaHistoryVendingMachine:
+            suica_draw_vending_machine_page_1(canvas, history, my_model);
             break;
         default:
             break;
