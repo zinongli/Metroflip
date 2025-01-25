@@ -99,7 +99,8 @@ int check_response(
 void update_page_info(void* context, FuriString* parsed_data) {
     Metroflip* app = context;
     CalypsoContext* ctx = app->calypso_context;
-    if(ctx->card->card_type != CALYPSO_CARD_NAVIGO && ctx->card->card_type != CALYPSO_CARD_OPUS) {
+    if(ctx->card->card_type != CALYPSO_CARD_NAVIGO && ctx->card->card_type != CALYPSO_CARD_OPUS &&
+       ctx->card->card_type != CALYPSO_CARD_RAVKAV) {
         furi_string_cat_printf(
             parsed_data,
             "\e#%s %u:\n",
@@ -107,7 +108,7 @@ void update_page_info(void* context, FuriString* parsed_data) {
             ctx->card->card_number);
         return;
     }
-    if(ctx->page_id == 0 || ctx->page_id == 1 || ctx->page_id == 2 || ctx->page_id == 3) {
+    if(ctx->page_id <= 3) {
         switch(ctx->card->card_type) {
         case CALYPSO_CARD_NAVIGO: {
             furi_string_cat_printf(
@@ -123,6 +124,16 @@ void update_page_info(void* context, FuriString* parsed_data) {
             furi_string_cat_printf(parsed_data, "\e#Opus %u:\n", ctx->card->card_number);
             furi_string_cat_printf(parsed_data, "\e#Contract %d:\n", ctx->page_id + 1);
             show_opus_contract_info(&ctx->card->opus->contracts[ctx->page_id], parsed_data);
+            break;
+        }
+        case CALYPSO_CARD_RAVKAV: {
+            if(ctx->card->card_number == 0) {
+                furi_string_cat_printf(parsed_data, "\e#Anonymous Rav-Kav:\n");
+            } else {
+                furi_string_cat_printf(parsed_data, "\e#RavKav %u:\n", ctx->card->card_number);
+            }
+            furi_string_cat_printf(parsed_data, "\e#Contract %d:\n", ctx->page_id + 1);
+            show_ravkav_contract_info(&ctx->card->ravkav->contracts[ctx->page_id], parsed_data);
             break;
         }
         default: {
@@ -141,11 +152,15 @@ void update_page_info(void* context, FuriString* parsed_data) {
             show_opus_environment_info(&ctx->card->opus->environment, parsed_data);
             break;
         }
+        case CALYPSO_CARD_RAVKAV: {
+            show_ravkav_environment_info(&ctx->card->ravkav->environment, parsed_data);
+            break;
+        }
         default: {
             break;
         }
         }
-    } else if(ctx->page_id == 5 || ctx->page_id == 6 || ctx->page_id == 7) {
+    } else if(ctx->page_id >= 5) {
         furi_string_cat_printf(parsed_data, "\e#Event %d:\n", ctx->page_id - 4);
         switch(ctx->card->card_type) {
         case CALYPSO_CARD_NAVIGO: {
@@ -162,6 +177,10 @@ void update_page_info(void* context, FuriString* parsed_data) {
                 parsed_data);
             break;
         }
+        case CALYPSO_CARD_RAVKAV: {
+            show_ravkav_event_info(&ctx->card->ravkav->events[ctx->page_id - 5], parsed_data);
+            break;
+        }
         default: {
             break;
         }
@@ -173,7 +192,8 @@ void update_widget_elements(void* context) {
     Metroflip* app = context;
     CalypsoContext* ctx = app->calypso_context;
     Widget* widget = app->widget;
-    if(ctx->card->card_type != CALYPSO_CARD_NAVIGO && ctx->card->card_type != CALYPSO_CARD_OPUS) {
+    if(ctx->card->card_type != CALYPSO_CARD_NAVIGO && ctx->card->card_type != CALYPSO_CARD_OPUS &&
+       ctx->card->card_type != CALYPSO_CARD_RAVKAV) {
         widget_add_button_element(
             widget, GuiButtonTypeRight, "Exit", metroflip_next_button_widget_callback, context);
         return;
@@ -248,7 +268,8 @@ void metroflip_next_button_widget_callback(GuiButtonType result, InputType type,
         FURI_LOG_I(TAG, "Page ID: %d -> %d", ctx->page_id, ctx->page_id + 1);
 
         if(ctx->card->card_type != CALYPSO_CARD_NAVIGO &&
-           ctx->card->card_type != CALYPSO_CARD_OPUS) {
+           ctx->card->card_type != CALYPSO_CARD_OPUS &&
+           ctx->card->card_type != CALYPSO_CARD_RAVKAV) {
             ctx->page_id = 0;
             scene_manager_search_and_switch_to_previous_scene(
                 app->scene_manager, MetroflipSceneStart);
@@ -294,7 +315,7 @@ void delay(int milliseconds) {
     furi_thread_flags_wait(0, FuriFlagWaitAny, milliseconds);
 }
 
-static NfcCommand metroflip_scene_navigo_poller_callback(NfcGenericEvent event, void* context) {
+static NfcCommand metroflip_scene_calypso_poller_callback(NfcGenericEvent event, void* context) {
     furi_assert(event.protocol == NfcProtocolIso14443_4b);
     NfcCommand next_command = NfcCommandContinue;
     MetroflipPollerEventType stage = MetroflipPollerEventTypeStart;
@@ -1361,8 +1382,620 @@ static NfcCommand metroflip_scene_navigo_poller_callback(NfcGenericEvent event, 
                         bit_slice_to_dec(environment_bit_representation, start + 8, end + 8);
                     card->card_type = guess_card_type(country_num, network_num);
                     if(card->card_type == CALYPSO_CARD_RAVKAV) {
+                        card->ravkav = malloc(sizeof(RavKavCardData));
+
+                        error = select_new_app(
+                            0x20, 0x20, tx_buffer, rx_buffer, iso14443_4b_poller, app, &stage);
+                        if(error != 0) {
+                            FURI_LOG_E(TAG, "Failed to select app for contracts");
+                            break;
+                        }
+
+                        // Check the response after selecting app
+                        if(check_response(rx_buffer, app, &stage, &response_length) != 0) {
+                            FURI_LOG_E(
+                                TAG, "Failed to check response after selecting app for contracts");
+                            break;
+                        }
+
+                        // Prepare calypso structure
+
+                        CalypsoApp* RavKavContractStructure = get_ravkav_contract_structure();
+                        if(!RavKavContractStructure) {
+                            FURI_LOG_E(TAG, "Failed to load RavKav Contract structure");
+                            break;
+                        }
+
+                        // Now send the read command for contracts
+                        for(size_t i = 1; i < 2; i++) {
+                            error = read_new_file(
+                                i, tx_buffer, rx_buffer, iso14443_4b_poller, app, &stage);
+                            if(error != 0) {
+                                FURI_LOG_E(TAG, "Failed to read contract %d", i);
+                                break;
+                            }
+
+                            // Check the response after reading the file
+                            if(check_response(rx_buffer, app, &stage, &response_length) != 0) {
+                                FURI_LOG_E(
+                                    TAG, "Failed to check response after reading contract %d", i);
+                                break;
+                            }
+
+                            char bit_representation[response_length * 8 + 1];
+                            bit_representation[0] = '\0';
+                            for(size_t i = 0; i < response_length; i++) {
+                                char bits[9];
+                                uint8_t byte = bit_buffer_get_byte(rx_buffer, i);
+                                byte_to_binary(byte, bits);
+                                strlcat(bit_representation, bits, sizeof(bit_representation));
+                            }
+                            bit_representation[response_length * 8] = '\0';
+                            card->ravkav->contracts[i - 1].present = 1;
+                            card->contracts_count++;
+
+                            // ContractVersion
+
+                            const char* contract_key = "ContractVersion";
+
+                            if(is_calypso_node_present(
+                                   bit_representation, contract_key, RavKavContractStructure)) {
+                                int positionOffset = get_calypso_node_offset(
+                                    bit_representation, contract_key, RavKavContractStructure);
+
+                                int start = positionOffset,
+                                    end = positionOffset +
+                                          get_calypso_node_size(
+                                              contract_key, RavKavContractStructure) -
+                                          1;
+
+                                card->ravkav->contracts[i - 1].version =
+                                    bit_slice_to_dec(bit_representation, start, end);
+                            }
+
+                            // ContractStartDate
+                            contract_key = "ContractStartDate";
+                            if(is_calypso_node_present(
+                                   bit_representation, contract_key, RavKavContractStructure)) {
+                                int positionOffset = get_calypso_node_offset(
+                                    bit_representation, contract_key, RavKavContractStructure);
+                                int start = positionOffset,
+                                    end = positionOffset +
+                                          get_calypso_node_size(
+                                              contract_key, RavKavContractStructure) -
+                                          1;
+                                int decimal_value =
+                                    bit_slice_to_dec(bit_representation, start, end);
+                                uint32_t invertedDays = decimal_value ^ 0x3FFF;
+
+                                int start_validity_timestamp =
+                                    (invertedDays * 3600 * 24) + epoch + 3600;
+
+                                datetime_timestamp_to_datetime(
+                                    start_validity_timestamp,
+                                    &card->ravkav->contracts[i - 1].start_date);
+                            }
+
+                            // ContractProvider
+                            contract_key = "ContractProvider";
+                            if(is_calypso_node_present(
+                                   bit_representation, contract_key, RavKavContractStructure)) {
+                                int positionOffset = get_calypso_node_offset(
+                                    bit_representation, contract_key, RavKavContractStructure);
+                                int start = positionOffset,
+                                    end = positionOffset +
+                                          get_calypso_node_size(
+                                              contract_key, RavKavContractStructure) -
+                                          1;
+                                card->ravkav->contracts[i - 1].provider =
+                                    bit_slice_to_dec(bit_representation, start, end);
+                                FURI_LOG_I(
+                                    TAG,
+                                    "issuer number: %d",
+                                    card->ravkav->contracts[i - 1].provider);
+                            }
+
+                            // ContractTariff
+                            contract_key = "ContractTariff";
+                            if(is_calypso_node_present(
+                                   bit_representation, contract_key, RavKavContractStructure)) {
+                                int positionOffset = get_calypso_node_offset(
+                                    bit_representation, contract_key, RavKavContractStructure);
+                                int start = positionOffset,
+                                    end = positionOffset +
+                                          get_calypso_node_size(
+                                              contract_key, RavKavContractStructure) -
+                                          1;
+                                card->ravkav->contracts[i - 1].tariff =
+                                    bit_slice_to_dec(bit_representation, start, end);
+                            }
+
+                            // ContractSaleDate
+                            contract_key = "ContractSaleDate";
+                            int positionOffset = get_calypso_node_offset(
+                                bit_representation, contract_key, RavKavContractStructure);
+                            int start = positionOffset,
+                                end =
+                                    positionOffset +
+                                    get_calypso_node_size(contract_key, RavKavContractStructure) -
+                                    1;
+                            uint64_t sale_date_timestamp =
+                                (bit_slice_to_dec(bit_representation, start, end) * 3600 * 24) +
+                                (float)epoch + 3600;
+                            datetime_timestamp_to_datetime(
+                                sale_date_timestamp, &card->ravkav->contracts[i - 1].sale_date);
+
+                            // ContractSaleDevice
+                            contract_key = "ContractSaleDevice";
+                            if(is_calypso_node_present(
+                                   bit_representation, contract_key, RavKavContractStructure)) {
+                                int positionOffset = get_calypso_node_offset(
+                                    bit_representation, contract_key, RavKavContractStructure);
+                                int start = positionOffset,
+                                    end = positionOffset +
+                                          get_calypso_node_size(
+                                              contract_key, RavKavContractStructure) -
+                                          1;
+                                card->ravkav->contracts[i - 1].sale_device =
+                                    bit_slice_to_dec(bit_representation, start, end);
+                            }
+
+                            // ContractSaleNumber
+                            contract_key = "ContractSaleNumber";
+                            if(is_calypso_node_present(
+                                   bit_representation, contract_key, RavKavContractStructure)) {
+                                int positionOffset = get_calypso_node_offset(
+                                    bit_representation, contract_key, RavKavContractStructure);
+                                int start = positionOffset,
+                                    end = positionOffset +
+                                          get_calypso_node_size(
+                                              contract_key, RavKavContractStructure) -
+                                          1;
+                                card->ravkav->contracts[i - 1].sale_number =
+                                    bit_slice_to_dec(bit_representation, start, end);
+                            }
+
+                            // ContractInterchange
+                            contract_key = "ContractInterchange";
+                            if(is_calypso_node_present(
+                                   bit_representation, contract_key, RavKavContractStructure)) {
+                                int positionOffset = get_calypso_node_offset(
+                                    bit_representation, contract_key, RavKavContractStructure);
+                                int start = positionOffset,
+                                    end = positionOffset +
+                                          get_calypso_node_size(
+                                              contract_key, RavKavContractStructure) -
+                                          1;
+                                card->ravkav->contracts[i - 1].interchange =
+                                    bit_slice_to_dec(bit_representation, start, end);
+                            }
+
+                            // ContractInterchange
+                            contract_key = "ContractRestrictCode";
+                            if(is_calypso_node_present(
+                                   bit_representation, contract_key, RavKavContractStructure)) {
+                                int positionOffset = get_calypso_node_offset(
+                                    bit_representation, contract_key, RavKavContractStructure);
+                                int start = positionOffset,
+                                    end = positionOffset +
+                                          get_calypso_node_size(
+                                              contract_key, RavKavContractStructure) -
+                                          1;
+                                card->ravkav->contracts[i - 1].restrict_code_available = true;
+                                card->ravkav->contracts[i - 1].restrict_code =
+                                    bit_slice_to_dec(bit_representation, start, end);
+                            }
+
+                            // ContractRestrictDuration
+                            contract_key = "ContractRestrictDuration";
+                            if(is_calypso_node_present(
+                                   bit_representation, contract_key, RavKavContractStructure)) {
+                                int positionOffset = get_calypso_node_offset(
+                                    bit_representation, contract_key, RavKavContractStructure);
+                                int start = positionOffset,
+                                    end = positionOffset +
+                                          get_calypso_node_size(
+                                              contract_key, RavKavContractStructure) -
+                                          1;
+                                card->ravkav->contracts[i - 1].restrict_duration_available = true;
+                                if(card->ravkav->contracts[i - 1].restrict_code == 16) {
+                                    card->ravkav->contracts[i - 1].restrict_duration =
+                                        bit_slice_to_dec(bit_representation, start, end) * 5;
+                                } else {
+                                    card->ravkav->contracts[i - 1].restrict_duration =
+                                        bit_slice_to_dec(bit_representation, start, end) * 30;
+                                }
+                            }
+
+                            // ContractEndDate
+                            contract_key = "ContractEndDate";
+                            if(is_calypso_node_present(
+                                   bit_representation, contract_key, RavKavContractStructure)) {
+                                int positionOffset = get_calypso_node_offset(
+                                    bit_representation, contract_key, RavKavContractStructure);
+                                int start = positionOffset,
+                                    end = positionOffset +
+                                          get_calypso_node_size(
+                                              contract_key, RavKavContractStructure) -
+                                          1;
+                                card->ravkav->contracts[i - 1].end_date_available = true;
+                                int end_date_timestamp =
+                                    (bit_slice_to_dec(bit_representation, start, end) * 3600 *
+                                     24) +
+                                    epoch + 3600;
+
+                                datetime_timestamp_to_datetime(
+                                    end_date_timestamp, &card->ravkav->contracts[i - 1].end_date);
+                            }
+                        }
+
+                        // Free the calypso structure
+                        free_calypso_structure(RavKavContractStructure);
+
+                        error = select_new_app(
+                            0x20, 0x01, tx_buffer, rx_buffer, iso14443_4b_poller, app, &stage);
+                        if(error != 0) {
+                            FURI_LOG_E(TAG, "Failed to select app for environment");
+                            break;
+                        }
+
+                        // Check the response after selecting app
+                        if(check_response(rx_buffer, app, &stage, &response_length) != 0) {
+                            FURI_LOG_E(
+                                TAG,
+                                "Failed to check response after selecting app for environment");
+                            break;
+                        }
+
+                        // Prepare calypso structure
+
+                        CalypsoApp* RavKavEnvStructure = get_ravkav_env_holder_structure();
+                        if(!RavKavEnvStructure) {
+                            FURI_LOG_E(TAG, "Failed to load RavKav environment structure");
+                            break;
+                        }
+
+                        // Now send the read command for environment
+
+                        error = read_new_file(
+                            1, tx_buffer, rx_buffer, iso14443_4b_poller, app, &stage);
+                        if(error != 0) {
+                            FURI_LOG_E(TAG, "Failed to read environment");
+                            break;
+                        }
+
+                        // Check the response after reading the file
+                        if(check_response(rx_buffer, app, &stage, &response_length) != 0) {
+                            FURI_LOG_E(TAG, "Failed to check response after reading environment");
+                            break;
+                        }
+
+                        char env_bit_representation[response_length * 8 + 1];
+                        env_bit_representation[0] = '\0';
+                        for(size_t i = 0; i < response_length; i++) {
+                            char bits[9];
+                            uint8_t byte = bit_buffer_get_byte(rx_buffer, i);
+                            byte_to_binary(byte, bits);
+                            strlcat(env_bit_representation, bits, sizeof(env_bit_representation));
+                        }
+                        env_bit_representation[response_length * 8] = '\0';
+
+                        // EnvApplicationVersionNumber
+                        char* env_key = "EnvApplicationVersionNumber";
+                        if(is_calypso_node_present(
+                               env_bit_representation, env_key, RavKavEnvStructure)) {
+                            int positionOffset = get_calypso_node_offset(
+                                env_bit_representation, env_key, RavKavEnvStructure);
+                            int start = positionOffset,
+                                end = positionOffset +
+                                      get_calypso_node_size(env_key, RavKavEnvStructure) - 1;
+                            card->ravkav->environment.app_num =
+                                bit_slice_to_dec(env_bit_representation, start, end);
+                        }
+
+                        // EnvApplicationNumber
+                        env_key = "EnvApplicationNumber";
+                        if(is_calypso_node_present(
+                               env_bit_representation, env_key, RavKavEnvStructure)) {
+                            int positionOffset = get_calypso_node_offset(
+                                env_bit_representation, env_key, RavKavEnvStructure);
+                            int start = positionOffset,
+                                end = positionOffset +
+                                      get_calypso_node_size(env_key, RavKavEnvStructure) - 1;
+                            card->ravkav->environment.app_num =
+                                bit_slice_to_dec(env_bit_representation, start, end);
+                        }
+
+                        // EnvDateOfIssue
+                        env_key = "EnvDateOfIssue";
+                        if(is_calypso_node_present(
+                               env_bit_representation, env_key, RavKavEnvStructure)) {
+                            int positionOffset = get_calypso_node_offset(
+                                env_bit_representation, env_key, RavKavEnvStructure);
+                            int start = positionOffset,
+                                end = positionOffset +
+                                      get_calypso_node_size(env_key, RavKavEnvStructure) - 1;
+
+                            uint64_t issue_date_timestamp =
+                                (bit_slice_to_dec(env_bit_representation, start, end) * 3600 *
+                                 24) +
+                                (float)epoch + 3600;
+                            datetime_timestamp_to_datetime(
+                                issue_date_timestamp, &card->ravkav->environment.issue_dt);
+                        }
+
+                        // EnvEndValidity
+                        env_key = "EnvEndValidity";
+                        if(is_calypso_node_present(
+                               env_bit_representation, env_key, RavKavEnvStructure)) {
+                            int positionOffset = get_calypso_node_offset(
+                                env_bit_representation, env_key, RavKavEnvStructure);
+                            int start = positionOffset,
+                                end = positionOffset +
+                                      get_calypso_node_size(env_key, RavKavEnvStructure) - 1;
+
+                            uint64_t end_date_timestamp =
+                                (bit_slice_to_dec(env_bit_representation, start, end) * 3600 *
+                                 24) +
+                                (float)epoch + 3600;
+                            datetime_timestamp_to_datetime(
+                                end_date_timestamp, &card->ravkav->environment.end_dt);
+                        }
+
+                        // EnvPayMethod
+                        env_key = "EnvPayMethod";
+                        if(is_calypso_node_present(
+                               env_bit_representation, env_key, RavKavEnvStructure)) {
+                            int positionOffset = get_calypso_node_offset(
+                                env_bit_representation, env_key, RavKavEnvStructure);
+                            int start = positionOffset,
+                                end = positionOffset +
+                                      get_calypso_node_size(env_key, RavKavEnvStructure) - 1;
+                            card->ravkav->environment.pay_method =
+                                bit_slice_to_dec(env_bit_representation, start, end);
+                        }
+
+                        free_calypso_structure(RavKavEnvStructure);
+
+                        // Select app for events
+                        error = select_new_app(
+                            0x20, 0x10, tx_buffer, rx_buffer, iso14443_4b_poller, app, &stage);
+                        if(error != 0) {
+                            break;
+                        }
+
+                        // Check the response after selecting app
+                        if(check_response(rx_buffer, app, &stage, &response_length) != 0) {
+                            break;
+                        }
+
+                        // Load the calypso structure for events
+                        CalypsoApp* RavKavEventStructure = get_ravkav_event_structure();
+                        if(!RavKavEventStructure) {
+                            FURI_LOG_E(TAG, "Failed to load Opus Event structure");
+                            break;
+                        }
+
+                        // Now send the read command for events
+                        for(size_t i = 1; i < 4; i++) {
+                            error = read_new_file(
+                                i, tx_buffer, rx_buffer, iso14443_4b_poller, app, &stage);
+                            if(error != 0) {
+                                break;
+                            }
+
+                            // Check the response after reading the file
+                            if(check_response(rx_buffer, app, &stage, &response_length) != 0) {
+                                break;
+                            }
+
+                            char event_bit_representation[response_length * 8 + 1];
+                            event_bit_representation[0] = '\0';
+                            for(size_t i = 0; i < response_length; i++) {
+                                char bits[9];
+                                uint8_t byte = bit_buffer_get_byte(rx_buffer, i);
+                                byte_to_binary(byte, bits);
+                                strlcat(
+                                    event_bit_representation,
+                                    bits,
+                                    sizeof(event_bit_representation));
+                            }
+                            FURI_LOG_I(TAG, "event bit repr %s", event_bit_representation);
+                            // EventVersion
+                            const char* event_key = "EventVersion";
+                            if(is_calypso_node_present(
+                                   event_bit_representation, event_key, RavKavEventStructure)) {
+                                int positionOffset = get_calypso_node_offset(
+                                    event_bit_representation, event_key, RavKavEventStructure);
+                                int start = positionOffset,
+                                    end = positionOffset +
+                                          get_calypso_node_size(event_key, RavKavEventStructure) -
+                                          1;
+                                card->ravkav->events[i - 1].event_version =
+                                    bit_slice_to_dec(event_bit_representation, start, end);
+                            }
+
+                            // EventServiceProvider
+                            event_key = "EventServiceProvider";
+                            if(is_calypso_node_present(
+                                   event_bit_representation, event_key, RavKavEventStructure)) {
+                                int positionOffset = get_calypso_node_offset(
+                                    event_bit_representation, event_key, RavKavEventStructure);
+                                int start = positionOffset,
+                                    end = positionOffset +
+                                          get_calypso_node_size(event_key, RavKavEventStructure) -
+                                          1;
+                                FURI_LOG_I(TAG, "service provider: start: %d, end %d", start, end);
+                                card->ravkav->events[i - 1].service_provider =
+                                    bit_slice_to_dec(event_bit_representation, start, end);
+                            }
+
+                            // EventContractID
+                            event_key = "EventContractID";
+                            if(is_calypso_node_present(
+                                   event_bit_representation, event_key, RavKavEventStructure)) {
+                                int positionOffset = get_calypso_node_offset(
+                                    event_bit_representation, event_key, RavKavEventStructure);
+                                int start = positionOffset,
+                                    end = positionOffset +
+                                          get_calypso_node_size(event_key, RavKavEventStructure) -
+                                          1;
+                                card->ravkav->events[i - 1].contract_id =
+                                    bit_slice_to_dec(event_bit_representation, start, end);
+                                FURI_LOG_I(TAG, "2: start: %d, end %d", start, end);
+                            }
+
+                            // EventAreaID
+                            event_key = "EventAreaID";
+                            if(is_calypso_node_present(
+                                   event_bit_representation, event_key, RavKavEventStructure)) {
+                                int positionOffset = get_calypso_node_offset(
+                                    event_bit_representation, event_key, RavKavEventStructure);
+                                int start = positionOffset,
+                                    end = positionOffset +
+                                          get_calypso_node_size(event_key, RavKavEventStructure) -
+                                          1;
+                                card->ravkav->events[i - 1].area_id =
+                                    bit_slice_to_dec(event_bit_representation, start, end);
+                                FURI_LOG_I(TAG, "3: start: %d, end %d", start, end);
+                            }
+
+                            // EventType
+                            event_key = "EventType";
+                            if(is_calypso_node_present(
+                                   event_bit_representation, event_key, RavKavEventStructure)) {
+                                int positionOffset = get_calypso_node_offset(
+                                    event_bit_representation, event_key, RavKavEventStructure);
+                                int start = positionOffset,
+                                    end = positionOffset +
+                                          get_calypso_node_size(event_key, RavKavEventStructure) -
+                                          1;
+                                card->ravkav->events[i - 1].type =
+                                    bit_slice_to_dec(event_bit_representation, start, end);
+                                FURI_LOG_I(TAG, "4: start: %d, end %d", start, end);
+                            }
+
+                            // EventRouteNumber
+                            event_key = "EventExtension";
+                            if(is_calypso_node_present(
+                                   event_bit_representation, event_key, RavKavEventStructure)) {
+                                int positionOffset = get_calypso_node_offset(
+                                    event_bit_representation, event_key, RavKavEventStructure);
+                                int start = positionOffset,
+                                    end = positionOffset +
+                                          get_calypso_node_size(event_key, RavKavEventStructure) -
+                                          1;
+                                FURI_LOG_I(TAG, "event extension : start: %d, end %d", start, end);
+                                FURI_LOG_I(
+                                    TAG,
+                                    "event extension bitmap: %d",
+                                    bit_slice_to_dec(event_bit_representation, start, end));
+                            }
+
+                            // EventTime
+                            event_key = "EventTime";
+                            if(is_calypso_node_present(
+                                   event_bit_representation, event_key, RavKavEventStructure)) {
+                                int positionOffset = get_calypso_node_offset(
+                                    event_bit_representation, event_key, RavKavEventStructure);
+                                int start = positionOffset,
+                                    end = positionOffset +
+                                          get_calypso_node_size(event_key, RavKavEventStructure) -
+                                          1;
+                                uint64_t event_timestamp =
+                                    bit_slice_to_dec(event_bit_representation, start, end) +
+                                    (float)epoch + 3600;
+                                datetime_timestamp_to_datetime(
+                                    event_timestamp, &card->ravkav->events[i - 1].time);
+                                FURI_LOG_I(TAG, "5: start: %d, end %d", start, end);
+                            }
+
+                            // EventInterchangeFlag
+                            event_key = "EventInterchangeFlag";
+                            if(is_calypso_node_present(
+                                   event_bit_representation, event_key, RavKavEventStructure)) {
+                                int positionOffset = get_calypso_node_offset(
+                                    event_bit_representation, event_key, RavKavEventStructure);
+                                int start = positionOffset,
+                                    end = positionOffset +
+                                          get_calypso_node_size(event_key, RavKavEventStructure) -
+                                          1;
+                                card->ravkav->events[i - 1].interchange_flag =
+                                    bit_slice_to_dec(event_bit_representation, start, end);
+                                FURI_LOG_I(TAG, "6: start: %d, end %d", start, end);
+                            }
+
+                            // EventRouteNumber
+                            event_key = "EventRouteNumber";
+                            if(is_calypso_node_present(
+                                   event_bit_representation, event_key, RavKavEventStructure)) {
+                                int positionOffset = get_calypso_node_offset(
+                                    event_bit_representation, event_key, RavKavEventStructure);
+                                int start = positionOffset,
+                                    end = positionOffset +
+                                          get_calypso_node_size(event_key, RavKavEventStructure) -
+                                          1;
+                                card->ravkav->events[i - 1].route_number =
+                                    bit_slice_to_dec(event_bit_representation, start, end);
+                                card->ravkav->events[i - 1].route_number_available = true;
+                                FURI_LOG_I(TAG, "7: start: %d, end %d", start, end);
+                            }
+
+                            // EventRouteNumber
+                            event_key = "EventfareCode";
+                            if(is_calypso_node_present(
+                                   event_bit_representation, event_key, RavKavEventStructure)) {
+                                int positionOffset = get_calypso_node_offset(
+                                    event_bit_representation, event_key, RavKavEventStructure);
+                                int start = positionOffset,
+                                    end = positionOffset +
+                                          get_calypso_node_size(event_key, RavKavEventStructure) -
+                                          1;
+                                card->ravkav->events[i - 1].fare_code =
+                                    bit_slice_to_dec(event_bit_representation, start, end);
+                                card->ravkav->events[i - 1].fare_code = true;
+                                FURI_LOG_I(TAG, "8: start: %d, end %d", start, end);
+                            }
+
+                            // EventRouteNumber
+                            event_key = "EventDebitAmount";
+                            if(is_calypso_node_present(
+                                   event_bit_representation, event_key, RavKavEventStructure)) {
+                                int positionOffset = get_calypso_node_offset(
+                                    event_bit_representation, event_key, RavKavEventStructure);
+                                int start = positionOffset,
+                                    end = positionOffset +
+                                          get_calypso_node_size(event_key, RavKavEventStructure) -
+                                          1;
+                                card->ravkav->events[i - 1].debit_amount =
+                                    bit_slice_to_dec(event_bit_representation, start, end) / 100.0;
+                                card->ravkav->events[i - 1].debit_amount_available = true;
+                                FURI_LOG_I(TAG, "9: start: %d, end %d", start, end);
+                            }
+
+                            // EventRouteNumber
+                            event_key = "Location";
+                            if(is_calypso_node_present(
+                                   event_bit_representation, event_key, RavKavEventStructure)) {
+                                int positionOffset = get_calypso_node_offset(
+                                    event_bit_representation, event_key, RavKavEventStructure);
+                                int start = positionOffset,
+                                    end = positionOffset +
+                                          get_calypso_node_size(event_key, RavKavEventStructure) -
+                                          1;
+                                FURI_LOG_I(TAG, "location : start: %d, end %d", start, end);
+                                FURI_LOG_I(
+                                    TAG,
+                                    "locatrion bitmap: %d",
+                                    bit_slice_to_dec(event_bit_representation, start, end));
+                            }
+                        }
+
+                        // Free the calypso structure
+                        free_calypso_structure(RavKavEventStructure);
+
+                        break;
                     }
-                    break;
                 }
                 default:
                     break;
@@ -1408,7 +2041,7 @@ static NfcCommand metroflip_scene_navigo_poller_callback(NfcGenericEvent event, 
     return next_command;
 }
 
-void metroflip_scene_navigo_on_enter(void* context) {
+void metroflip_scene_calypso_on_enter(void* context) {
     Metroflip* app = context;
     dolphin_deed(DolphinDeedNfcRead);
 
@@ -1421,12 +2054,12 @@ void metroflip_scene_navigo_on_enter(void* context) {
     view_dispatcher_switch_to_view(app->view_dispatcher, MetroflipViewPopup);
     nfc_scanner_alloc(app->nfc);
     app->poller = nfc_poller_alloc(app->nfc, NfcProtocolIso14443_4b);
-    nfc_poller_start(app->poller, metroflip_scene_navigo_poller_callback, app);
+    nfc_poller_start(app->poller, metroflip_scene_calypso_poller_callback, app);
 
     metroflip_app_blink_start(app);
 }
 
-bool metroflip_scene_navigo_on_event(void* context, SceneManagerEvent event) {
+bool metroflip_scene_calypso_on_event(void* context, SceneManagerEvent event) {
     Metroflip* app = context;
     bool consumed = false;
 
@@ -1452,7 +2085,7 @@ bool metroflip_scene_navigo_on_event(void* context, SceneManagerEvent event) {
     return consumed;
 }
 
-void metroflip_scene_navigo_on_exit(void* context) {
+void metroflip_scene_calypso_on_exit(void* context) {
     Metroflip* app = context;
 
     if(app->poller) {
