@@ -185,6 +185,21 @@ void update_page_info(void* context, FuriString* parsed_data) {
             break;
         }
         }
+    } else if(ctx->page_id == 8 || ctx->page_id == 9 || ctx->page_id == 10) {
+        furi_string_cat_printf(parsed_data, "\e#Special Event %d:\n", ctx->page_id - 7);
+        switch(ctx->card->card_type) {
+        case CALYPSO_CARD_NAVIGO: {
+            show_navigo_special_event_info(
+                &ctx->card->navigo->special_events[ctx->page_id - 8], parsed_data);
+            break;
+        }
+        case CALYPSO_CARD_OPUS: {
+            break;
+        }
+        default: {
+            break;
+        }
+        }
     }
 }
 
@@ -198,7 +213,7 @@ void update_widget_elements(void* context) {
             widget, GuiButtonTypeRight, "Exit", metroflip_next_button_widget_callback, context);
         return;
     }
-    if(ctx->page_id < 7) {
+    if(ctx->page_id < 10) {
         widget_add_button_element(
             widget, GuiButtonTypeRight, "Next", metroflip_next_button_widget_callback, context);
     } else {
@@ -224,6 +239,21 @@ void metroflip_back_button_widget_callback(GuiButtonType result, InputType type,
         FURI_LOG_I(TAG, "Page ID: %d -> %d", ctx->page_id, ctx->page_id - 1);
 
         if(ctx->page_id > 0) {
+            if(ctx->page_id == 10 && ctx->card->special_events_count < 2) {
+                ctx->page_id -= 1;
+            }
+            if(ctx->page_id == 9 && ctx->card->special_events_count < 1) {
+                ctx->page_id -= 1;
+            }
+            if(ctx->page_id == 8 && ctx->card->events_count < 3) {
+                ctx->page_id -= 1;
+            }
+            if(ctx->page_id == 7 && ctx->card->events_count < 2) {
+                ctx->page_id -= 1;
+            }
+            if(ctx->page_id == 6 && ctx->card->events_count < 1) {
+                ctx->page_id -= 1;
+            }
             if(ctx->page_id == 4 && ctx->card->contracts_count < 4) {
                 ctx->page_id -= 1;
             }
@@ -275,7 +305,7 @@ void metroflip_next_button_widget_callback(GuiButtonType result, InputType type,
                 app->scene_manager, MetroflipSceneStart);
             return;
         }
-        if(ctx->page_id < 7) {
+        if(ctx->page_id < 10) {
             if(ctx->page_id == 0 && ctx->card->contracts_count < 2) {
                 ctx->page_id += 1;
             }
@@ -284,6 +314,27 @@ void metroflip_next_button_widget_callback(GuiButtonType result, InputType type,
             }
             if(ctx->page_id == 2 && ctx->card->contracts_count < 4) {
                 ctx->page_id += 1;
+            }
+            if(ctx->page_id == 4 && ctx->card->events_count < 1) {
+                ctx->page_id += 1;
+            }
+            if(ctx->page_id == 5 && ctx->card->events_count < 2) {
+                ctx->page_id += 1;
+            }
+            if(ctx->page_id == 6 && ctx->card->events_count < 3) {
+                ctx->page_id += 1;
+            }
+            if(ctx->page_id == 7 && ctx->card->special_events_count < 1) {
+                ctx->page_id += 1;
+            }
+            if(ctx->page_id == 8 && ctx->card->special_events_count < 2) {
+                ctx->page_id += 1;
+            }
+            if(ctx->page_id == 9 && ctx->card->special_events_count < 3) {
+                ctx->page_id = 0;
+                scene_manager_search_and_switch_to_previous_scene(
+                    app->scene_manager, MetroflipSceneStart);
+                return;
             }
             ctx->page_id += 1;
         } else {
@@ -455,7 +506,7 @@ static NfcCommand metroflip_scene_calypso_poller_callback(NfcGenericEvent event,
                     card->navigo->environment.country_num = country_num;
                     card->navigo->environment.network_num = network_num;
 
-                    CalypsoApp* IntercodeEnvHolderStructure = get_intercode_env_holder_structure();
+                    CalypsoApp* IntercodeEnvHolderStructure = get_intercode_structure_env_holder();
 
                     // EnvApplicationVersionNumber
                     const char* env_key = "EnvApplicationVersionNumber";
@@ -520,7 +571,7 @@ static NfcCommand metroflip_scene_calypso_poller_callback(NfcGenericEvent event,
                     }
 
                     // Prepare calypso structure
-                    CalypsoApp* IntercodeContractStructure = get_intercode_contract_structure();
+                    CalypsoApp* IntercodeContractStructure = get_intercode_structure_contract();
                     if(!IntercodeContractStructure) {
                         FURI_LOG_E(TAG, "Failed to load Intercode Contract structure");
                         break;
@@ -825,7 +876,7 @@ static NfcCommand metroflip_scene_calypso_poller_callback(NfcGenericEvent event,
                     }
 
                     // Load the calypso structure for events
-                    CalypsoApp* IntercodeEventStructure = get_intercode_event_structure();
+                    CalypsoApp* IntercodeEventStructure = get_intercode_structure_event();
                     if(!IntercodeEventStructure) {
                         FURI_LOG_E(TAG, "Failed to load Intercode Event structure");
                         break;
@@ -854,18 +905,6 @@ static NfcCommand metroflip_scene_calypso_poller_callback(NfcGenericEvent event,
                             strlcat(
                                 event_bit_representation, bits, sizeof(event_bit_representation));
                         }
-
-                        // furi_string_cat_printf(parsed_data, "Event 0%d :\n", i);
-                        /* int count = 0;
-                    int start = 25, end = 52;
-                    char bit_slice[end - start + 2];
-                    strncpy(bit_slice, event_bit_representation + start, end - start + 1);
-                    bit_slice[end - start + 1] = '\0';
-                    int* positions = get_bit_positions(bit_slice, &count);
-                    FURI_LOG_I(TAG, "Positions: ");
-                    for(int i = 0; i < count; i++) {
-                        FURI_LOG_I(TAG, "%d ", positions[i]);
-                    } */
 
                         // 2. EventCode
                         const char* event_key = "EventCode";
@@ -909,6 +948,7 @@ static NfcCommand metroflip_scene_calypso_poller_callback(NfcGenericEvent event,
                                 bit_slice_to_dec(event_bit_representation, start, end);
                             card->navigo->events[i - 1].station_group_id = decimal_value >> 9;
                             card->navigo->events[i - 1].station_id = (decimal_value >> 4) & 31;
+                            card->navigo->events[i - 1].station_sub_id = decimal_value & 15;
                         }
 
                         // 9. EventLocationGate
@@ -997,6 +1037,9 @@ static NfcCommand metroflip_scene_calypso_poller_callback(NfcGenericEvent event,
                             card->navigo->events[i - 1].used_contract =
                                 bit_slice_to_dec(event_bit_representation, start, end);
                             card->navigo->events[i - 1].used_contract_available = true;
+                            if(card->navigo->events[i - 1].used_contract > 0) {
+                                card->events_count++;
+                            }
                         }
 
                         // EventDateStamp
@@ -1023,6 +1066,174 @@ static NfcCommand metroflip_scene_calypso_poller_callback(NfcGenericEvent event,
                         card->navigo->events[i - 1].date.minute =
                             ((decimal_value * 60) % 3600) / 60;
                         card->navigo->events[i - 1].date.second =
+                            ((decimal_value * 60) % 3600) % 60;
+                    }
+
+                    // Select app for special events
+                    error = select_new_app(
+                        0x20, 0x40, tx_buffer, rx_buffer, iso14443_4b_poller, app, &stage);
+                    if(error != 0) {
+                        break;
+                    }
+
+                    // Check the response after selecting app
+                    if(check_response(rx_buffer, app, &stage, &response_length) != 0) {
+                        break;
+                    }
+
+                    // Now send the read command for special events
+                    for(size_t i = 1; i < 4; i++) {
+                        error = read_new_file(
+                            i, tx_buffer, rx_buffer, iso14443_4b_poller, app, &stage);
+                        if(error != 0) {
+                            break;
+                        }
+
+                        // Check the response after reading the file
+                        if(check_response(rx_buffer, app, &stage, &response_length) != 0) {
+                            break;
+                        }
+
+                        char event_bit_representation[response_length * 8 + 1];
+                        event_bit_representation[0] = '\0';
+                        for(size_t i = 0; i < response_length; i++) {
+                            char bits[9];
+                            uint8_t byte = bit_buffer_get_byte(rx_buffer, i);
+                            byte_to_binary(byte, bits);
+                            strlcat(
+                                event_bit_representation, bits, sizeof(event_bit_representation));
+                        }
+
+                        if(bit_slice_to_dec(
+                               event_bit_representation,
+                               0,
+                               IntercodeEventStructure->container->elements[0].bitmap->size - 1) ==
+                           0) {
+                            break;
+                        } else {
+                            card->special_events_count++;
+                        }
+
+                        // 2. EventCode
+                        const char* event_key = "EventCode";
+                        if(is_calypso_node_present(
+                               event_bit_representation, event_key, IntercodeEventStructure)) {
+                            int positionOffset = get_calypso_node_offset(
+                                event_bit_representation, event_key, IntercodeEventStructure);
+                            int start = positionOffset,
+                                end = positionOffset +
+                                      get_calypso_node_size(event_key, IntercodeEventStructure) -
+                                      1;
+                            int decimal_value =
+                                bit_slice_to_dec(event_bit_representation, start, end);
+                            card->navigo->special_events[i - 1].transport_type = decimal_value >>
+                                                                                 4;
+                            card->navigo->special_events[i - 1].transition = decimal_value & 15;
+                        }
+
+                        // 3. EventResult
+                        event_key = "EventResult";
+                        if(is_calypso_node_present(
+                               event_bit_representation, event_key, IntercodeEventStructure)) {
+                            int positionOffset = get_calypso_node_offset(
+                                event_bit_representation, event_key, IntercodeEventStructure);
+                            int start = positionOffset,
+                                end = positionOffset +
+                                      get_calypso_node_size(event_key, IntercodeEventStructure) -
+                                      1;
+                            card->navigo->special_events[i - 1].result =
+                                bit_slice_to_dec(event_bit_representation, start, end);
+                        }
+
+                        // 4. EventServiceProvider
+                        event_key = "EventServiceProvider";
+                        if(is_calypso_node_present(
+                               event_bit_representation, event_key, IntercodeEventStructure)) {
+                            int positionOffset = get_calypso_node_offset(
+                                event_bit_representation, event_key, IntercodeEventStructure);
+                            int start = positionOffset,
+                                end = positionOffset +
+                                      get_calypso_node_size(event_key, IntercodeEventStructure) -
+                                      1;
+                            card->navigo->special_events[i - 1].service_provider =
+                                bit_slice_to_dec(event_bit_representation, start, end);
+                        }
+
+                        // 8. EventLocationId
+                        event_key = "EventLocationId";
+                        if(is_calypso_node_present(
+                               event_bit_representation, event_key, IntercodeEventStructure)) {
+                            int positionOffset = get_calypso_node_offset(
+                                event_bit_representation, event_key, IntercodeEventStructure);
+                            int start = positionOffset,
+                                end = positionOffset +
+                                      get_calypso_node_size(event_key, IntercodeEventStructure) -
+                                      1;
+                            int decimal_value =
+                                bit_slice_to_dec(event_bit_representation, start, end);
+                            card->navigo->special_events[i - 1].station_group_id = decimal_value >>
+                                                                                   9;
+                            card->navigo->special_events[i - 1].station_id = (decimal_value >> 4) &
+                                                                             31;
+                            card->navigo->special_events[i - 1].station_sub_id = decimal_value &
+                                                                                 15;
+                        }
+
+                        // 10. EventDevice
+                        event_key = "EventDevice";
+                        if(is_calypso_node_present(
+                               event_bit_representation, event_key, IntercodeEventStructure)) {
+                            int positionOffset = get_calypso_node_offset(
+                                event_bit_representation, event_key, IntercodeEventStructure);
+                            int start = positionOffset,
+                                end = positionOffset +
+                                      get_calypso_node_size(event_key, IntercodeEventStructure) -
+                                      1;
+                            int decimal_value =
+                                bit_slice_to_dec(event_bit_representation, start, end);
+                            card->navigo->special_events[i - 1].device = decimal_value;
+                        }
+
+                        // 11. EventRouteNumber
+                        event_key = "EventRouteNumber";
+                        if(is_calypso_node_present(
+                               event_bit_representation, event_key, IntercodeEventStructure)) {
+                            int positionOffset = get_calypso_node_offset(
+                                event_bit_representation, event_key, IntercodeEventStructure);
+                            int start = positionOffset,
+                                end = positionOffset +
+                                      get_calypso_node_size(event_key, IntercodeEventStructure) -
+                                      1;
+                            card->navigo->special_events[i - 1].route_number =
+                                bit_slice_to_dec(event_bit_representation, start, end);
+                            card->navigo->special_events[i - 1].route_number_available = true;
+                        }
+
+                        // EventDateStamp
+                        event_key = "EventDateStamp";
+                        int positionOffset = get_calypso_node_offset(
+                            event_bit_representation, event_key, IntercodeEventStructure);
+                        int start = positionOffset,
+                            end = positionOffset +
+                                  get_calypso_node_size(event_key, IntercodeEventStructure) - 1;
+                        int decimal_value = bit_slice_to_dec(event_bit_representation, start, end);
+                        uint64_t date_timestamp = (decimal_value * 24 * 3600) + epoch + 3600;
+                        datetime_timestamp_to_datetime(
+                            date_timestamp, &card->navigo->special_events[i - 1].date);
+
+                        // EventTimeStamp
+                        event_key = "EventTimeStamp";
+                        positionOffset = get_calypso_node_offset(
+                            event_bit_representation, event_key, IntercodeEventStructure);
+                        start = positionOffset,
+                        end = positionOffset +
+                              get_calypso_node_size(event_key, IntercodeEventStructure) - 1;
+                        decimal_value = bit_slice_to_dec(event_bit_representation, start, end);
+                        card->navigo->special_events[i - 1].date.hour =
+                            (decimal_value * 60) / 3600;
+                        card->navigo->special_events[i - 1].date.minute =
+                            ((decimal_value * 60) % 3600) / 60;
+                        card->navigo->special_events[i - 1].date.second =
                             ((decimal_value * 60) % 3600) % 60;
                     }
 
@@ -1334,29 +1545,31 @@ static NfcCommand metroflip_scene_calypso_poller_callback(NfcGenericEvent event,
                             card->opus->events[i - 1].used_contract =
                                 bit_slice_to_dec(event_bit_representation, start, end);
                             card->opus->events[i - 1].used_contract_available = true;
+                            if(card->opus->events[i - 1].used_contract > 0) {
+                                card->events_count++;
+                            }
                         }
 
-                        // EventDate + EventTime
-                        event_key = "EventDate";
+                        // EventDateStamp
+                        event_key = "EventDateStamp";
                         int positionOffset = get_calypso_node_offset(
                             event_bit_representation, event_key, OpusEventStructure);
                         int start = positionOffset,
                             end = positionOffset +
                                   get_calypso_node_size(event_key, OpusEventStructure) - 1;
-                        uint64_t date_timestamp =
-                            (bit_slice_to_dec(event_bit_representation, start, end) +
-                             (float)epoch) +
-                            3600;
+                        int decimal_value = bit_slice_to_dec(event_bit_representation, start, end);
+                        uint64_t date_timestamp = (decimal_value * 24 * 3600) + epoch + 3600;
                         datetime_timestamp_to_datetime(
                             date_timestamp, &card->opus->events[i - 1].date);
 
-                        event_key = "EventTime";
+                        // EventTimeStamp
+                        event_key = "EventTimeStamp";
                         positionOffset = get_calypso_node_offset(
                             event_bit_representation, event_key, OpusEventStructure);
                         start = positionOffset,
                         end = positionOffset +
                               get_calypso_node_size(event_key, OpusEventStructure) - 1;
-                        int decimal_value = bit_slice_to_dec(event_bit_representation, start, end);
+                        decimal_value = bit_slice_to_dec(event_bit_representation, start, end);
                         card->opus->events[i - 1].date.hour = (decimal_value * 60) / 3600;
                         card->opus->events[i - 1].date.minute = ((decimal_value * 60) % 3600) / 60;
                         card->opus->events[i - 1].date.second = ((decimal_value * 60) % 3600) % 60;

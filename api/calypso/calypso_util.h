@@ -5,9 +5,10 @@
 #define CALYPSO_UTIL_H
 
 typedef enum {
+    CALYPSO_APP_ENV_HOLDER,
     CALYPSO_APP_CONTRACT,
     CALYPSO_APP_EVENT,
-    CALYPSO_APP_ENV_HOLDER,
+    CALYPSO_APP_COUNTER,
 } CalypsoAppType;
 
 typedef enum {

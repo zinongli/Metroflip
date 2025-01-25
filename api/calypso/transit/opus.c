@@ -5,7 +5,6 @@
 const char* get_opus_service_provider(int provider) {
     switch(provider) {
     case 0x01:
-        return "STM";
     case 0x02:
         return "STM";
     case 0x03:
