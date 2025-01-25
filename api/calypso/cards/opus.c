@@ -117,9 +117,9 @@ CalypsoApp* get_opus_event_structure() {
     OpusEventStructure->container->size = app_elements_count;
 
     OpusEventStructure->container->elements[0] =
-        make_calypso_final_element("EventDate", 14, "Event date", CALYPSO_FINAL_TYPE_DATE);
+        make_calypso_final_element("EventDateStamp", 14, "Event date", CALYPSO_FINAL_TYPE_DATE);
     OpusEventStructure->container->elements[1] =
-        make_calypso_final_element("EventTime", 11, "Event time", CALYPSO_FINAL_TYPE_TIME);
+        make_calypso_final_element("EventTimeStamp", 11, "Event time", CALYPSO_FINAL_TYPE_TIME);
     OpusEventStructure->container->elements[2] =
         make_calypso_final_element("EventUnknownX", 19, "Unknown X", CALYPSO_FINAL_TYPE_NUMBER);
     OpusEventStructure->container->elements[3] = make_calypso_bitmap_element(
