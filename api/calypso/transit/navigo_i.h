@@ -59,6 +59,7 @@ typedef struct {
     int count;
     int relative_first_stamp_15mn;
     int struct_number;
+    int last_load;
 } NavigoCardContractCounter;
 
 typedef struct {
@@ -80,6 +81,7 @@ typedef struct {
     int status;
     int authenticator;
     NavigoCardContractCounter counter;
+    bool counter_present;
     bool present;
 } NavigoCardContract;
 

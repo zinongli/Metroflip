@@ -591,18 +591,19 @@ void show_navigo_special_event_info(NavigoCardSpecialEvent* event, FuriString* p
 
 void show_navigo_contract_info(NavigoCardContract* contract, FuriString* parsed_data) {
     furi_string_cat_printf(parsed_data, "Type: %s\n", get_navigo_tariff(contract->tariff));
-    if(is_ticket_count_available(contract->tariff)) {
+    if(contract->counter_present) {
         furi_string_cat_printf(parsed_data, "Remaining Tickets: %d\n", contract->counter.count);
+        furi_string_cat_printf(parsed_data, "Last load: %d\n", contract->counter.last_load);
     }
     if(contract->serial_number_available) {
         furi_string_cat_printf(parsed_data, "TCN Number: %d\n", contract->serial_number);
     }
+    if(contract->price_amount_available) {
+        furi_string_cat_printf(parsed_data, "Amount: %.2f EUR\n", contract->price_amount);
+    }
     if(contract->pay_method_available) {
         furi_string_cat_printf(
             parsed_data, "Payment Method: %s\n", get_pay_method(contract->pay_method));
-    }
-    if(contract->price_amount_available) {
-        furi_string_cat_printf(parsed_data, "Amount: %.2f EUR\n", contract->price_amount);
     }
     if(contract->end_date_available) {
         furi_string_cat_printf(parsed_data, "Valid\nfrom: ");

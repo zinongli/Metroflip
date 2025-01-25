@@ -710,7 +710,27 @@ static NfcCommand metroflip_scene_navigo_poller_callback(NfcGenericEvent event, 
                             card->navigo->contracts[i - 1].zones_available = true;
                         }
 
-                        // 13.7. ContractValidityJourneys  -- pas sûr de le mettre lui
+                        // 13.7. ContractValidityJourneys
+                        contract_key = "ContractValidityJourneys";
+                        if(is_calypso_node_present(
+                               bit_representation, contract_key, IntercodeContractStructure)) {
+                            int positionOffset = get_calypso_node_offset(
+                                bit_representation, contract_key, IntercodeContractStructure);
+                            int start = positionOffset,
+                                end = positionOffset +
+                                      get_calypso_node_size(
+                                          contract_key, IntercodeContractStructure) -
+                                      1;
+                            int decimal_value = bit_slice_to_dec(bit_representation, start, end);
+                            // first 5 bits -> CounterStructureNumber
+                            // last 8 bits -> CounterLastLoad
+                            // other bits -> RFU
+                            card->navigo->contracts[i - 1].counter.struct_number = decimal_value >>
+                                                                                   11;
+                            card->navigo->contracts[i - 1].counter.last_load = decimal_value &
+                                                                               0xFF;
+                            card->navigo->contracts[i - 1].counter_present = true;
+                        }
 
                         // 15.0. ContractValiditySaleDate
                         contract_key = "ContractValiditySaleDate";
@@ -830,6 +850,12 @@ static NfcCommand metroflip_scene_navigo_poller_callback(NfcGenericEvent event, 
 
                     // Ticket counts (contracts 1-4)
                     for(int i = 0; i < 4; i++) {
+                        if(card->navigo->contracts[i].present == 0) {
+                            continue;
+                        }
+                        if(card->navigo->contracts[i].counter_present == 0) {
+                            continue;
+                        }
                         start = 0;
                         end = 5;
                         card->navigo->contracts[i].counter.count = bit_slice_to_dec(
