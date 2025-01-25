@@ -289,8 +289,12 @@ const char* get_navigo_tram_line(int route_number) {
     switch(route_number) {
     case 1:
         return "T3a";
+    case 9:
+        return "T9";
     case 16:
         return "T6";
+    case 18:
+        return "T8";
     default: {
         char* line = malloc(5 * sizeof(char));
         if(!line) {
