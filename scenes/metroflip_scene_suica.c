@@ -87,14 +87,15 @@ static void suica_add_entry(SuicaHistoryViewModel* model, const uint8_t* entry) 
 
 static void suica_parse(SuicaHistoryViewModel* my_model) {
     uint8_t current_block[FELICA_DATA_BLOCK_SIZE];
-        // Parse the current block/entry
-        for(size_t i = 0; i < FELICA_DATA_BLOCK_SIZE; i++) {
-            current_block[i] = my_model->travel_history[((my_model->entry - 1) * 16) + i];
-        }
-    
+    // Parse the current block/entry
+    for(size_t i = 0; i < FELICA_DATA_BLOCK_SIZE; i++) {
+        current_block[i] = my_model->travel_history[((my_model->entry - 1) * 16) + i];
+    }
+
     if(((uint8_t)current_block[4] + (uint8_t)current_block[5]) != 0) {
         my_model->history.year = ((uint8_t)current_block[4] & 0xFE) >> 1;
-        my_model->history.month = (((uint8_t)current_block[4] & 0x01) << 3) | (((uint8_t)current_block[5] & 0xE0) >> 5);
+        my_model->history.month = (((uint8_t)current_block[4] & 0x01) << 3) |
+                                  (((uint8_t)current_block[5] & 0xE0) >> 5);
         my_model->history.day = (uint8_t)current_block[5] & 0x1F;
     } else {
         my_model->history.year = 0;
@@ -163,14 +164,12 @@ static void suica_parse(SuicaHistoryViewModel* my_model) {
 
         if(((uint8_t)current_block[4] + (uint8_t)current_block[5]) != 0) {
             my_model->history.year = ((uint8_t)current_block[4] & 0xFE) >> 1;
-            my_model->history.month = (((uint8_t)current_block[4] & 0x01) << 3) | (((uint8_t)current_block[5] & 0xE0) >> 5);
+            my_model->history.month = (((uint8_t)current_block[4] & 0x01) << 3) |
+                                      (((uint8_t)current_block[5] & 0xE0) >> 5);
             my_model->history.day = (uint8_t)current_block[5] & 0x1F;
         }
     }
     switch((uint8_t)current_block[0]) {
-    case TERMINAL_NULL:
-        my_model->history.history_type = SuicaHistoryNull;
-        break;
     case TERMINAL_BUS:
         // 6 & 7 bus line code
         // 8 & 9 bus stop code
@@ -185,23 +184,27 @@ static void suica_parse(SuicaHistoryViewModel* my_model) {
     case TERMINAL_MOBILE_PHONE:
         if((uint8_t)current_block[1] == PROCESSING_CODE_NEW_ISSUE) {
             my_model->history.hour = ((uint8_t)current_block[6] & 0xF8) >> 3;
-            my_model->history.minute = (((uint8_t)current_block[6] & 0x07) << 3) | (((uint8_t)current_block[7] & 0xE0) >> 5);
+            my_model->history.minute = (((uint8_t)current_block[6] & 0x07) << 3) |
+                                       (((uint8_t)current_block[7] & 0xE0) >> 5);
         }
         break;
     case TERMINAL_VENDING_MACHINE:
         // 6 & 7 are hour and minute
         my_model->history.history_type = SuicaHistoryVendingMachine;
         my_model->history.hour = ((uint8_t)current_block[6] & 0xF8) >> 3;
-        my_model->history.minute = (((uint8_t)current_block[6] & 0x07) << 3) | (((uint8_t)current_block[7] & 0xE0) >> 5);
+        my_model->history.minute = (((uint8_t)current_block[6] & 0x07) << 3) |
+                                   (((uint8_t)current_block[7] & 0xE0) >> 5);
         my_model->history.shop_code = (uint8_t*)malloc(2);
         my_model->history.shop_code[0] = current_block[8];
         my_model->history.shop_code[1] = current_block[9];
         break;
-
     case TERMINAL_TICKET_VENDING_MACHINE:
         my_model->history.history_type = SuicaHistoryHappyBirthday;
         break;
     default:
+        if((uint8_t)current_block[0] <= TERMINAL_NULL) {
+            my_model->history.history_type = SuicaHistoryNull;
+        }
         break;
     }
     if((uint8_t)current_block[1] == PROCESSING_CODE_NEW_ISSUE) {
@@ -543,6 +546,7 @@ static void suica_draw_birthday_page_2(
     UNUSED(history);
     canvas_draw_xbm(canvas, 27, 14, 78, 50, PenguinHappyBirthday);
     canvas_draw_xbm(canvas, 14, 14, 9, 48, PenguinTodaysVIP);
+    canvas_draw_rframe(canvas, 12, 12, 13, 52, 2); // VIP frame
     uint8_t star_bits[4] = {0b11000000, 0b11110000, 0b11111111, 0b00000000};
 
     // Arrow
@@ -633,6 +637,7 @@ static void suica_draw_vending_machine_page_1(
     default:
         break;
     }
+    furi_string_free(buffer);
 }
 
 static void suica_draw_vending_machine_page_2(
