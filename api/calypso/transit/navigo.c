@@ -211,6 +211,28 @@ int get_intercode_subversion(int version) {
     return version & 0x07;
 }
 
+char* get_token(char* psrc, const char* delimit, void* psave) {
+    static char sret[512];
+    register char* ptr = psave;
+    memset(sret, 0, sizeof(sret));
+
+    if(psrc != NULL) strcpy(ptr, psrc);
+    if(ptr == NULL) return NULL;
+
+    int i = 0, nlength = strlen(ptr);
+    for(i = 0; i < nlength; i++) {
+        if(ptr[i] == delimit[0]) break;
+        if(ptr[i] == delimit[1]) {
+            ptr = NULL;
+            break;
+        }
+        sret[i] = ptr[i];
+    }
+    if(ptr != NULL) strcpy(ptr, &ptr[i + 1]);
+
+    return sret;
+}
+
 char* get_navigo_station(
     int station_group_id,
     int station_id,
@@ -227,13 +249,14 @@ char* get_navigo_station(
                 if(!station_name) {
                     return "Unknown";
                 }
-                char* token = strtok(station_name, "|");
+                char* token = get_token(station_name, "|", station_name);
                 for(int i = 0; i < station_sub_id - 1; i++) {
-                    token = strtok(NULL, "|");
+                    token = get_token(station_name, "|", station_name);
                     if(!token) {
                         break;
                     }
                 }
+                free(station_name);
                 if(token) {
                     return token;
                 }
