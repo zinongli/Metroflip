@@ -31,7 +31,10 @@ void show_navigo_special_event_info(NavigoCardSpecialEvent* event, FuriString* p
 
 void show_navigo_contract_info(NavigoCardContract* contract, FuriString* parsed_data);
 
-void show_navigo_environment_info(NavigoCardEnv* environment, FuriString* parsed_data);
+void show_navigo_environment_info(
+    NavigoCardEnv* environment,
+    NavigoCardHolder* holder,
+    FuriString* parsed_data);
 
 typedef enum {
     NAVIGO_EASY = 0,

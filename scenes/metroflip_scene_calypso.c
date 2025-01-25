@@ -107,22 +107,19 @@ void update_page_info(void* context, FuriString* parsed_data) {
             ctx->card->card_number);
         return;
     }
-    if(ctx->page_id == 0 || ctx->page_id == 1 || ctx->page_id == 2 || ctx->page_id == 3) {
+    if(ctx->page_id == 0) {
         switch(ctx->card->card_type) {
         case CALYPSO_CARD_NAVIGO: {
-            furi_string_cat_printf(
-                parsed_data,
-                "\e#%s %u:\n",
-                get_navigo_type(ctx->card->navigo->holder.card_status),
-                ctx->card->card_number);
-            furi_string_cat_printf(parsed_data, "\e#Contract %d:\n", ctx->page_id + 1);
-            show_navigo_contract_info(&ctx->card->navigo->contracts[ctx->page_id], parsed_data);
+            furi_string_cat_printf(parsed_data, "\e#Navigo %u:\n", ctx->card->card_number);
+            furi_string_cat_printf(parsed_data, "\e#Environment:\n");
+            show_navigo_environment_info(
+                &ctx->card->navigo->environment, &ctx->card->navigo->holder, parsed_data);
             break;
         }
         case CALYPSO_CARD_OPUS: {
             furi_string_cat_printf(parsed_data, "\e#Opus %u:\n", ctx->card->card_number);
-            furi_string_cat_printf(parsed_data, "\e#Contract %d:\n", ctx->page_id + 1);
-            show_opus_contract_info(&ctx->card->opus->contracts[ctx->page_id], parsed_data);
+            furi_string_cat_printf(parsed_data, "\e#Environment:\n");
+            show_opus_environment_info(&ctx->card->opus->environment, parsed_data);
             break;
         }
         default: {
@@ -130,15 +127,16 @@ void update_page_info(void* context, FuriString* parsed_data) {
             break;
         }
         }
-    } else if(ctx->page_id == 4) {
-        furi_string_cat_printf(parsed_data, "\e#Environment:\n");
+    } else if(ctx->page_id == 1 || ctx->page_id == 2 || ctx->page_id == 3 || ctx->page_id == 4) {
+        furi_string_cat_printf(parsed_data, "\e#Contract %d:\n", ctx->page_id);
         switch(ctx->card->card_type) {
         case CALYPSO_CARD_NAVIGO: {
-            show_navigo_environment_info(&ctx->card->navigo->environment, parsed_data);
+            show_navigo_contract_info(
+                &ctx->card->navigo->contracts[ctx->page_id - 1], parsed_data);
             break;
         }
         case CALYPSO_CARD_OPUS: {
-            show_opus_environment_info(&ctx->card->opus->environment, parsed_data);
+            show_opus_contract_info(&ctx->card->opus->contracts[ctx->page_id - 1], parsed_data);
             break;
         }
         default: {
@@ -234,13 +232,13 @@ void metroflip_back_button_widget_callback(GuiButtonType result, InputType type,
             if(ctx->page_id == 6 && ctx->card->events_count < 1) {
                 ctx->page_id -= 1;
             }
-            if(ctx->page_id == 4 && ctx->card->contracts_count < 4) {
+            if(ctx->page_id == 5 && ctx->card->contracts_count < 4) {
                 ctx->page_id -= 1;
             }
-            if(ctx->page_id == 3 && ctx->card->contracts_count < 3) {
+            if(ctx->page_id == 4 && ctx->card->contracts_count < 3) {
                 ctx->page_id -= 1;
             }
-            if(ctx->page_id == 2 && ctx->card->contracts_count < 2) {
+            if(ctx->page_id == 3 && ctx->card->contracts_count < 2) {
                 ctx->page_id -= 1;
             }
             ctx->page_id -= 1;
@@ -285,13 +283,13 @@ void metroflip_next_button_widget_callback(GuiButtonType result, InputType type,
             return;
         }
         if(ctx->page_id < 10) {
-            if(ctx->page_id == 0 && ctx->card->contracts_count < 2) {
+            if(ctx->page_id == 1 && ctx->card->contracts_count < 2) {
                 ctx->page_id += 1;
             }
-            if(ctx->page_id == 1 && ctx->card->contracts_count < 3) {
+            if(ctx->page_id == 2 && ctx->card->contracts_count < 3) {
                 ctx->page_id += 1;
             }
-            if(ctx->page_id == 2 && ctx->card->contracts_count < 4) {
+            if(ctx->page_id == 3 && ctx->card->contracts_count < 4) {
                 ctx->page_id += 1;
             }
             if(ctx->page_id == 4 && ctx->card->events_count < 1) {

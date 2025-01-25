@@ -192,25 +192,6 @@ const char* get_zones(int* zones) {
     }
 }
 
-const char* get_intercode_version(int version) {
-    // version is a 6 bits int
-    // if the first 3 bits are 000, it's a 1.x version
-    // if the first 3 bits are 001, it's a 2.x version
-    // else, it's unknown
-    int major = (version >> 3) & 0x07;
-    if(major == 0) {
-        return "Intercode I";
-    } else if(major == 1) {
-        return "Intercode II";
-    }
-    return "Unknown";
-}
-
-int get_intercode_subversion(int version) {
-    // subversion is a 3 bits int
-    return version & 0x07;
-}
-
 char* get_token(char* psrc, const char* delimit, void* psave) {
     static char sret[512];
     register char* ptr = psave;
@@ -625,20 +606,25 @@ void show_navigo_contract_info(NavigoCardContract* contract, FuriString* parsed_
     furi_string_cat_printf(
         parsed_data, "Sales Agent: %s\n", get_navigo_service_provider(contract->sale_agent));
     furi_string_cat_printf(parsed_data, "Sales Terminal: %d\n", contract->sale_device);
-    if(contract->status == 1) {
-        furi_string_cat_printf(parsed_data, "Status: OK\n");
-    } else {
-        furi_string_cat_printf(parsed_data, "Status: Unknown (%d)\n", contract->status);
-    }
+    furi_string_cat_printf(
+        parsed_data, "Status: %s\n", get_intercode_string_contract_status(contract->status));
     furi_string_cat_printf(parsed_data, "Authenticity Code: %d\n", contract->authenticator);
 }
 
-void show_navigo_environment_info(NavigoCardEnv* environment, FuriString* parsed_data) {
+void show_navigo_environment_info(
+    NavigoCardEnv* environment,
+    NavigoCardHolder* holder,
+    FuriString* parsed_data) {
+    furi_string_cat_printf(
+        parsed_data, "Card status: %s\n", get_intercode_string_holder_type(holder->card_status));
+    if(is_intercode_string_holder_linked(holder->card_status)) {
+        furi_string_cat_printf(parsed_data, "Linked to an organization\n");
+    }
     furi_string_cat_printf(
         parsed_data,
         "App Version: %s - v%d\n",
-        get_intercode_version(environment->app_version),
-        get_intercode_subversion(environment->app_version));
+        get_intercode_string_version(environment->app_version),
+        get_intercode_string_subversion(environment->app_version));
     furi_string_cat_printf(
         parsed_data, "Country: %s\n", get_country_string(environment->country_num));
     furi_string_cat_printf(

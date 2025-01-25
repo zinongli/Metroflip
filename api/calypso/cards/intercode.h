@@ -15,6 +15,16 @@ const char* get_intercode_string_transition_type(int transition);
 
 const char* get_intercode_string_event_result(int result);
 
+const char* get_intercode_string_version(int version);
+
+int get_intercode_string_subversion(int version);
+
+const char* get_intercode_string_holder_type(int card_status);
+
+bool is_intercode_string_holder_linked(int card_status);
+
+const char* get_intercode_string_contract_status(int status);
+
 typedef enum {
     URBAN_BUS = 1,
     INTERURBAN_BUS = 2,
