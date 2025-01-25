@@ -85,27 +85,32 @@ static void suica_add_entry(SuicaHistoryViewModel* model, const uint8_t* entry) 
     FURI_LOG_I(TAG, "Added entry %d", model->size);
 }
 
-static SuicaTravelHistory suica_parse(uint8_t block[16]) {
-    SuicaTravelHistory history;
-    if(((uint8_t)block[4] + (uint8_t)block[5]) != 0) {
-        history.year = ((uint8_t)block[4] & 0xFE) >> 1;
-        history.month = (((uint8_t)block[4] & 0x01) << 3) | (((uint8_t)block[5] & 0xE0) >> 5);
-        history.day = (uint8_t)block[5] & 0x1F;
+static void suica_parse(SuicaHistoryViewModel* my_model) {
+    uint8_t current_block[FELICA_DATA_BLOCK_SIZE];
+        // Parse the current block/entry
+        for(size_t i = 0; i < FELICA_DATA_BLOCK_SIZE; i++) {
+            current_block[i] = my_model->travel_history[((my_model->entry - 1) * 16) + i];
+        }
+    
+    if(((uint8_t)current_block[4] + (uint8_t)current_block[5]) != 0) {
+        my_model->history.year = ((uint8_t)current_block[4] & 0xFE) >> 1;
+        my_model->history.month = (((uint8_t)current_block[4] & 0x01) << 3) | (((uint8_t)current_block[5] & 0xE0) >> 5);
+        my_model->history.day = (uint8_t)current_block[5] & 0x1F;
     } else {
-        history.year = 0;
-        history.month = 0;
-        history.day = 0;
+        my_model->history.year = 0;
+        my_model->history.month = 0;
+        my_model->history.day = 0;
     }
-    history.balance = ((uint16_t)block[11] << 8) | (uint16_t)block[10];
-    // FURI_LOG_I(TAG,"%02X", (uint8_t)block[0]);
+    my_model->history.balance = ((uint16_t)current_block[11] << 8) | (uint16_t)current_block[10];
+    // FURI_LOG_I(TAG,"%02X", (uint8_t)current_block[0]);
 
-    if((uint8_t)block[0] >= TERMINAL_TICKET_VENDING_MACHINE &&
-       (uint8_t)block[0] <= TERMINAL_IN_CAR_SUPP_MACHINE) {
+    if((uint8_t)current_block[0] >= TERMINAL_TICKET_VENDING_MACHINE &&
+       (uint8_t)current_block[0] <= TERMINAL_IN_CAR_SUPP_MACHINE) {
         // Train rides
         // Will be overwritton is is ticket sale (TERMINAL_TICKET_VENDING_MACHINE)
-        history.history_type = SuicaHistoryTrain;
-        uint8_t entry_line = block[6];
-        uint8_t entry_station = block[7];
+        my_model->history.history_type = SuicaHistoryTrain;
+        uint8_t entry_line = current_block[6];
+        uint8_t entry_station = current_block[7];
         bool entry_line_and_station_found = false;
         bool exit_line_and_station_found = false;
         // Match entry line and station
@@ -113,8 +118,8 @@ static SuicaTravelHistory suica_parse(uint8_t block[16]) {
             if(RailwaysList[i].line_code == entry_line) {
                 for(size_t j = 0; j < RailwaysList[i].station_num; j++) {
                     if(RailwaysList[i].line[j].station_code == entry_station) {
-                        history.entry_line = RailwaysList[i];
-                        history.entry_station = RailwaysList[i].line[j];
+                        my_model->history.entry_line = RailwaysList[i];
+                        my_model->history.entry_station = RailwaysList[i].line[j];
                         entry_line_and_station_found = true;
                         break;
                     }
@@ -123,26 +128,26 @@ static SuicaTravelHistory suica_parse(uint8_t block[16]) {
         }
 
         if(!entry_line_and_station_found) {
-            history.entry_line = RailwaysList[RAILWAY_NUM];
-            history.entry_line.type = SuicaRailwayTypeMax;
-            history.entry_station = UnknownLine[0];
+            my_model->history.entry_line = RailwaysList[RAILWAY_NUM];
+            my_model->history.entry_line.type = SuicaRailwayTypeMax;
+            my_model->history.entry_station = UnknownLine[0];
         }
 
-        uint8_t exit_line = block[8];
-        uint8_t exit_station = block[9];
+        uint8_t exit_line = current_block[8];
+        uint8_t exit_station = current_block[9];
         FURI_LOG_D(TAG, "Exit Line %02X, Exit Station %02X", exit_line, exit_station);
 
         // Add 1 to the area code if the exit line is greater than 0x80. Source:
         // https://github.com/metrodroid/metrodroid/wiki/IC-(Japan)#station-codestore-code
-        history.area_code = block[15] + ((exit_line > 0x80) ? 1 : 0);
+        my_model->history.area_code = current_block[15] + ((exit_line > 0x80) ? 1 : 0);
 
         // Match exit line and station
         for(size_t i = 0; i < RAILWAY_NUM; i++) {
             if(RailwaysList[i].line_code == exit_line) {
                 for(size_t j = 0; j < RailwaysList[i].station_num; j++) {
                     if(RailwaysList[i].line[j].station_code == exit_station) {
-                        history.exit_line = RailwaysList[i];
-                        history.exit_station = RailwaysList[i].line[j];
+                        my_model->history.exit_line = RailwaysList[i];
+                        my_model->history.exit_station = RailwaysList[i].line[j];
                         exit_line_and_station_found = true;
                         break;
                     }
@@ -151,52 +156,57 @@ static SuicaTravelHistory suica_parse(uint8_t block[16]) {
         }
 
         if(!exit_line_and_station_found) {
-            history.exit_line = RailwaysList[RAILWAY_NUM];
-            history.exit_line.type = SuicaRailwayTypeMax;
-            history.exit_station = UnknownLine[0];
+            my_model->history.exit_line = RailwaysList[RAILWAY_NUM];
+            my_model->history.exit_line.type = SuicaRailwayTypeMax;
+            my_model->history.exit_station = UnknownLine[0];
         }
 
-        if(((uint8_t)block[4] + (uint8_t)block[5]) != 0) {
-            history.year = ((uint8_t)block[4] & 0xFE) >> 1;
-            history.month = (((uint8_t)block[4] & 0x01) << 3) | (((uint8_t)block[5] & 0xE0) >> 5);
-            history.day = (uint8_t)block[5] & 0x1F;
+        if(((uint8_t)current_block[4] + (uint8_t)current_block[5]) != 0) {
+            my_model->history.year = ((uint8_t)current_block[4] & 0xFE) >> 1;
+            my_model->history.month = (((uint8_t)current_block[4] & 0x01) << 3) | (((uint8_t)current_block[5] & 0xE0) >> 5);
+            my_model->history.day = (uint8_t)current_block[5] & 0x1F;
         }
     }
-    switch((uint8_t)block[0]) {
+    switch((uint8_t)current_block[0]) {
     case TERMINAL_NULL:
-        history.history_type = SuicaHistoryNull;
+        my_model->history.history_type = SuicaHistoryNull;
         break;
     case TERMINAL_BUS:
         // 6 & 7 bus line code
         // 8 & 9 bus stop code
-        history.history_type = SuicaHistoryBus;
+        my_model->history.history_type = SuicaHistoryBus;
         break;
     case TERMINAL_POS_AND_TAXI:
-        history.history_type = SuicaHistoryPosAndTaxi;
+        my_model->history.history_type = SuicaHistoryPosAndTaxi;
+        my_model->history.shop_code = (uint8_t*)malloc(2);
+        my_model->history.shop_code[0] = current_block[8];
+        my_model->history.shop_code[1] = current_block[9];
         break;
     case TERMINAL_MOBILE_PHONE:
-        if((uint8_t)block[1] == PROCESSING_CODE_NEW_ISSUE) {
-            history.hour = ((uint8_t)block[6] & 0xF8) >> 3;
-            history.minute = (((uint8_t)block[6] & 0x07) << 3) | (((uint8_t)block[7] & 0xE0) >> 5);
+        if((uint8_t)current_block[1] == PROCESSING_CODE_NEW_ISSUE) {
+            my_model->history.hour = ((uint8_t)current_block[6] & 0xF8) >> 3;
+            my_model->history.minute = (((uint8_t)current_block[6] & 0x07) << 3) | (((uint8_t)current_block[7] & 0xE0) >> 5);
         }
         break;
     case TERMINAL_VENDING_MACHINE:
         // 6 & 7 are hour and minute
-        history.history_type = SuicaHistoryVendingMachine;
-        history.hour = ((uint8_t)block[6] & 0xF8) >> 3;
-        history.minute = (((uint8_t)block[6] & 0x07) << 3) | (((uint8_t)block[7] & 0xE0) >> 5);
+        my_model->history.history_type = SuicaHistoryVendingMachine;
+        my_model->history.hour = ((uint8_t)current_block[6] & 0xF8) >> 3;
+        my_model->history.minute = (((uint8_t)current_block[6] & 0x07) << 3) | (((uint8_t)current_block[7] & 0xE0) >> 5);
+        my_model->history.shop_code = (uint8_t*)malloc(2);
+        my_model->history.shop_code[0] = current_block[8];
+        my_model->history.shop_code[1] = current_block[9];
         break;
 
     case TERMINAL_TICKET_VENDING_MACHINE:
-        history.history_type = SuicaHistoryHappyBirthday;
+        my_model->history.history_type = SuicaHistoryHappyBirthday;
         break;
     default:
         break;
     }
-    if((uint8_t)block[1] == PROCESSING_CODE_NEW_ISSUE) {
-        history.history_type = SuicaHistoryHappyBirthday;
+    if((uint8_t)current_block[1] == PROCESSING_CODE_NEW_ISSUE) {
+        my_model->history.history_type = SuicaHistoryHappyBirthday;
     }
-    return history;
 }
 
 static void suica_draw_train_page_1(
@@ -572,7 +582,15 @@ static void suica_draw_vending_machine_page_1(
     canvas_draw_line(canvas, 60, 12, 60, 17);
     canvas_draw_line(canvas, 60, 12, 57, 9);
 
+    // Vending Machine
     canvas_draw_xbm(canvas, 5, 12, 47, 52, VendingMachine);
+
+    // Machine Code
+    canvas_set_font(canvas, FontPrimary);
+    canvas_draw_str(canvas, 77, 33, "Machine #");
+    furi_string_printf(buffer, "%03d:%03d", history.shop_code[0], history.shop_code[1]);
+    canvas_set_font(canvas, FontKeyboard);
+    canvas_draw_str(canvas, 86, 42, furi_string_get_cstr(buffer));
 
     // Animate Vending Machine Flap
     if(model->animator_tick > 6) {
@@ -625,10 +643,12 @@ static void suica_draw_vending_machine_page_2(
     canvas_draw_xbm(canvas, 0, 10, 130, 54, VendingPage2Full);
     furi_string_printf(buffer, "%d", history.balance_change);
     canvas_set_font(canvas, FontPrimary);
-    canvas_draw_str_aligned(canvas, 100, 39, AlignRight, AlignBottom, furi_string_get_cstr(buffer));
+    canvas_draw_str_aligned(
+        canvas, 100, 39, AlignRight, AlignBottom, furi_string_get_cstr(buffer));
 
+    // Animate Bubbles and LCD Refresh
     if(model->animator_tick > 14) {
-        // 6 steps of animation
+        // 14 steps of animation
         model->animator_tick = 0;
     }
     canvas_set_color(canvas, ColorWhite);
@@ -641,7 +661,7 @@ static void suica_draw_vending_machine_page_2(
     case 1:
         canvas_draw_circle(canvas, 11, 46, 1);
         canvas_draw_circle(canvas, 23, 39, 2);
-         canvas_set_color(canvas, ColorBlack);
+        canvas_set_color(canvas, ColorBlack);
         canvas_draw_line(canvas, 24, 37, 22, 37);
         canvas_draw_line(canvas, 25, 40, 25, 38);
         canvas_set_color(canvas, ColorWhite);
@@ -662,7 +682,7 @@ static void suica_draw_vending_machine_page_2(
         canvas_draw_xbm(canvas, 24, 43, 3, 3, SmallStar);
         canvas_draw_circle(canvas, 16, 38, 2);
         break;
-    case 6:        
+    case 6:
         canvas_draw_xbm(canvas, 23, 41, 3, 3, SmallStar);
         canvas_draw_circle(canvas, 16, 38, 2);
         canvas_set_color(canvas, ColorBlack);
@@ -773,20 +793,13 @@ static void suica_draw_balance_page(
 static void suica_history_draw_callback(Canvas* canvas, void* model) {
     canvas_set_bitmap_mode(canvas, true);
     SuicaHistoryViewModel* my_model = (SuicaHistoryViewModel*)model;
+    SuicaTravelHistory history = my_model->history;
+    FuriString* buffer = furi_string_alloc();
     // catch the case where the page and entry are not initialized
 
     if(my_model->entry > my_model->size || my_model->entry < 1) {
         my_model->entry = 1;
     }
-
-    uint8_t current_block[FELICA_DATA_BLOCK_SIZE];
-    FuriString* buffer = furi_string_alloc();
-
-    // Parse the current block/entry
-    for(size_t i = 0; i < FELICA_DATA_BLOCK_SIZE; i++) {
-        current_block[i] = my_model->travel_history[((my_model->entry - 1) * 16) + i];
-    }
-    SuicaTravelHistory history = suica_parse(current_block);
 
     // Get previous balance if we are not at the earliest entry
     if(my_model->entry < my_model->size) {
@@ -881,6 +894,7 @@ static void suica_parse_detail_callback(GuiButtonType result, InputType type, vo
     UNUSED(result);
     if(type == InputTypeShort) {
         SuicaHistoryViewModel* my_model = view_get_model(app->suica_context->view_history);
+        suica_parse(my_model);
         FURI_LOG_I(TAG, "Draw Callback: We have %d entries", my_model->size);
         view_dispatcher_switch_to_view(app->view_dispatcher, MetroflipViewCanvas);
     }
@@ -988,6 +1002,7 @@ static bool suica_history_input_callback(InputEvent* event, void* context) {
                     if(model->entry > 1) {
                         model->entry--;
                     }
+                    suica_parse(model);
                     FURI_LOG_I(TAG, "Viewing entry %d", model->entry);
                 },
                 redraw);
@@ -1002,6 +1017,7 @@ static bool suica_history_input_callback(InputEvent* event, void* context) {
                     if(model->entry < model->size) {
                         model->entry++;
                     }
+                    suica_parse(model);
                     FURI_LOG_I(TAG, "Viewing entry %d", model->entry);
                 },
                 redraw);
