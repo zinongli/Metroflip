@@ -599,17 +599,17 @@ static void suica_draw_vending_machine_page_1(
         break;
     case 4:
         canvas_draw_xbm(canvas, 44, 40, 5, 14, VendingFlapHollow);
-        canvas_draw_xbm(canvas, 44, 40, 17, 5, VendingFlap3);
+        canvas_draw_xbm(canvas, 44, 40, 13, 13, VendingFlap2);
         canvas_draw_xbm(canvas, 74, 48, 6, 10, VendingCan2);
         break;
     case 5:
         canvas_draw_xbm(canvas, 44, 40, 5, 14, VendingFlapHollow);
-        canvas_draw_xbm(canvas, 44, 40, 17, 5, VendingFlap3);
+        canvas_draw_xbm(canvas, 44, 40, 5, 15, VendingFlap1);
         canvas_draw_xbm(canvas, 89, 51, 9, 9, VendingCan3);
         break;
     case 6:
         canvas_draw_xbm(canvas, 44, 40, 5, 14, VendingFlapHollow);
-        canvas_draw_xbm(canvas, 44, 40, 17, 5, VendingFlap3);
+        canvas_draw_xbm(canvas, 44, 40, 5, 15, VendingFlap1);
         canvas_draw_xbm(canvas, 110, 54, 10, 6, VendingCan4);
         break;
     default:
@@ -617,6 +617,65 @@ static void suica_draw_vending_machine_page_1(
     }
 }
 
+static void suica_draw_vending_machine_page_2(
+    Canvas* canvas,
+    SuicaTravelHistory history,
+    SuicaHistoryViewModel* model) {
+    FuriString* buffer = furi_string_alloc();
+    canvas_draw_xbm(canvas, 0, 10, 130, 54, VendingPage2Full);
+    furi_string_printf(buffer, "%d", history.balance_change);
+    canvas_set_font(canvas, FontPrimary);
+    canvas_draw_str_aligned(canvas, 100, 39, AlignRight, AlignBottom, furi_string_get_cstr(buffer));
+
+    if(model->animator_tick > 14) {
+        // 6 steps of animation
+        model->animator_tick = 0;
+    }
+    canvas_set_color(canvas, ColorWhite);
+    canvas_draw_line(canvas, 87, 50 + model->animator_tick, 128, 50 + model->animator_tick);
+    switch(model->animator_tick % 7) {
+    case 0:
+        canvas_draw_circle(canvas, 12, 48, 1);
+        canvas_draw_circle(canvas, 23, 39, 2);
+        break;
+    case 1:
+        canvas_draw_circle(canvas, 11, 46, 1);
+        canvas_draw_circle(canvas, 23, 39, 2);
+         canvas_set_color(canvas, ColorBlack);
+        canvas_draw_line(canvas, 24, 37, 22, 37);
+        canvas_draw_line(canvas, 25, 40, 25, 38);
+        canvas_set_color(canvas, ColorWhite);
+        break;
+    case 2:
+        canvas_draw_circle(canvas, 12, 44, 1);
+        canvas_draw_circle(canvas, 24, 50, 1);
+        break;
+    case 3:
+        canvas_draw_xbm(canvas, 12, 41, 3, 3, SmallStar);
+        canvas_draw_circle(canvas, 25, 48, 1);
+        break;
+    case 4:
+        canvas_draw_xbm(canvas, 14, 39, 3, 3, SmallStar);
+        canvas_draw_circle(canvas, 26, 46, 1);
+        break;
+    case 5:
+        canvas_draw_xbm(canvas, 24, 43, 3, 3, SmallStar);
+        canvas_draw_circle(canvas, 16, 38, 2);
+        break;
+    case 6:        
+        canvas_draw_xbm(canvas, 23, 41, 3, 3, SmallStar);
+        canvas_draw_circle(canvas, 16, 38, 2);
+        canvas_set_color(canvas, ColorBlack);
+        canvas_draw_line(canvas, 15, 36, 17, 36);
+        canvas_draw_line(canvas, 18, 39, 18, 37);
+        canvas_set_color(canvas, ColorWhite);
+        break;
+    default:
+        break;
+    }
+    furi_string_free(buffer);
+    canvas_set_color(canvas, ColorBlack);
+}
 static void suica_draw_balance_page(
     Canvas* canvas,
     SuicaTravelHistory history,
@@ -800,6 +859,9 @@ static void suica_history_draw_callback(Canvas* canvas, void* model) {
             break;
         case SuicaHistoryHappyBirthday:
             suica_draw_birthday_page_2(canvas, history, my_model);
+            break;
+        case SuicaHistoryVendingMachine:
+            suica_draw_vending_machine_page_2(canvas, history, my_model);
             break;
         default:
             break;
