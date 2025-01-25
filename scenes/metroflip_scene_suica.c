@@ -42,7 +42,7 @@
 #define TERMINAL_POS_AND_TAXI           0xC7
 #define TERMINAL_VENDING_MACHINE        0xC8
 #define PROCESSING_CODE_NEW_ISSUE       0x02
-#define ARROW_ANIMATION_FRAME_MS        500
+#define ARROW_ANIMATION_FRAME_MS        350
 
 const char* suica_service_names[] = {
     "Travel History",
