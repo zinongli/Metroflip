@@ -1596,8 +1596,8 @@ static NfcCommand metroflip_scene_navigo_poller_callback(NfcGenericEvent event, 
                         bit_slice_to_dec(environment_bit_representation, start, end) * 100 +
                         bit_slice_to_dec(environment_bit_representation, start + 4, end + 4) * 10 +
                         bit_slice_to_dec(environment_bit_representation, start + 8, end + 8);
-                    card->card_type = guess_card_type(country_num, network_num);
-                    if(card->card_type == CALYPSO_CARD_RAVKAV) {
+                    if(guess_card_type(country_num, network_num) == CALYPSO_CARD_RAVKAV) {
+                        card->card_type = CALYPSO_CARD_RAVKAV;
                     }
                     break;
                 }
