@@ -17,6 +17,8 @@ const char* get_opus_service_provider(int provider) {
         return "STL";
     case 0x10:
         return "STLevis";
+    case 0x20:
+        return "Chrono";
     default: {
         char* provider_str = malloc(10 * sizeof(char));
         if(!provider_str) {
@@ -117,10 +119,14 @@ void show_opus_contract_info(OpusCardContract* contract, FuriString* parsed_data
     locale_format_datetime_cat(parsed_data, &contract->start_date, false);
     furi_string_cat_printf(parsed_data, "\nto: ");
     locale_format_datetime_cat(parsed_data, &contract->end_date, false);
-    furi_string_cat_printf(parsed_data, "\n");
-    // furi_string_cat_printf(parsed_data, "Sold on: ");
-    // locale_format_datetime_cat(parsed_data, &contract->sale_date, false);
-    // furi_string_cat_printf(parsed_data, "\nStatus: %d\n", contract->status);
+    furi_string_cat_printf(parsed_data, "\nSold on: ");
+    locale_format_datetime_cat(parsed_data, &contract->sale_date, true);
+    furi_string_cat_printf(
+        parsed_data, "\nSales Agent: %s\n", get_opus_service_provider(contract->sale_agent));
+    if(contract->inhibition) {
+        furi_string_cat_printf(parsed_data, "Contract inhibited\n");
+    }
+    furi_string_cat_printf(parsed_data, "Used: %s\n", contract->used ? "true" : "false");
 }
 
 void show_opus_environment_info(

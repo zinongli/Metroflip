@@ -42,8 +42,10 @@ typedef struct {
     int tariff;
     DateTime start_date;
     DateTime end_date;
+    int sale_agent;
     DateTime sale_date;
-    int status;
+    bool inhibition;
+    bool used;
     bool present;
 } OpusCardContract;
 

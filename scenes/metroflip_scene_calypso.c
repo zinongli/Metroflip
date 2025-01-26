@@ -1349,11 +1349,6 @@ static NfcCommand metroflip_scene_calypso_poller_callback(NfcGenericEvent event,
                     env_key = "HolderBirthDate";
                     positionOffset = get_calypso_node_offset(
                         environment_bit_representation, env_key, OpusEnvHolderStructure);
-                    FURI_LOG_I(TAG, "HolderBirthDate positionOffset: %d", positionOffset);
-                    FURI_LOG_I(
-                        TAG,
-                        "HolderBirthDate size: %d",
-                        get_calypso_node_size(env_key, OpusEnvHolderStructure));
                     start = positionOffset, end = positionOffset + 3;
                     card->opus->holder.birth_date.year =
                         bit_slice_to_dec(environment_bit_representation, start, end) * 1000 +
@@ -1424,7 +1419,7 @@ static NfcCommand metroflip_scene_calypso_poller_callback(NfcGenericEvent event,
                         if(bit_slice_to_dec(
                                bit_representation,
                                0,
-                               OpusContractStructure->container->elements[1].bitmap->size - 1) ==
+                               OpusContractStructure->container->elements[0].bitmap->size - 1) ==
                            0) {
                             break;
                         }
@@ -1460,8 +1455,8 @@ static NfcCommand metroflip_scene_calypso_poller_callback(NfcGenericEvent event,
                                 bit_slice_to_dec(bit_representation, start, end);
                         }
 
-                        // ContractStartDate
-                        contract_key = "ContractStartDate";
+                        // ContractValidityStartDate
+                        contract_key = "ContractValidityStartDate";
                         if(is_calypso_node_present(
                                bit_representation, contract_key, OpusContractStructure)) {
                             int positionOffset = get_calypso_node_offset(
@@ -1479,8 +1474,8 @@ static NfcCommand metroflip_scene_calypso_poller_callback(NfcGenericEvent event,
                                 &card->opus->contracts[i - 1].start_date);
                         }
 
-                        // ContractEndDate
-                        contract_key = "ContractEndDate";
+                        // ContractValidityEndDate
+                        contract_key = "ContractValidityEndDate";
                         if(is_calypso_node_present(
                                bit_representation, contract_key, OpusContractStructure)) {
                             int positionOffset = get_calypso_node_offset(
@@ -1497,8 +1492,8 @@ static NfcCommand metroflip_scene_calypso_poller_callback(NfcGenericEvent event,
                                 end_validity_timestamp, &card->opus->contracts[i - 1].end_date);
                         }
 
-                        // ContractStatus
-                        contract_key = "ContractStatus";
+                        // ContractDataSaleAgent
+                        contract_key = "ContractDataSaleAgent";
                         if(is_calypso_node_present(
                                bit_representation, contract_key, OpusContractStructure)) {
                             int positionOffset = get_calypso_node_offset(
@@ -1507,24 +1502,31 @@ static NfcCommand metroflip_scene_calypso_poller_callback(NfcGenericEvent event,
                                 end = positionOffset +
                                       get_calypso_node_size(contract_key, OpusContractStructure) -
                                       1;
-                            card->opus->contracts[i - 1].status =
+                            card->opus->contracts[i - 1].sale_agent =
                                 bit_slice_to_dec(bit_representation, start, end);
                         }
 
-                        // ContractSaleDate + ContractSaleTime
-                        contract_key = "ContractSaleDate";
+                        // ContractDataSaleDate + ContractDataSaleTime
+                        contract_key = "ContractDataSaleDate";
                         int positionOffset = get_calypso_node_offset(
                             bit_representation, contract_key, OpusContractStructure);
+                        FURI_LOG_I(TAG, "ContractDataSaleDate positionOffset: %d", positionOffset);
                         int start = positionOffset,
                             end = positionOffset +
                                   get_calypso_node_size(contract_key, OpusContractStructure) - 1;
+                        FURI_LOG_I(
+                            TAG,
+                            "ContractDataSaleDate: %d",
+                            bit_slice_to_dec(bit_representation, start, end));
                         uint64_t sale_date_timestamp =
-                            (bit_slice_to_dec(bit_representation, start, end) + (float)epoch) +
+                            ((bit_slice_to_dec(bit_representation, start, end) * 24 * 3600) +
+                             (float)epoch) +
                             3600;
+                        ;
                         datetime_timestamp_to_datetime(
                             sale_date_timestamp, &card->opus->contracts[i - 1].sale_date);
 
-                        contract_key = "ContractSaleTime";
+                        contract_key = "ContractDataSaleTime";
                         positionOffset = get_calypso_node_offset(
                             bit_representation, contract_key, OpusContractStructure);
                         start = positionOffset,
@@ -1536,6 +1538,34 @@ static NfcCommand metroflip_scene_calypso_poller_callback(NfcGenericEvent event,
                             ((decimal_value * 60) % 3600) / 60;
                         card->opus->contracts[i - 1].sale_date.second =
                             ((decimal_value * 60) % 3600) % 60;
+
+                        // ContractDataInhibition
+                        contract_key = "ContractDataInhibition";
+                        if(is_calypso_node_present(
+                               bit_representation, contract_key, OpusContractStructure)) {
+                            int positionOffset = get_calypso_node_offset(
+                                bit_representation, contract_key, OpusContractStructure);
+                            int start = positionOffset,
+                                end = positionOffset +
+                                      get_calypso_node_size(contract_key, OpusContractStructure) -
+                                      1;
+                            card->opus->contracts[i - 1].inhibition =
+                                bit_slice_to_dec(bit_representation, start, end);
+                        }
+
+                        // ContractDataUsed
+                        contract_key = "ContractDataUsed";
+                        if(is_calypso_node_present(
+                               bit_representation, contract_key, OpusContractStructure)) {
+                            int positionOffset = get_calypso_node_offset(
+                                bit_representation, contract_key, OpusContractStructure);
+                            int start = positionOffset,
+                                end = positionOffset +
+                                      get_calypso_node_size(contract_key, OpusContractStructure) -
+                                      1;
+                            card->opus->contracts[i - 1].used =
+                                bit_slice_to_dec(bit_representation, start, end);
+                        }
                     }
 
                     // Free the calypso structure

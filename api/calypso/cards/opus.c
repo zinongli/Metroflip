@@ -8,7 +8,7 @@ CalypsoApp* get_opus_contract_structure() {
         return NULL;
     }
 
-    int app_elements_count = 2;
+    int app_elements_count = 1;
 
     OpusContractStructure->type = CALYPSO_APP_CONTRACT;
     OpusContractStructure->container = malloc(sizeof(CalypsoContainerElement));
@@ -16,41 +16,85 @@ CalypsoApp* get_opus_contract_structure() {
         malloc(app_elements_count * sizeof(CalypsoElement));
     OpusContractStructure->container->size = app_elements_count;
 
-    OpusContractStructure->container->elements[0] =
-        make_calypso_final_element("ContractUnknownA", 3, "Unknown A", CALYPSO_FINAL_TYPE_NUMBER);
-    OpusContractStructure->container->elements[1] = make_calypso_bitmap_element(
+    OpusContractStructure->container->elements[0] = make_calypso_bitmap_element(
         "Contract",
-        4,
+        7,
         (CalypsoElement[]){
             make_calypso_final_element(
-                "ContractProvider", 8, "Provider", CALYPSO_FINAL_TYPE_UNKNOWN),
-            make_calypso_final_element("ContractTariff", 16, "Tariff", CALYPSO_FINAL_TYPE_TARIFF),
+                "ContractProvider",
+                8,
+                "Acteur ou groupe d’acteurs ayant dèfini et assurant le service pour le contrat",
+                CALYPSO_FINAL_TYPE_SERVICE_PROVIDER),
+            make_calypso_final_element(
+                "ContractTariff", 16, "Code tarif du contrat", CALYPSO_FINAL_TYPE_TARIFF),
             make_calypso_bitmap_element(
-                "ContractDates",
+                "ContractValidityInfoBitmap",
                 2,
                 (CalypsoElement[]){
                     make_calypso_final_element(
-                        "ContractStartDate", 14, "Start date", CALYPSO_FINAL_TYPE_DATE),
+                        "ContractValidityStartDate",
+                        14,
+                        "Date de début de validité du contrat",
+                        CALYPSO_FINAL_TYPE_DATE),
                     make_calypso_final_element(
-                        "ContractEndDate", 14, "End date", CALYPSO_FINAL_TYPE_DATE),
+                        "ContractValidityEndDate",
+                        14,
+                        "Date de fin de validité du contrat",
+                        CALYPSO_FINAL_TYPE_DATE),
                 }),
             make_calypso_bitmap_element(
-                "ContractSaleData",
-                6,
+                "ContractData",
+                9,
                 (CalypsoElement[]){
                     make_calypso_final_element(
-                        "ContractUnknownB", 17, "Unknown B", CALYPSO_FINAL_TYPE_NUMBER),
+                        "ContractDataSaleAgent",
+                        8,
+                        "Acteur ayant effectué la dernière vente sur le contrat",
+                        CALYPSO_FINAL_TYPE_SERVICE_PROVIDER),
                     make_calypso_final_element(
-                        "ContractSaleDate", 14, "Sale date", CALYPSO_FINAL_TYPE_DATE),
+                        "ContractDataSaleSecureDevice",
+                        32,
+                        "Numéro du SAM utilisé pour charger le contrat",
+                        CALYPSO_FINAL_TYPE_UNKNOWN),
                     make_calypso_final_element(
-                        "ContractSaleTime", 11, "Sale time", CALYPSO_FINAL_TYPE_TIME),
+                        "ContractDataSaleDate",
+                        14,
+                        "Date de chargement initial du contrat",
+                        CALYPSO_FINAL_TYPE_DATE),
                     make_calypso_final_element(
-                        "ContractUnknownC", 36, "Unknown C", CALYPSO_FINAL_TYPE_NUMBER),
+                        "ContractDataSaleTime",
+                        11,
+                        "Heure de chargement initial du contrat",
+                        CALYPSO_FINAL_TYPE_TIME),
                     make_calypso_final_element(
-                        "ContractStatus", 8, "Status", CALYPSO_FINAL_TYPE_UNKNOWN),
+                        "ContractDataReloadDate",
+                        14,
+                        "Date de rechargement du contrat",
+                        CALYPSO_FINAL_TYPE_DATE),
                     make_calypso_final_element(
-                        "ContractUnknownD", 36, "Unknown D", CALYPSO_FINAL_TYPE_NUMBER),
+                        "ContractDataValidityLimitDate",
+                        14,
+                        "Date limite pour une première utilisation du contrat",
+                        CALYPSO_FINAL_TYPE_DATE),
+                    make_calypso_final_element(
+                        "ContractDataEndInhibitionDate",
+                        14,
+                        "Date jusqu’à laquelle la prèsence du contrat dans une liste de suspension est ignorée",
+                        CALYPSO_FINAL_TYPE_DATE),
+                    make_calypso_final_element(
+                        "ContractDataInhibition", 1, "Contrat invalide", CALYPSO_FINAL_TYPE_UNKNOWN),
+                    make_calypso_final_element(
+                        "ContractDataUsed",
+                        1,
+                        "Contrat déjà validé au moins une fois",
+                        CALYPSO_FINAL_TYPE_UNKNOWN),
                 }),
+            make_calypso_final_element(
+                "ContractUnknownE", 0, "Unknown E", CALYPSO_FINAL_TYPE_UNKNOWN),
+            make_calypso_final_element(
+                "ContractUnknownF", 0, "Unknown F", CALYPSO_FINAL_TYPE_UNKNOWN),
+            make_calypso_final_element(
+                "ContractUnknownG", 0, "Unknown G", CALYPSO_FINAL_TYPE_UNKNOWN),
         });
 
     return OpusContractStructure;
