@@ -39,8 +39,8 @@
 #define TERMINAL_TURNSTILE              0x16
 #define TERMINAL_MOBILE_PHONE           0x1B
 #define TERMINAL_IN_CAR_SUPP_MACHINE    0x24
-#define TERMINAL_POS_AND_TAXI           0xC7
-#define TERMINAL_VENDING_MACHINE        0xC8
+#define TERMINAL_POS_AND_TAXI           0xC8
+#define TERMINAL_VENDING_MACHINE        0xC7
 #define PROCESSING_CODE_NEW_ISSUE       0x02
 #define ARROW_ANIMATION_FRAME_MS        350
 
@@ -104,7 +104,7 @@ static void suica_parse(SuicaHistoryViewModel* my_model) {
     }
     my_model->history.balance = ((uint16_t)current_block[11] << 8) | (uint16_t)current_block[10];
     // FURI_LOG_I(TAG,"%02X", (uint8_t)current_block[0]);
-
+    my_model->history.area_code = current_block[15];
     if((uint8_t)current_block[0] >= TERMINAL_TICKET_VENDING_MACHINE &&
        (uint8_t)current_block[0] <= TERMINAL_IN_CAR_SUPP_MACHINE) {
         // Train rides
@@ -175,8 +175,13 @@ static void suica_parse(SuicaHistoryViewModel* my_model) {
         // 8 & 9 bus stop code
         my_model->history.history_type = SuicaHistoryBus;
         break;
-    case TERMINAL_POS_AND_TAXI:
-        my_model->history.history_type = SuicaHistoryPosAndTaxi;
+    case TERMINAL_POS_AND_TAXI:        
+    case TERMINAL_VENDING_MACHINE:
+        // 6 & 7 are hour and minute
+        my_model->history.history_type = ((uint8_t)current_block[0] == TERMINAL_POS_AND_TAXI) ? SuicaHistoryPosAndTaxi : SuicaHistoryVendingMachine;
+        my_model->history.hour = ((uint8_t)current_block[6] & 0xF8) >> 3;
+        my_model->history.minute = (((uint8_t)current_block[6] & 0x07) << 3) |
+                                   (((uint8_t)current_block[7] & 0xE0) >> 5);
         my_model->history.shop_code = (uint8_t*)malloc(2);
         my_model->history.shop_code[0] = current_block[8];
         my_model->history.shop_code[1] = current_block[9];
@@ -187,16 +192,6 @@ static void suica_parse(SuicaHistoryViewModel* my_model) {
             my_model->history.minute = (((uint8_t)current_block[6] & 0x07) << 3) |
                                        (((uint8_t)current_block[7] & 0xE0) >> 5);
         }
-        break;
-    case TERMINAL_VENDING_MACHINE:
-        // 6 & 7 are hour and minute
-        my_model->history.history_type = SuicaHistoryVendingMachine;
-        my_model->history.hour = ((uint8_t)current_block[6] & 0xF8) >> 3;
-        my_model->history.minute = (((uint8_t)current_block[6] & 0x07) << 3) |
-                                   (((uint8_t)current_block[7] & 0xE0) >> 5);
-        my_model->history.shop_code = (uint8_t*)malloc(2);
-        my_model->history.shop_code[0] = current_block[8];
-        my_model->history.shop_code[1] = current_block[9];
         break;
     case TERMINAL_TICKET_VENDING_MACHINE:
         my_model->history.history_type = SuicaHistoryHappyBirthday;
@@ -570,81 +565,6 @@ static void suica_draw_vending_machine_page_1(
     SuicaTravelHistory history,
     SuicaHistoryViewModel* model) {
     FuriString* buffer = furi_string_alloc();
-
-    // Clock Component
-    canvas_set_color(canvas, ColorWhite); // Erase part of old frame to allow for new frame
-    canvas_draw_line(canvas, 91, 9, 94, 6);
-    canvas_draw_line(canvas, 57, 9, 93, 9);
-    canvas_set_color(canvas, ColorBlack);
-    furi_string_printf(buffer, "%02d:%02d", history.hour, history.minute);
-    canvas_draw_line(canvas, 63, 21, 60, 18);
-    canvas_set_font(canvas, FontKeyboard);
-    canvas_draw_str(canvas, 63, 19, furi_string_get_cstr(buffer));
-    canvas_draw_line(canvas, 91, 21, 94, 18);
-    canvas_draw_line(canvas, 64, 21, 91, 21);
-    canvas_draw_line(canvas, 94, 7, 94, 17);
-    canvas_draw_line(canvas, 60, 12, 60, 17);
-    canvas_draw_line(canvas, 60, 12, 57, 9);
-
-    // Vending Machine
-    canvas_draw_xbm(canvas, 5, 12, 47, 52, VendingMachine);
-
-    // Machine Code
-    canvas_set_font(canvas, FontPrimary);
-    canvas_draw_str(canvas, 77, 33, "Machine #");
-    furi_string_printf(buffer, "%03d:%03d", history.shop_code[0], history.shop_code[1]);
-    canvas_set_font(canvas, FontKeyboard);
-    canvas_draw_str(canvas, 86, 42, furi_string_get_cstr(buffer));
-
-    // Animate Vending Machine Flap
-    if(model->animator_tick > 6) {
-        // 6 steps of animation
-        model->animator_tick = 0;
-    }
-    switch(model->animator_tick) {
-    case 0:
-        canvas_draw_xbm(canvas, 44, 40, 5, 14, VendingFlapHollow);
-        canvas_draw_xbm(canvas, 44, 40, 5, 15, VendingFlap1);
-        break;
-    case 1:
-        canvas_draw_xbm(canvas, 44, 40, 5, 14, VendingFlapHollow);
-        canvas_draw_xbm(canvas, 44, 40, 13, 13, VendingFlap2);
-        break;
-    case 2:
-        canvas_draw_xbm(canvas, 44, 40, 5, 14, VendingFlapHollow);
-        canvas_draw_xbm(canvas, 44, 40, 17, 5, VendingFlap3);
-        break;
-    case 3:
-        canvas_draw_xbm(canvas, 44, 40, 5, 14, VendingFlapHollow);
-        canvas_draw_xbm(canvas, 44, 40, 17, 5, VendingFlap3);
-        canvas_draw_xbm(canvas, 59, 45, 9, 9, VendingCan1);
-        break;
-    case 4:
-        canvas_draw_xbm(canvas, 44, 40, 5, 14, VendingFlapHollow);
-        canvas_draw_xbm(canvas, 44, 40, 13, 13, VendingFlap2);
-        canvas_draw_xbm(canvas, 74, 48, 6, 10, VendingCan2);
-        break;
-    case 5:
-        canvas_draw_xbm(canvas, 44, 40, 5, 14, VendingFlapHollow);
-        canvas_draw_xbm(canvas, 44, 40, 5, 15, VendingFlap1);
-        canvas_draw_xbm(canvas, 89, 51, 9, 9, VendingCan3);
-        break;
-    case 6:
-        canvas_draw_xbm(canvas, 44, 40, 5, 14, VendingFlapHollow);
-        canvas_draw_xbm(canvas, 44, 40, 5, 15, VendingFlap1);
-        canvas_draw_xbm(canvas, 110, 54, 10, 6, VendingCan4);
-        break;
-    default:
-        break;
-    }
-    furi_string_free(buffer);
-}
-
-static void suica_draw_vending_machine_page_2(
-    Canvas* canvas,
-    SuicaTravelHistory history,
-    SuicaHistoryViewModel* model) {
-    FuriString* buffer = furi_string_alloc();
     canvas_draw_xbm(canvas, 0, 10, 130, 54, VendingPage2Full);
     furi_string_printf(buffer, "%d", history.balance_change);
     canvas_set_font(canvas, FontPrimary);
@@ -701,6 +621,151 @@ static void suica_draw_vending_machine_page_2(
     furi_string_free(buffer);
     canvas_set_color(canvas, ColorBlack);
 }
+
+static void suica_draw_vending_machine_page_2(
+    Canvas* canvas,
+    SuicaTravelHistory history,
+    SuicaHistoryViewModel* model) {
+    FuriString* buffer = furi_string_alloc();
+
+    // Clock Component
+    canvas_set_color(canvas, ColorWhite); // Erase part of old frame to allow for new frame
+    canvas_draw_line(canvas, 91, 9, 94, 6);
+    canvas_draw_line(canvas, 57, 9, 93, 9);
+    canvas_set_color(canvas, ColorBlack);
+    furi_string_printf(buffer, "%02d:%02d", history.hour, history.minute);
+    canvas_draw_line(canvas, 63, 21, 60, 18);
+    canvas_set_font(canvas, FontKeyboard);
+    canvas_draw_str(canvas, 63, 19, furi_string_get_cstr(buffer));
+    canvas_draw_line(canvas, 91, 21, 94, 18);
+    canvas_draw_line(canvas, 64, 21, 91, 21);
+    canvas_draw_line(canvas, 94, 7, 94, 17);
+    canvas_draw_line(canvas, 60, 12, 60, 17);
+    canvas_draw_line(canvas, 60, 12, 57, 9);
+
+    // Vending Machine
+    canvas_draw_xbm(canvas, 5, 12, 47, 52, VendingMachine);
+
+    // Machine Code
+    canvas_set_font(canvas, FontPrimary);
+    canvas_draw_str(canvas, 77, 35, "Machine #");
+    furi_string_printf(
+        buffer, "%01d:%03d:%03d", history.area_code, history.shop_code[0], history.shop_code[1]);
+    canvas_set_font(canvas, FontKeyboard);
+    canvas_draw_str_aligned(
+        canvas, 128, 44, AlignRight, AlignBottom, furi_string_get_cstr(buffer));
+
+    // Animate Vending Machine Flap
+    if(model->animator_tick > 6) {
+        // 6 steps of animation
+        model->animator_tick = 0;
+    }
+    switch(model->animator_tick) {
+    case 0:
+        canvas_draw_xbm(canvas, 44, 40, 5, 14, VendingFlapHollow);
+        canvas_draw_xbm(canvas, 44, 40, 5, 15, VendingFlap1);
+        break;
+    case 1:
+        canvas_draw_xbm(canvas, 44, 40, 5, 14, VendingFlapHollow);
+        canvas_draw_xbm(canvas, 44, 40, 13, 13, VendingFlap2);
+        break;
+    case 2:
+        canvas_draw_xbm(canvas, 44, 40, 5, 14, VendingFlapHollow);
+        canvas_draw_xbm(canvas, 44, 40, 17, 5, VendingFlap3);
+        break;
+    case 3:
+        canvas_draw_xbm(canvas, 44, 40, 5, 14, VendingFlapHollow);
+        canvas_draw_xbm(canvas, 44, 40, 17, 5, VendingFlap3);
+        canvas_draw_xbm(canvas, 59, 45, 9, 9, VendingCan1);
+        break;
+    case 4:
+        canvas_draw_xbm(canvas, 44, 40, 5, 14, VendingFlapHollow);
+        canvas_draw_xbm(canvas, 44, 40, 13, 13, VendingFlap2);
+        canvas_draw_xbm(canvas, 74, 48, 6, 10, VendingCan2);
+        break;
+    case 5:
+        canvas_draw_xbm(canvas, 44, 40, 5, 14, VendingFlapHollow);
+        canvas_draw_xbm(canvas, 44, 40, 5, 15, VendingFlap1);
+        canvas_draw_xbm(canvas, 89, 51, 9, 9, VendingCan3);
+        break;
+    case 6:
+        canvas_draw_xbm(canvas, 44, 40, 5, 14, VendingFlapHollow);
+        canvas_draw_xbm(canvas, 44, 40, 5, 15, VendingFlap1);
+        canvas_draw_xbm(canvas, 110, 54, 10, 6, VendingCan4);
+        break;
+    default:
+        break;
+    }
+    furi_string_free(buffer);
+}
+
+static void suica_draw_store_page_2(
+    Canvas* canvas,
+    SuicaTravelHistory history,
+    SuicaHistoryViewModel* model) {
+    FuriString* buffer = furi_string_alloc();
+    // Clock Component
+    canvas_set_color(canvas, ColorWhite); // Erase part of old frame to allow for new frame
+    canvas_draw_line(canvas, 91, 9, 94, 6);
+    canvas_draw_line(canvas, 57, 9, 93, 9);
+    canvas_set_color(canvas, ColorBlack);
+    furi_string_printf(buffer, "%02d:%02d", history.hour, history.minute);
+    canvas_draw_line(canvas, 63, 21, 60, 18);
+    canvas_set_font(canvas, FontKeyboard);
+    canvas_draw_str(canvas, 63, 19, furi_string_get_cstr(buffer));
+    canvas_draw_line(canvas, 91, 21, 94, 18);
+    canvas_draw_line(canvas, 64, 21, 91, 21);
+    canvas_draw_line(canvas, 94, 7, 94, 17);
+    canvas_draw_line(canvas, 60, 12, 60, 17);
+    canvas_draw_line(canvas, 60, 12, 57, 9);
+
+    // Machine Code
+    canvas_set_font(canvas, FontPrimary);
+    canvas_draw_str(canvas, 92, 35, "Store #");
+    furi_string_printf(
+        buffer, "%01d:%03d:%03d", history.area_code, history.shop_code[0], history.shop_code[1]);
+    canvas_set_font(canvas, FontKeyboard);
+    canvas_draw_str_aligned(
+        canvas, 128, 44, AlignRight, AlignBottom, furi_string_get_cstr(buffer));
+
+    // Store Frame
+    canvas_draw_xbm(canvas, 0, 13, 57, 51, StoreFrame);
+    canvas_draw_line(canvas, 20, 28, 20, 64); // Door frame
+    canvas_draw_xbm(canvas, 0, 16, 34, 11, StoreNeon1);
+    // Sliding Door
+    uint8_t door_position[7] = {21, 19, 15, 7, 3, 1, 0};
+    if(model->animator_tick > 20) {
+        // 14 steps of animation
+        model->animator_tick = 0;
+    }
+
+    if(model->animator_tick < 7) {
+        canvas_draw_xbm(
+            canvas, 0 - door_position[6 - model->animator_tick], 28, 21, 40, StoreSlidingDoor);
+    } else if(model->animator_tick < 14) {
+        canvas_draw_xbm(
+            canvas, 0 - door_position[model->animator_tick - 7], 28, 21, 40, StoreSlidingDoor);
+    } else {
+        canvas_draw_xbm(canvas, 0, 28, 21, 40, StoreSlidingDoor);
+    }
+
+    // Animate Neon and Fan
+    switch(model->animator_tick % 4) {
+    case 0:
+    case 1:
+
+        canvas_draw_xbm(canvas, 37, 18, 13, 9, StoreFan1);
+        break;
+    case 2:
+    case 3:
+        canvas_draw_xbm(canvas, 37, 18, 13, 9, StoreFan2);
+        break;
+    default:
+        break;
+    }
+    furi_string_free(buffer);
+}
+
 static void suica_draw_balance_page(
     Canvas* canvas,
     SuicaTravelHistory history,
@@ -880,6 +945,9 @@ static void suica_history_draw_callback(Canvas* canvas, void* model) {
             break;
         case SuicaHistoryVendingMachine:
             suica_draw_vending_machine_page_2(canvas, history, my_model);
+            break;
+        case SuicaHistoryPosAndTaxi:
+            suica_draw_store_page_2(canvas, history, my_model);
             break;
         default:
             break;
