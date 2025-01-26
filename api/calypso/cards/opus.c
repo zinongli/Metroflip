@@ -129,60 +129,6 @@ CalypsoApp* get_opus_event_structure() {
         });
 
     return OpusEventStructure;
-
-    /*
-    EventDateStamp: 10011111100001
-    EventTimeStamp: 01111110001
-    UNKNOWN: 0000000000000000000
-    EventBitmap: 110011110
-        EventResult: 00000000
-        EventServiceProvider: 00000010
-        EventLocationId: 0000000001100101
-        EventRouteNumber: 0000000011011011
-        EventContractPointer: 00100
-        EventDataBitmap: 0001111
-            EventDataDateFirstStamp: 10011111100001
-            EventDataTimeFirstStamp: 01111011100
-            EventDataSimulation: 0
-            EventDataRouteDirection: 0110
-    00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-    */
-
-    /*
-    EventDateStamp: 10011111100001
-    EventTimeStamp: 01111011100
-    UNKNOWN: 0000000000000000000
-    EventBitmap: 110011110
-        EventResult: 00000000
-        EventServiceProvider: 00000010
-        EventLocationId: 0000000011001001
-        EventRouteNumber: 0000000000000010
-        EventContractPointer: 00100
-        EventDataBitmap: 0001111
-            EventDataDateFirstStamp: 10011111100001
-            EventDataTimeFirstStamp: 01111011100
-            EventDataSimulation: 0
-            EventDataRouteDirection: 0001
-    00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-    */
-
-    /*
-    EventDateStamp: 10011111100001
-    EventTimeStamp: 01010011111
-    UNKNOWN: 0000000000000000000
-    EventBitmap: 110011110
-        EventResult: 00000000
-        EventServiceProvider: 00000010
-        EventLocationId: 0000000011001001
-        EventRouteNumber: 0000000000000010
-        EventContractPointer: 00100
-        EventDataBitmap: 0001111
-            EventDataDateFirstStamp: 10011111100001
-            EventDataTimeFirstStamp: 01000101111
-            EventDataSimulation: 0
-            EventDataRouteDirection: 0001
-    00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-    */
 }
 
 CalypsoApp* get_opus_env_holder_structure() {
@@ -241,13 +187,6 @@ CalypsoApp* get_opus_env_holder_structure() {
             make_calypso_final_element("EnvUnknownC", 0, "Unknown C", CALYPSO_FINAL_TYPE_UNKNOWN),
         });
 
-    /*
-    HolderProf1Number "01"
-    HolderProf1Date - ok
-    HolderData_Language "FR"
-    HolderData_ResidenceCode 0
-    HolderBirthDate - ok
-     */
     OpusEnvHolderStructure->container->elements[2] = make_calypso_bitmap_element(
         "Holder",
         8,
@@ -290,39 +229,4 @@ CalypsoApp* get_opus_env_holder_structure() {
         });
 
     return OpusEnvHolderStructure;
-
-    /*
-    missing: EnvDataCardStatus=false, EnvData_CardUtilisation=true, HolderProf1Number="01", HolderData_ResidenceCode=0
-
-    EnvApplicationVersionNumber: 000001
-    EnvBitmap: 0001111
-        EnvNetworkId: 000100100100000000000001
-        EnvApplicationIssuerId: 00100000
-        EnvApplicationValidityEndDate: 10100100100010
-        EnvDataBitmap: 0101
-            EnvDataCardStatus: 0
-            EnvData_CardUtilisation: 1
-    HolderBitmap: 00000111
-        HolderBirthBitmap: 01
-            HolderBirthDate: 00100000000001010000100000000111
-        HolderProfilesList: 0001
-            HolderProfileBitmap: 011
-                HolderProfileNumber: 000001
-                HolderProfileDate: 10100100100010
-        HolderData_Language: 110001
-    00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-    */
-
-    /*
-    EnvApplicationVersionNumber: 000001
-    EnvBitmap: 0001111
-        EnvNetworkId: 000100100100000000000001
-        EnvApplicationIssuerId: 00100000
-        EnvApplicationValidityEndDate: 10110101101010
-    0101010000011101
-    HolderBirthDate: 00011001011100100000001000000001
-    HolderProfCount: 0000
-    HolderData_Language: 110001
-    0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-    */
 }
