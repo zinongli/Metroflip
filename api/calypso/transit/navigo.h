@@ -4,6 +4,9 @@
 #include <datetime.h>
 #include <stdbool.h>
 #include <furi.h>
+#include <storage/storage.h>
+#include <toolbox/stream/stream.h>
+#include <toolbox/stream/file_stream.h>
 
 #ifndef NAVIGO_H
 #define NAVIGO_H

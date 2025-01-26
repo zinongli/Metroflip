@@ -222,25 +222,48 @@ char* get_navigo_station(
     switch(service_provider) {
     case NAVIGO_PROVIDER_SNCF: {
         if(station_group_id < 77 && station_id < 19) {
-            const char* station_group_name =
-                NAVIGO_SNCF_LOCATION_LIST[station_group_id][station_id];
-            if(station_group_name) {
-                // split station_name by '|' and return the station_sub_id - 1 element
-                char* station_name = strdup(station_group_name);
-                if(!station_name) {
-                    return "Unknown";
-                }
-                char* token = get_token(station_name, "|", station_name);
-                for(int i = 0; i < station_sub_id - 1; i++) {
-                    token = get_token(station_name, "|", station_name);
-                    if(!token) {
+            const char* sncf_stations_path = APP_ASSETS_PATH("navigo/sncf_stations.txt");
+            Storage* storage = furi_record_open(RECORD_STORAGE);
+
+            Stream* stream = file_stream_alloc(storage);
+            FuriString* line = furi_string_alloc();
+
+            char* found_station_name = NULL;
+
+            if(file_stream_open(stream, sncf_stations_path, FSAM_READ, FSOM_OPEN_EXISTING)) {
+                while(stream_read_line(stream, line)) {
+                    // file is in csv format: station_group_id,station_id,station_sub_id,station_name
+                    // search for the station
+                    furi_string_replace_all(line, "\r", "");
+                    furi_string_replace_all(line, "\n", "");
+                    const char* string_line = furi_string_get_cstr(line);
+                    char* string_line_copy = strdup(string_line);
+                    if(!string_line_copy) {
+                        return "Unknown";
+                    }
+                    int line_station_group_id =
+                        atoi(get_token(string_line_copy, ",", string_line_copy));
+                    int line_station_id = atoi(get_token(string_line_copy, ",", string_line_copy));
+                    int line_station_sub_id =
+                        atoi(get_token(string_line_copy, ",", string_line_copy));
+                    if(line_station_group_id == station_group_id &&
+                       line_station_id == station_id && line_station_sub_id == station_sub_id) {
+                        found_station_name =
+                            strdup(get_token(string_line_copy, ",", string_line_copy));
                         break;
                     }
+                    free(string_line_copy);
                 }
-                free(station_name);
-                if(token) {
-                    return token;
-                }
+            } else {
+                FURI_LOG_E("Metroflip:Scene:Calypso", "Failed to open sncf_stations.txt");
+            }
+
+            furi_string_free(line);
+            file_stream_close(stream);
+            stream_free(stream);
+
+            if(found_station_name) {
+                return found_station_name;
             }
         }
         // cast station_group_id-station_id-station_sub_id to a string
@@ -254,12 +277,46 @@ char* get_navigo_station(
     case NAVIGO_PROVIDER_RATP:
     case NAVIGO_PROVIDER_ORA: {
         if(station_group_id < 32 && station_id < 16) {
-            const char* station_name = NAVIGO_RATP_LOCATION_LIST[station_group_id][station_id];
-            if(station_name) {
-                char* station;
-                if((station = strdup(station_name)) != NULL) {
-                    return station;
+            const char* ratp_stations_path = APP_ASSETS_PATH("navigo/ratp_stations.txt");
+            Storage* storage = furi_record_open(RECORD_STORAGE);
+
+            Stream* stream = file_stream_alloc(storage);
+            FuriString* line = furi_string_alloc();
+
+            char* found_station_name = NULL;
+
+            if(file_stream_open(stream, ratp_stations_path, FSAM_READ, FSOM_OPEN_EXISTING)) {
+                while(stream_read_line(stream, line)) {
+                    // file is in csv format: station_group_id,station_id,station_name
+                    // search for the station
+                    furi_string_replace_all(line, "\r", "");
+                    furi_string_replace_all(line, "\n", "");
+                    const char* string_line = furi_string_get_cstr(line);
+                    char* string_line_copy = strdup(string_line);
+                    if(!string_line_copy) {
+                        return "Unknown";
+                    }
+                    int line_station_group_id =
+                        atoi(get_token(string_line_copy, ",", string_line_copy));
+                    int line_station_id = atoi(get_token(string_line_copy, ",", string_line_copy));
+                    if(line_station_group_id == station_group_id &&
+                       line_station_id == station_id) {
+                        found_station_name =
+                            strdup(get_token(string_line_copy, ",", string_line_copy));
+                        break;
+                    }
+                    free(string_line_copy);
                 }
+            } else {
+                FURI_LOG_E("Metroflip:Scene:Calypso", "Failed to open ratp_stations.txt");
+            }
+
+            furi_string_free(line);
+            file_stream_close(stream);
+            stream_free(stream);
+
+            if(found_station_name) {
+                return found_station_name;
             }
         }
         // cast station_group_id-station_id to a string
@@ -583,7 +640,7 @@ void show_navigo_contract_info(NavigoCardContract* contract, FuriString* parsed_
     locale_format_datetime_cat(parsed_data, &contract->start_date, false);
     furi_string_cat_printf(parsed_data, "\n");
     if(contract->end_date_available) {
-        furi_string_cat_printf(parsed_data, "\nto: ");
+        furi_string_cat_printf(parsed_data, "to: ");
         locale_format_datetime_cat(parsed_data, &contract->end_date, false);
         furi_string_cat_printf(parsed_data, "\n");
     }
@@ -598,17 +655,6 @@ void show_navigo_contract_info(NavigoCardContract* contract, FuriString* parsed_
     if(contract->pay_method_available) {
         furi_string_cat_printf(
             parsed_data, "Payment Method: %s\n", get_pay_method(contract->pay_method));
-    }
-    if(contract->end_date_available) {
-        furi_string_cat_printf(parsed_data, "Valid\nfrom: ");
-        locale_format_datetime_cat(parsed_data, &contract->start_date, false);
-        furi_string_cat_printf(parsed_data, "\nto: ");
-        locale_format_datetime_cat(parsed_data, &contract->end_date, false);
-        furi_string_cat_printf(parsed_data, "\n");
-    } else {
-        furi_string_cat_printf(parsed_data, "Valid from\n");
-        locale_format_datetime_cat(parsed_data, &contract->start_date, false);
-        furi_string_cat_printf(parsed_data, "\n");
     }
     if(contract->zones_available) {
         furi_string_cat_printf(parsed_data, "%s\n", get_zones(contract->zones));
