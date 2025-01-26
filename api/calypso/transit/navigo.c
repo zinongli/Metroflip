@@ -250,6 +250,7 @@ char* get_navigo_station(
                        line_station_id == station_id && line_station_sub_id == station_sub_id) {
                         found_station_name =
                             strdup(get_token(string_line_copy, ",", string_line_copy));
+                        free(string_line_copy);
                         break;
                     }
                     free(string_line_copy);
@@ -303,6 +304,7 @@ char* get_navigo_station(
                        line_station_id == station_id) {
                         found_station_name =
                             strdup(get_token(string_line_copy, ",", string_line_copy));
+                        free(string_line_copy);
                         break;
                     }
                     free(string_line_copy);
