@@ -730,10 +730,8 @@ static void suica_draw_store_page_2(
 
     // Store Frame
     canvas_draw_xbm(canvas, 0, 13, 57, 51, StoreFrame);
-    canvas_draw_line(canvas, 20, 28, 20, 64); // Door frame
-    canvas_draw_xbm(canvas, 0, 16, 34, 11, StoreNeon1);
     // Sliding Door
-    uint8_t door_position[7] = {21, 19, 15, 7, 3, 1, 0};
+    uint8_t door_position[7] = {20, 18, 14, 6, 2, 0, 0};
     if(model->animator_tick > 20) {
         // 14 steps of animation
         model->animator_tick = 0;
@@ -741,19 +739,18 @@ static void suica_draw_store_page_2(
 
     if(model->animator_tick < 7) {
         canvas_draw_xbm(
-            canvas, 0 - door_position[6 - model->animator_tick], 28, 21, 40, StoreSlidingDoor);
+            canvas, -1 - door_position[6 - model->animator_tick], 28, 21, 40, StoreSlidingDoor);
     } else if(model->animator_tick < 14) {
         canvas_draw_xbm(
-            canvas, 0 - door_position[model->animator_tick - 7], 28, 21, 40, StoreSlidingDoor);
+            canvas, -1 - door_position[model->animator_tick - 7], 28, 21, 40, StoreSlidingDoor);
     } else {
-        canvas_draw_xbm(canvas, 0, 28, 21, 40, StoreSlidingDoor);
+        canvas_draw_xbm(canvas, -1, 28, 21, 40, StoreSlidingDoor);
     }
 
     // Animate Neon and Fan
     switch(model->animator_tick % 4) {
     case 0:
     case 1:
-
         canvas_draw_xbm(canvas, 37, 18, 13, 9, StoreFan1);
         break;
     case 2:
