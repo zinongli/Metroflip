@@ -120,7 +120,8 @@ void update_page_info(void* context, FuriString* parsed_data) {
         case CALYPSO_CARD_OPUS: {
             furi_string_cat_printf(parsed_data, "\e#Opus %u:\n", ctx->card->card_number);
             furi_string_cat_printf(parsed_data, "\e#Environment:\n");
-            show_opus_environment_info(&ctx->card->opus->environment, parsed_data);
+            show_opus_environment_info(
+                &ctx->card->opus->environment, &ctx->card->opus->holder, parsed_data);
             break;
         }
         case CALYPSO_CARD_RAVKAV: {
@@ -172,44 +173,48 @@ void update_page_info(void* context, FuriString* parsed_data) {
         }
         }
     } else if(ctx->page_id >= 5) {
-        furi_string_cat_printf(parsed_data, "\e#Event %d:\n", ctx->page_id - 4);
-        switch(ctx->card->card_type) {
-        case CALYPSO_CARD_NAVIGO: {
-            show_navigo_event_info(
-                &ctx->card->navigo->events[ctx->page_id - 5],
-                ctx->card->navigo->contracts,
-                parsed_data);
-            break;
-        }
-        case CALYPSO_CARD_OPUS: {
-            show_opus_event_info(
-                &ctx->card->opus->events[ctx->page_id - 5],
-                ctx->card->opus->contracts,
-                parsed_data);
-            break;
-        }
-        case CALYPSO_CARD_RAVKAV: {
-            show_ravkav_event_info(&ctx->card->ravkav->events[ctx->page_id - 5], parsed_data);
-            break;
-        }
-        default: {
-            break;
-        }
-        }
-    } else if(ctx->page_id == 8 || ctx->page_id == 9 || ctx->page_id == 10) {
-        furi_string_cat_printf(parsed_data, "\e#Special Event %d:\n", ctx->page_id - 7);
-        switch(ctx->card->card_type) {
-        case CALYPSO_CARD_NAVIGO: {
-            show_navigo_special_event_info(
-                &ctx->card->navigo->special_events[ctx->page_id - 8], parsed_data);
-            break;
-        }
-        case CALYPSO_CARD_OPUS: {
-            break;
-        }
-        default: {
-            break;
-        }
+        if(ctx->page_id - 5 < ctx->card->events_count) {
+            furi_string_cat_printf(parsed_data, "\e#Event %d:\n", ctx->page_id - 4);
+            switch(ctx->card->card_type) {
+            case CALYPSO_CARD_NAVIGO: {
+                show_navigo_event_info(
+                    &ctx->card->navigo->events[ctx->page_id - 5],
+                    ctx->card->navigo->contracts,
+                    parsed_data);
+                break;
+            }
+            case CALYPSO_CARD_OPUS: {
+                show_opus_event_info(
+                    &ctx->card->opus->events[ctx->page_id - 5],
+                    ctx->card->opus->contracts,
+                    parsed_data);
+                break;
+            }
+            case CALYPSO_CARD_RAVKAV: {
+                show_ravkav_event_info(&ctx->card->ravkav->events[ctx->page_id - 5], parsed_data);
+                break;
+            }
+            default: {
+                break;
+            }
+            }
+        } else {
+            furi_string_cat_printf(
+                parsed_data, "\e#Special Event %d:\n", ctx->page_id - ctx->card->events_count - 4);
+            switch(ctx->card->card_type) {
+            case CALYPSO_CARD_NAVIGO: {
+                show_navigo_special_event_info(
+                    &ctx->card->navigo->special_events[ctx->page_id - ctx->card->events_count - 5],
+                    parsed_data);
+                break;
+            }
+            case CALYPSO_CARD_OPUS: {
+                break;
+            }
+            default: {
+                break;
+            }
+            }
         }
     }
 }
@@ -1296,6 +1301,16 @@ static NfcCommand metroflip_scene_calypso_poller_callback(NfcGenericEvent event,
                     card->opus->environment.app_version =
                         bit_slice_to_dec(environment_bit_representation, start, end);
 
+                    // EnvApplicationIssuerId
+                    env_key = "EnvApplicationIssuerId";
+                    positionOffset = get_calypso_node_offset(
+                        environment_bit_representation, env_key, OpusEnvHolderStructure);
+                    start = positionOffset,
+                    end = positionOffset + get_calypso_node_size(env_key, OpusEnvHolderStructure) -
+                          1;
+                    card->opus->environment.issuer_id =
+                        bit_slice_to_dec(environment_bit_representation, start, end);
+
                     // EnvApplicationValidityEndDate
                     env_key = "EnvApplicationValidityEndDate";
                     positionOffset = get_calypso_node_offset(
@@ -1310,25 +1325,50 @@ static NfcCommand metroflip_scene_calypso_poller_callback(NfcGenericEvent event,
                     datetime_timestamp_to_datetime(
                         end_validity_timestamp, &card->opus->environment.end_dt);
 
-                    // HolderDataCardStatus
-                    env_key = "HolderDataCardStatus";
+                    // EnvDataCardStatus
+                    env_key = "EnvDataCardStatus";
                     positionOffset = get_calypso_node_offset(
                         environment_bit_representation, env_key, OpusEnvHolderStructure);
                     start = positionOffset,
                     end = positionOffset + get_calypso_node_size(env_key, OpusEnvHolderStructure) -
                           1;
-                    card->opus->holder.card_status =
+                    card->opus->environment.card_status =
                         bit_slice_to_dec(environment_bit_representation, start, end);
 
-                    // HolderDataCommercialID
-                    env_key = "HolderDataCommercialID";
+                    // EnvData_CardUtilisation
+                    env_key = "EnvData_CardUtilisation";
                     positionOffset = get_calypso_node_offset(
                         environment_bit_representation, env_key, OpusEnvHolderStructure);
                     start = positionOffset,
                     end = positionOffset + get_calypso_node_size(env_key, OpusEnvHolderStructure) -
                           1;
-                    card->opus->holder.commercial_id =
+                    card->opus->environment.card_utilisation =
                         bit_slice_to_dec(environment_bit_representation, start, end);
+
+                    // HolderBirthDate
+                    env_key = "HolderBirthDate";
+                    positionOffset = get_calypso_node_offset(
+                        environment_bit_representation, env_key, OpusEnvHolderStructure);
+                    FURI_LOG_I(TAG, "HolderBirthDate positionOffset: %d", positionOffset);
+                    FURI_LOG_I(
+                        TAG,
+                        "HolderBirthDate size: %d",
+                        get_calypso_node_size(env_key, OpusEnvHolderStructure));
+                    start = positionOffset, end = positionOffset + 3;
+                    card->opus->holder.birth_date.year =
+                        bit_slice_to_dec(environment_bit_representation, start, end) * 1000 +
+                        bit_slice_to_dec(environment_bit_representation, start + 4, end + 4) *
+                            100 +
+                        bit_slice_to_dec(environment_bit_representation, start + 8, end + 8) * 10 +
+                        bit_slice_to_dec(environment_bit_representation, start + 12, end + 12);
+                    start += 16, end += 16;
+                    card->opus->holder.birth_date.month =
+                        bit_slice_to_dec(environment_bit_representation, start, end) * 10 +
+                        bit_slice_to_dec(environment_bit_representation, start + 4, end + 4);
+                    start += 8, end += 8;
+                    card->opus->holder.birth_date.day =
+                        bit_slice_to_dec(environment_bit_representation, start, end) * 10 +
+                        bit_slice_to_dec(environment_bit_representation, start + 4, end + 4);
 
                     // Free the calypso structure
                     free_calypso_structure(OpusEnvHolderStructure);
@@ -1543,8 +1583,21 @@ static NfcCommand metroflip_scene_calypso_poller_callback(NfcGenericEvent event,
                                 event_bit_representation, bits, sizeof(event_bit_representation));
                         }
 
+                        // EventResult
+                        const char* event_key = "EventResult";
+                        if(is_calypso_node_present(
+                               event_bit_representation, event_key, OpusEventStructure)) {
+                            int positionOffset = get_calypso_node_offset(
+                                event_bit_representation, event_key, OpusEventStructure);
+                            int start = positionOffset,
+                                end = positionOffset +
+                                      get_calypso_node_size(event_key, OpusEventStructure) - 1;
+                            card->opus->events[i - 1].result =
+                                bit_slice_to_dec(event_bit_representation, start, end);
+                        }
+
                         // EventServiceProvider
-                        const char* event_key = "EventServiceProvider";
+                        event_key = "EventServiceProvider";
                         if(is_calypso_node_present(
                                event_bit_representation, event_key, OpusEventStructure)) {
                             int positionOffset = get_calypso_node_offset(
@@ -1553,6 +1606,19 @@ static NfcCommand metroflip_scene_calypso_poller_callback(NfcGenericEvent event,
                                 end = positionOffset +
                                       get_calypso_node_size(event_key, OpusEventStructure) - 1;
                             card->opus->events[i - 1].service_provider =
+                                bit_slice_to_dec(event_bit_representation, start, end);
+                        }
+
+                        // EventLocationId
+                        event_key = "EventLocationId";
+                        if(is_calypso_node_present(
+                               event_bit_representation, event_key, OpusEventStructure)) {
+                            int positionOffset = get_calypso_node_offset(
+                                event_bit_representation, event_key, OpusEventStructure);
+                            int start = positionOffset,
+                                end = positionOffset +
+                                      get_calypso_node_size(event_key, OpusEventStructure) - 1;
+                            card->opus->events[i - 1].location_id =
                                 bit_slice_to_dec(event_bit_representation, start, end);
                         }
 
@@ -1567,7 +1633,6 @@ static NfcCommand metroflip_scene_calypso_poller_callback(NfcGenericEvent event,
                                       get_calypso_node_size(event_key, OpusEventStructure) - 1;
                             card->opus->events[i - 1].route_number =
                                 bit_slice_to_dec(event_bit_representation, start, end);
-                            card->opus->events[i - 1].route_number_available = true;
                         }
 
                         // EventContractPointer
@@ -1581,10 +1646,35 @@ static NfcCommand metroflip_scene_calypso_poller_callback(NfcGenericEvent event,
                                       get_calypso_node_size(event_key, OpusEventStructure) - 1;
                             card->opus->events[i - 1].used_contract =
                                 bit_slice_to_dec(event_bit_representation, start, end);
-                            card->opus->events[i - 1].used_contract_available = true;
                             if(card->opus->events[i - 1].used_contract > 0) {
                                 card->events_count++;
                             }
+                        }
+
+                        // EventDataSimulation
+                        event_key = "EventDataSimulation";
+                        if(is_calypso_node_present(
+                               event_bit_representation, event_key, OpusEventStructure)) {
+                            int positionOffset = get_calypso_node_offset(
+                                event_bit_representation, event_key, OpusEventStructure);
+                            int start = positionOffset,
+                                end = positionOffset +
+                                      get_calypso_node_size(event_key, OpusEventStructure) - 1;
+                            card->opus->events[i - 1].simulation =
+                                bit_slice_to_dec(event_bit_representation, start, end);
+                        }
+
+                        // EventDataRouteDirection
+                        event_key = "EventDataRouteDirection";
+                        if(is_calypso_node_present(
+                               event_bit_representation, event_key, OpusEventStructure)) {
+                            int positionOffset = get_calypso_node_offset(
+                                event_bit_representation, event_key, OpusEventStructure);
+                            int start = positionOffset,
+                                end = positionOffset +
+                                      get_calypso_node_size(event_key, OpusEventStructure) - 1;
+                            card->opus->events[i - 1].route_direction =
+                                bit_slice_to_dec(event_bit_representation, start, end);
                         }
 
                         // EventDateStamp
@@ -1610,6 +1700,33 @@ static NfcCommand metroflip_scene_calypso_poller_callback(NfcGenericEvent event,
                         card->opus->events[i - 1].date.hour = (decimal_value * 60) / 3600;
                         card->opus->events[i - 1].date.minute = ((decimal_value * 60) % 3600) / 60;
                         card->opus->events[i - 1].date.second = ((decimal_value * 60) % 3600) % 60;
+
+                        // EventDataDateFirstStamp
+                        event_key = "EventDataDateFirstStamp";
+                        positionOffset = get_calypso_node_offset(
+                            event_bit_representation, event_key, OpusEventStructure);
+                        start = positionOffset,
+                        end = positionOffset +
+                              get_calypso_node_size(event_key, OpusEventStructure) - 1;
+                        decimal_value = bit_slice_to_dec(event_bit_representation, start, end);
+                        uint64_t first_date_timestamp = (decimal_value * 24 * 3600) + epoch + 3600;
+                        datetime_timestamp_to_datetime(
+                            first_date_timestamp, &card->opus->events[i - 1].first_stamp_date);
+
+                        // EventDataTimeFirstStamp
+                        event_key = "EventDataTimeFirstStamp";
+                        positionOffset = get_calypso_node_offset(
+                            event_bit_representation, event_key, OpusEventStructure);
+                        start = positionOffset,
+                        end = positionOffset +
+                              get_calypso_node_size(event_key, OpusEventStructure) - 1;
+                        decimal_value = bit_slice_to_dec(event_bit_representation, start, end);
+                        card->opus->events[i - 1].first_stamp_date.hour =
+                            (decimal_value * 60) / 3600;
+                        card->opus->events[i - 1].first_stamp_date.minute =
+                            ((decimal_value * 60) % 3600) / 60;
+                        card->opus->events[i - 1].first_stamp_date.second =
+                            ((decimal_value * 60) % 3600) % 60;
                     }
 
                     // Free the calypso structure

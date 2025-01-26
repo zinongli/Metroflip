@@ -28,6 +28,7 @@ typedef enum {
 } CalypsoFinalType;
 
 typedef enum {
+    CALYPSO_ELEMENT_TYPE_REPEATER,
     CALYPSO_ELEMENT_TYPE_CONTAINER,
     CALYPSO_ELEMENT_TYPE_BITMAP,
     CALYPSO_ELEMENT_TYPE_FINAL
@@ -36,6 +37,7 @@ typedef enum {
 typedef struct CalypsoFinalElement_t CalypsoFinalElement;
 typedef struct CalypsoBitmapElement_t CalypsoBitmapElement;
 typedef struct CalypsoContainerElement_t CalypsoContainerElement;
+typedef struct CalypsoRepeaterElement_t CalypsoRepeaterElement;
 
 typedef struct {
     CalypsoElementType type;
@@ -43,6 +45,7 @@ typedef struct {
         CalypsoFinalElement* final;
         CalypsoBitmapElement* bitmap;
         CalypsoContainerElement* container;
+        CalypsoRepeaterElement* repeater;
     };
 } CalypsoElement;
 
@@ -65,6 +68,12 @@ struct CalypsoContainerElement_t {
     CalypsoElement* elements;
 };
 
+struct CalypsoRepeaterElement_t {
+    char key[36];
+    int size;
+    CalypsoElement element;
+};
+
 typedef struct {
     CalypsoAppType type;
     CalypsoContainerElement* container;
@@ -79,6 +88,8 @@ CalypsoElement make_calypso_final_element(
 CalypsoElement make_calypso_bitmap_element(const char* key, int size, CalypsoElement* elements);
 
 CalypsoElement make_calypso_container_element(const char* key, int size, CalypsoElement* elements);
+
+CalypsoElement make_calypso_repeater_element(const char* key, int size, CalypsoElement element);
 
 void free_calypso_structure(CalypsoApp* structure);
 

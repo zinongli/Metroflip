@@ -2,25 +2,6 @@
 #include "opus.h"
 
 CalypsoApp* get_opus_contract_structure() {
-    /*
-    En1545FixedInteger(CONTRACT_UNKNOWN_A, 3),
-    En1545Bitmap(
-            En1545FixedInteger(CONTRACT_PROVIDER, 8),
-            En1545FixedInteger(CONTRACT_TARIFF, 16),
-            En1545Bitmap(
-                    En1545FixedInteger.date(CONTRACT_START),
-                    En1545FixedInteger.date(CONTRACT_END)
-            ),
-            En1545Container(
-                    En1545FixedInteger(CONTRACT_UNKNOWN_B, 17),
-                    En1545FixedInteger.date(CONTRACT_SALE),
-                    En1545FixedInteger.timeLocal(CONTRACT_SALE),
-                    En1545FixedHex(CONTRACT_UNKNOWN_C, 36),
-                    En1545FixedInteger(CONTRACT_STATUS, 8),
-                    En1545FixedHex(CONTRACT_UNKNOWN_D, 36)
-            )
-    )
-    */
     CalypsoApp* OpusContractStructure = malloc(sizeof(CalypsoApp));
 
     if(!OpusContractStructure) {
@@ -76,33 +57,6 @@ CalypsoApp* get_opus_contract_structure() {
 }
 
 CalypsoApp* get_opus_event_structure() {
-    /*
-    En1545Container(
-                En1545FixedInteger.date(EVENT),
-                En1545FixedInteger.timeLocal(EVENT),
-                En1545FixedInteger("UnknownX", 19), // Possibly part of following bitmap
-                En1545Bitmap(
-                        En1545FixedInteger(EVENT_UNKNOWN_A, 8),
-                        En1545FixedInteger(EVENT_UNKNOWN_B, 8),
-                        En1545FixedInteger(EVENT_SERVICE_PROVIDER, 8),
-                        En1545FixedInteger(EVENT_UNKNOWN_C, 16),
-                        En1545FixedInteger(EVENT_ROUTE_NUMBER, 16),
-                        // How 32 bits are split among next 2 fields is unclear
-                        En1545FixedInteger(EVENT_UNKNOWN_D, 16),
-                        En1545FixedInteger(EVENT_UNKNOWN_E, 16),
-                        En1545FixedInteger(EVENT_CONTRACT_POINTER, 5),
-                        En1545Bitmap(
-                                En1545FixedInteger.date(EVENT_FIRST_STAMP),
-                                En1545FixedInteger.timeLocal(EVENT_FIRST_STAMP),
-                                En1545FixedInteger("EventDataSimulation", 1),
-                                En1545FixedInteger(EVENT_UNKNOWN_F, 4),
-                                En1545FixedInteger(EVENT_UNKNOWN_G, 4),
-                                En1545FixedInteger(EVENT_UNKNOWN_H, 4),
-                                En1545FixedInteger(EVENT_UNKNOWN_I, 4)
-                        )
-                )
-        )
-    */
     CalypsoApp* OpusEventStructure = malloc(sizeof(CalypsoApp));
 
     if(!OpusEventStructure) {
@@ -126,39 +80,109 @@ CalypsoApp* get_opus_event_structure() {
         "Event",
         9,
         (CalypsoElement[]){
-            make_calypso_final_element("EventUnknownA", 8, "Unknown A", CALYPSO_FINAL_TYPE_NUMBER),
-            make_calypso_final_element("EventUnknownB", 8, "Unknown B", CALYPSO_FINAL_TYPE_NUMBER),
+            make_calypso_final_element("EventUnknownA", 8, "Unknown A", CALYPSO_FINAL_TYPE_UNKNOWN),
             make_calypso_final_element(
-                "EventServiceProvider", 8, "Service provider", CALYPSO_FINAL_TYPE_SERVICE_PROVIDER),
-            make_calypso_final_element("EventUnknownC", 16, "Unknown C", CALYPSO_FINAL_TYPE_NUMBER),
+                "EventResult", 8, "Code Résultat", CALYPSO_FINAL_TYPE_UNKNOWN),
             make_calypso_final_element(
-                "EventRouteNumber", 16, "Route number", CALYPSO_FINAL_TYPE_NUMBER),
-            make_calypso_final_element("EventUnknownD", 16, "Unknown D", CALYPSO_FINAL_TYPE_NUMBER),
-            make_calypso_final_element("EventUnknownE", 16, "Unknown E", CALYPSO_FINAL_TYPE_NUMBER),
+                "EventServiceProvider",
+                8,
+                "Identité de l’exploitant",
+                CALYPSO_FINAL_TYPE_SERVICE_PROVIDER),
             make_calypso_final_element(
-                "EventContractPointer", 5, "Contract pointer", CALYPSO_FINAL_TYPE_NUMBER),
+                "EventLocationId", 16, "Lieu de l’événement", CALYPSO_FINAL_TYPE_UNKNOWN),
+            make_calypso_final_element(
+                "EventRouteNumber", 16, "Référence de la ligne", CALYPSO_FINAL_TYPE_UNKNOWN),
+            make_calypso_final_element(
+                "EventUnknownD", 16, "Unknown D", CALYPSO_FINAL_TYPE_UNKNOWN),
+            make_calypso_final_element(
+                "EventUnknownE", 16, "Unknown E", CALYPSO_FINAL_TYPE_UNKNOWN),
+            make_calypso_final_element(
+                "EventContractPointer",
+                5,
+                "Référence du contrat concerné",
+                CALYPSO_FINAL_TYPE_UNKNOWN),
             make_calypso_bitmap_element(
                 "EventData",
                 7,
                 (CalypsoElement[]){
                     make_calypso_final_element(
-                        "EventFirstStampDate", 14, "First stamp date", CALYPSO_FINAL_TYPE_DATE),
+                        "EventDataDateFirstStamp",
+                        14,
+                        "Date de la première montée",
+                        CALYPSO_FINAL_TYPE_DATE),
                     make_calypso_final_element(
-                        "EventFirstStampTime", 11, "First stamp time", CALYPSO_FINAL_TYPE_TIME),
+                        "EventDataTimeFirstStamp",
+                        11,
+                        "Heure de la première montée",
+                        CALYPSO_FINAL_TYPE_TIME),
                     make_calypso_final_element(
                         "EventDataSimulation", 1, "Simulation", CALYPSO_FINAL_TYPE_UNKNOWN),
                     make_calypso_final_element(
-                        "EventUnknownF", 4, "Unknown F", CALYPSO_FINAL_TYPE_NUMBER),
+                        "EventDataRouteDirection", 4, "Sens", CALYPSO_FINAL_TYPE_UNKNOWN),
                     make_calypso_final_element(
-                        "EventUnknownG", 4, "Unknown G", CALYPSO_FINAL_TYPE_NUMBER),
+                        "EventUnknownG", 4, "Unknown G", CALYPSO_FINAL_TYPE_UNKNOWN),
                     make_calypso_final_element(
-                        "EventUnknownH", 4, "Unknown H", CALYPSO_FINAL_TYPE_NUMBER),
+                        "EventUnknownH", 4, "Unknown H", CALYPSO_FINAL_TYPE_UNKNOWN),
                     make_calypso_final_element(
-                        "EventUnknownI", 4, "Unknown I", CALYPSO_FINAL_TYPE_NUMBER),
+                        "EventUnknownI", 4, "Unknown I", CALYPSO_FINAL_TYPE_UNKNOWN),
                 }),
         });
 
     return OpusEventStructure;
+
+    /*
+    EventDateStamp: 10011111100001
+    EventTimeStamp: 01111110001
+    UNKNOWN: 0000000000000000000
+    EventBitmap: 110011110
+        EventResult: 00000000
+        EventServiceProvider: 00000010
+        EventLocationId: 0000000001100101
+        EventRouteNumber: 0000000011011011
+        EventContractPointer: 00100
+        EventDataBitmap: 0001111
+            EventDataDateFirstStamp: 10011111100001
+            EventDataTimeFirstStamp: 01111011100
+            EventDataSimulation: 0
+            EventDataRouteDirection: 0110
+    00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+    */
+
+    /*
+    EventDateStamp: 10011111100001
+    EventTimeStamp: 01111011100
+    UNKNOWN: 0000000000000000000
+    EventBitmap: 110011110
+        EventResult: 00000000
+        EventServiceProvider: 00000010
+        EventLocationId: 0000000011001001
+        EventRouteNumber: 0000000000000010
+        EventContractPointer: 00100
+        EventDataBitmap: 0001111
+            EventDataDateFirstStamp: 10011111100001
+            EventDataTimeFirstStamp: 01111011100
+            EventDataSimulation: 0
+            EventDataRouteDirection: 0001
+    00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+    */
+
+    /*
+    EventDateStamp: 10011111100001
+    EventTimeStamp: 01010011111
+    UNKNOWN: 0000000000000000000
+    EventBitmap: 110011110
+        EventResult: 00000000
+        EventServiceProvider: 00000010
+        EventLocationId: 0000000011001001
+        EventRouteNumber: 0000000000000010
+        EventContractPointer: 00100
+        EventDataBitmap: 0001111
+            EventDataDateFirstStamp: 10011111100001
+            EventDataTimeFirstStamp: 01000101111
+            EventDataSimulation: 0
+            EventDataRouteDirection: 0001
+    00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+    */
 }
 
 CalypsoApp* get_opus_env_holder_structure() {
@@ -196,50 +220,109 @@ CalypsoApp* get_opus_env_holder_structure() {
                 14,
                 "Date de fin de validité de l’application",
                 CALYPSO_FINAL_TYPE_DATE),
-            make_calypso_final_element(
-                "EnvPayMethod", 11, "Code mode de paiement", CALYPSO_FINAL_TYPE_PAY_METHOD),
-            make_calypso_final_element(
-                "EnvAuthenticator",
-                16,
-                "Code de contrôle de l’intégrité des données",
-                CALYPSO_FINAL_TYPE_UNKNOWN),
-            make_calypso_final_element(
-                "EnvSelectList",
-                32,
-                "Bitmap de tableau de paramètre multiple",
-                CALYPSO_FINAL_TYPE_UNKNOWN),
-            make_calypso_container_element(
+            make_calypso_bitmap_element(
                 "EnvData",
-                2,
+                4,
                 (CalypsoElement[]){
                     make_calypso_final_element(
                         "EnvDataCardStatus", 1, "Statut de la carte", CALYPSO_FINAL_TYPE_UNKNOWN),
                     make_calypso_final_element(
                         "EnvData2", 0, "Données complémentaires", CALYPSO_FINAL_TYPE_UNKNOWN),
+                    make_calypso_final_element(
+                        "EnvData_CardUtilisation",
+                        1,
+                        "Utilisation de la carte",
+                        CALYPSO_FINAL_TYPE_UNKNOWN),
+                    make_calypso_final_element(
+                        "EnvData4", 0, "Données complémentaires", CALYPSO_FINAL_TYPE_UNKNOWN),
                 }),
+            make_calypso_final_element("EnvUnknownA", 0, "Unknown A", CALYPSO_FINAL_TYPE_UNKNOWN),
+            make_calypso_final_element("EnvUnknownB", 0, "Unknown B", CALYPSO_FINAL_TYPE_UNKNOWN),
+            make_calypso_final_element("EnvUnknownC", 0, "Unknown C", CALYPSO_FINAL_TYPE_UNKNOWN),
         });
 
+    /*
+    HolderProf1Number "01"
+    HolderProf1Date - ok
+    HolderData_Language "FR"
+    HolderData_ResidenceCode 0
+    HolderBirthDate - ok
+     */
     OpusEnvHolderStructure->container->elements[2] = make_calypso_bitmap_element(
         "Holder",
-        2,
+        8,
         (CalypsoElement[]){
-            make_calypso_container_element(
-                "HolderData",
-                5,
+            make_calypso_bitmap_element(
+                "HolderBirthBitmap",
+                2,
                 (CalypsoElement[]){
                     make_calypso_final_element(
-                        "HolderUnknownA", 3, "Unknown A", CALYPSO_FINAL_TYPE_NUMBER),
+                        "HolderBirthDate", 32, "Date de naissance", CALYPSO_FINAL_TYPE_DATE),
                     make_calypso_final_element(
-                        "HolderBirthDate", 8, "Birth date", CALYPSO_FINAL_TYPE_DATE),
-                    make_calypso_final_element(
-                        "HolderUnknownB", 13, "Unknown B", CALYPSO_FINAL_TYPE_NUMBER),
-                    make_calypso_final_element(
-                        "HolderProfile", 17, "Profile", CALYPSO_FINAL_TYPE_DATE),
-                    make_calypso_final_element(
-                        "HolderUnknownC", 8, "Unknown C", CALYPSO_FINAL_TYPE_NUMBER),
+                        "HolderBirthUnknownA", 0, "Unknown A", CALYPSO_FINAL_TYPE_UNKNOWN),
                 }),
-            make_calypso_final_element("HolderUnknownD", 8, "Unknown D", CALYPSO_FINAL_TYPE_NUMBER),
+            make_calypso_repeater_element(
+                "HolderProfilesList",
+                4,
+                make_calypso_bitmap_element(
+                    "HolderProfile",
+                    3,
+                    (CalypsoElement[]){
+                        make_calypso_final_element(
+                            "HolderProfileNumber", 6, "Numéro de profil", CALYPSO_FINAL_TYPE_NUMBER),
+                        make_calypso_final_element(
+                            "HolderProfileDate", 14, "Date de profil", CALYPSO_FINAL_TYPE_DATE),
+                        make_calypso_final_element(
+                            "HolderProfileUnknownA", 0, "Unknown A", CALYPSO_FINAL_TYPE_UNKNOWN),
+                    })),
+            make_calypso_final_element(
+                "HolderData_Language", 6, "Langue de l'utilisateur", CALYPSO_FINAL_TYPE_UNKNOWN),
+            make_calypso_final_element(
+                "HolderUnknownA", 0, "Unknown A", CALYPSO_FINAL_TYPE_UNKNOWN),
+            make_calypso_final_element(
+                "HolderUnknownB", 0, "Unknown B", CALYPSO_FINAL_TYPE_UNKNOWN),
+            make_calypso_final_element(
+                "HolderUnknownC", 0, "Unknown C", CALYPSO_FINAL_TYPE_UNKNOWN),
+            make_calypso_final_element(
+                "HolderUnknownD", 0, "Unknown D", CALYPSO_FINAL_TYPE_UNKNOWN),
+            make_calypso_final_element(
+                "HolderUnknownE", 0, "Unknown E", CALYPSO_FINAL_TYPE_UNKNOWN),
         });
 
     return OpusEnvHolderStructure;
+
+    /*
+    missing: EnvDataCardStatus=false, EnvData_CardUtilisation=true, HolderProf1Number="01", HolderData_ResidenceCode=0
+
+    EnvApplicationVersionNumber: 000001
+    EnvBitmap: 0001111
+        EnvNetworkId: 000100100100000000000001
+        EnvApplicationIssuerId: 00100000
+        EnvApplicationValidityEndDate: 10100100100010
+        EnvDataBitmap: 0101
+            EnvDataCardStatus: 0
+            EnvData_CardUtilisation: 1
+    HolderBitmap: 00000111
+        HolderBirthBitmap: 01
+            HolderBirthDate: 00100000000001010000100000000111
+        HolderProfilesList: 0001
+            HolderProfileBitmap: 011
+                HolderProfileNumber: 000001
+                HolderProfileDate: 10100100100010
+        HolderData_Language: 110001
+    00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+    */
+
+    /*
+    EnvApplicationVersionNumber: 000001
+    EnvBitmap: 0001111
+        EnvNetworkId: 000100100100000000000001
+        EnvApplicationIssuerId: 00100000
+        EnvApplicationValidityEndDate: 10110101101010
+    0101010000011101
+    HolderBirthDate: 00011001011100100000001000000001
+    HolderProfCount: 0000
+    HolderData_Language: 110001
+    0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+    */
 }

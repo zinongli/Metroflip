@@ -12,6 +12,9 @@ void show_opus_event_info(
 
 void show_opus_contract_info(OpusCardContract* contract, FuriString* parsed_data);
 
-void show_opus_environment_info(OpusCardEnv* environment, FuriString* parsed_data);
+void show_opus_environment_info(
+    OpusCardEnv* environment,
+    OpusCardHolder* holder,
+    FuriString* parsed_data);
 
 #endif // OPUS_H
