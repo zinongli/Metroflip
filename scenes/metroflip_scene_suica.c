@@ -15,7 +15,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "../metroflip_i.h"
+#include "metroflip_i.h"
 #include <flipper_application.h>
 
 #include <lib/nfc/protocols/felica/felica.h>
@@ -26,7 +26,7 @@
 
 #include <applications/services/locale/locale.h>
 #include <datetime.h>
-#include "suica_assets.h"
+#include <images/suica/suica_assets.h>
 
 #define SERVICE_CODE_HISTORY_IN_LE      (0x090FU)
 #define SERVICE_CODE_TAPS_LOG_IN_LE     (0x108FU)

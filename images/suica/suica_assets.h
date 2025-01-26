@@ -1,7 +1,7 @@
 #include <datetime.h>
 #include <stdbool.h>
 #include <furi.h>
-#include "suica_station_list.h"
+#include "api/suica/suica_station_list.h"
 
 // Rinkai
 static const uint8_t RinkaiR[] = {0xff, 0x00, 0xff, 0x01, 0x83, 0x03, 0x03, 0x03, 0x03, 0x03,

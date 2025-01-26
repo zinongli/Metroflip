@@ -44,7 +44,7 @@ extern const Icon I_RFIDDolphinReceive_97x61;
 #include "scenes/metroflip_scene.h"
 
 #include "scenes/navigo_structs.h"
-#include "scenes/suica_structs.h"
+#include "api/suica/suica_structs.h"
 
 typedef struct {
     Gui* gui;
