@@ -80,7 +80,7 @@ This is a list of metro cards and transit systems that need support or have part
 | **Opal**           | 🇦🇺 Sydney (and surrounds), NSW, Australia    | Mifare DESFire    |
 | **Rav-Kav**        | 🇮🇱 Israel                                    | Calypso           |
 | **Troika**         | 🇷🇺 Moscow, Russia                            | Mifare Classic    |
-| **SmartRider	      | :australia: Western Australia, Australia     | Mifare Classic    |
+| **SmartRider**	   | :australia: Western Australia, Australia     | Mifare Classic    |
 
 
 
