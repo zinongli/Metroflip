@@ -31,6 +31,9 @@ typedef struct {
     int contracts_count;
     int events_count;
     int special_events_count;
+
+    int country_num;
+    int network_num;
 } CalypsoCardData;
 
 typedef struct {

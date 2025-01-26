@@ -124,6 +124,18 @@ void update_page_info(void* context, FuriString* parsed_data) {
         }
         default: {
             furi_string_cat_printf(parsed_data, "\e#Unknown %u:\n", ctx->card->card_number);
+            furi_string_cat_printf(
+                parsed_data, "Country: %s\n", get_country_string(ctx->card->country_num));
+            if(guess_card_type(ctx->card->country_num, ctx->card->network_num) !=
+               CALYPSO_CARD_UNKNOWN) {
+                furi_string_cat_printf(
+                    parsed_data,
+                    "Network: %s\n",
+                    get_network_string(
+                        guess_card_type(ctx->card->country_num, ctx->card->network_num)));
+            } else {
+                furi_string_cat_printf(parsed_data, "Network: %d\n", ctx->card->network_num);
+            }
             break;
         }
         }
@@ -465,23 +477,23 @@ static NfcCommand metroflip_scene_navigo_poller_callback(NfcGenericEvent event, 
                 //     TAG, "Environment bit_representation: %s", environment_bit_representation);
                 start = 13;
                 end = 16;
-                int country_num =
+                card->country_num =
                     bit_slice_to_dec(environment_bit_representation, start, end) * 100 +
                     bit_slice_to_dec(environment_bit_representation, start + 4, end + 4) * 10 +
                     bit_slice_to_dec(environment_bit_representation, start + 8, end + 8);
                 start = 25;
                 end = 28;
-                int network_num =
+                card->network_num =
                     bit_slice_to_dec(environment_bit_representation, start, end) * 100 +
                     bit_slice_to_dec(environment_bit_representation, start + 4, end + 4) * 10 +
                     bit_slice_to_dec(environment_bit_representation, start + 8, end + 8);
-                card->card_type = guess_card_type(country_num, network_num);
+                card->card_type = guess_card_type(card->country_num, card->network_num);
                 switch(card->card_type) {
                 case CALYPSO_CARD_NAVIGO: {
                     card->navigo = malloc(sizeof(NavigoCardData));
 
-                    card->navigo->environment.country_num = country_num;
-                    card->navigo->environment.network_num = network_num;
+                    card->navigo->environment.country_num = card->country_num;
+                    card->navigo->environment.network_num = card->network_num;
 
                     CalypsoApp* IntercodeEnvHolderStructure = get_intercode_structure_env_holder();
 
@@ -1247,8 +1259,8 @@ static NfcCommand metroflip_scene_navigo_poller_callback(NfcGenericEvent event, 
                 case CALYPSO_CARD_OPUS: {
                     card->opus = malloc(sizeof(OpusCardData));
 
-                    card->opus->environment.country_num = country_num;
-                    card->opus->environment.network_num = network_num;
+                    card->opus->environment.country_num = card->country_num;
+                    card->opus->environment.network_num = card->network_num;
 
                     CalypsoApp* OpusEnvHolderStructure = get_opus_env_holder_structure();
 
@@ -1586,18 +1598,20 @@ static NfcCommand metroflip_scene_navigo_poller_callback(NfcGenericEvent event, 
                 case CALYPSO_CARD_UNKNOWN: {
                     start = 3;
                     end = 6;
-                    country_num =
+                    int country_num =
                         bit_slice_to_dec(environment_bit_representation, start, end) * 100 +
                         bit_slice_to_dec(environment_bit_representation, start + 4, end + 4) * 10 +
                         bit_slice_to_dec(environment_bit_representation, start + 8, end + 8);
                     start = 15;
                     end = 18;
-                    network_num =
+                    int network_num =
                         bit_slice_to_dec(environment_bit_representation, start, end) * 100 +
                         bit_slice_to_dec(environment_bit_representation, start + 4, end + 4) * 10 +
                         bit_slice_to_dec(environment_bit_representation, start + 8, end + 8);
-                    card->card_type = guess_card_type(country_num, network_num);
-                    if(card->card_type == CALYPSO_CARD_RAVKAV) {
+                    if(guess_card_type(country_num, network_num) == CALYPSO_CARD_RAVKAV) {
+                        card->card_type = CALYPSO_CARD_RAVKAV;
+                        card->country_num = country_num;
+                        card->network_num = network_num;
                     }
                     break;
                 }
