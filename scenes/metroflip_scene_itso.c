@@ -26,7 +26,7 @@ uint64_t swap_uint64(uint64_t val) {
     return (val << 32) | (val >> 32);
 }
 
-static bool itso_parse(const NfcDevice* device, FuriString* parsed_data) {
+bool itso_parse(const NfcDevice* device, FuriString* parsed_data) {
     furi_assert(device);
     furi_assert(parsed_data);
 

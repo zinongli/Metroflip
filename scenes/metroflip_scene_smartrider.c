@@ -21,11 +21,6 @@
 
 uint8_t smartrider_sector_num = 0;
 
-static const uint8_t STANDARD_KEYS[3][6] = {
-    {0x20, 0x31, 0xD1, 0xE5, 0x7A, 0x3B},
-    {0x4C, 0xA6, 0x02, 0x9F, 0x94, 0x73},
-    {0x19, 0x19, 0x53, 0x98, 0xE3, 0x2F}};
-
 typedef struct {
     uint32_t timestamp;
     uint16_t cost;
@@ -149,7 +144,7 @@ static bool smartrider_parse(const NfcDevice* device, FuriString* parsed_data) {
     }
 
     const MfClassicSectorTrailer* sec_tr = mf_classic_get_sector_trailer_by_sector(data, 0);
-    if(!sec_tr || memcmp(sec_tr->key_a.data, STANDARD_KEYS[0], 6) != 0) {
+    if(!sec_tr || memcmp(sec_tr->key_a.data, SMARTRIDER_STANDARD_KEYS[0], 6) != 0) {
         FURI_LOG_E(TAG, "Key verification failed for sector 0");
         return false;
     }

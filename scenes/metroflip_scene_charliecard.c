@@ -103,36 +103,12 @@
 #define CHARLIE_N_TRANSACTION_HISTORY 10
 #define CHARLIE_N_PASSES              4
 
-typedef struct {
-    uint64_t a;
-    uint64_t b;
-} MfClassicKeyPair;
-
 // always from the same set of keys (cf. default keys dict for list w/o multiplicity)
 // we only care about the data in the first half of the sectors
 // second half sectors keys seemingly change position sometimes across cards?
 // no data stored there, but might want to impl some custom read function
 // accounting for this such that reading is faster (else it seems to fall back on dict
 // approach for remaining keys)...
-
-static const MfClassicKeyPair charliecard_1k_keys[] = {
-    {.a = 0x3060206F5B0A, .b = 0xF1B9F5669CC8},
-    {.a = 0x5EC39B022F2B, .b = 0xF662248E7E89},
-    {.a = 0x5EC39B022F2B, .b = 0xF662248E7E89},
-    {.a = 0x5EC39B022F2B, .b = 0xF662248E7E89},
-    {.a = 0x5EC39B022F2B, .b = 0xF662248E7E89},
-    {.a = 0x5EC39B022F2B, .b = 0xF662248E7E89},
-    {.a = 0x5EC39B022F2B, .b = 0xF662248E7E89},
-    {.a = 0x5EC39B022F2B, .b = 0xF662248E7E89},
-    {.a = 0x3A09594C8587, .b = 0x62387B8D250D},
-    {.a = 0xF238D78FF48F, .b = 0x9DC282D46217},
-    {.a = 0xAFD0BA94D624, .b = 0x92EE4DC87191},
-    {.a = 0xB35A0E4ACC09, .b = 0x756EF55E2507},
-    {.a = 0x447AB7FD5A6B, .b = 0x932B9CB730EF},
-    {.a = 0x1F1A0A111B5B, .b = 0xAD9E0A1CA2F7},
-    {.a = 0xD58023BA2BDC, .b = 0x62CED42A6D87},
-    {.a = 0x2548A443DF28, .b = 0x2ED3B15E7C0F},
-};
 
 typedef struct {
     uint16_t dollars;
@@ -1259,7 +1235,6 @@ void metroflip_scene_charliecard_on_enter(void* context) {
 
     // Start worker
     view_dispatcher_switch_to_view(app->view_dispatcher, MetroflipViewPopup);
-    nfc_scanner_alloc(app->nfc);
     app->poller = nfc_poller_alloc(app->nfc, NfcProtocolMfClassic);
     nfc_poller_start(app->poller, metroflip_scene_charlicard_poller_callback, app);
 

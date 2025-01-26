@@ -15,30 +15,6 @@
 
 #define TAG "Metroflip:Scene:Metromoney"
 
-typedef struct {
-    uint64_t a;
-    uint64_t b;
-} MfClassicKeyPair;
-
-static const MfClassicKeyPair metromoney_1k_keys[] = {
-    {.a = 0x2803BCB0C7E1, .b = 0x4FA9EB49F75E},
-    {.a = 0x9C616585E26D, .b = 0xD1C71E590D16},
-    {.a = 0x9C616585E26D, .b = 0xA160FCD5EC4C},
-    {.a = 0x9C616585E26D, .b = 0xA160FCD5EC4C},
-    {.a = 0x9C616585E26D, .b = 0xA160FCD5EC4C},
-    {.a = 0x9C616585E26D, .b = 0xA160FCD5EC4C},
-    {.a = 0xFFFFFFFFFFFF, .b = 0xFFFFFFFFFFFF},
-    {.a = 0xFFFFFFFFFFFF, .b = 0xFFFFFFFFFFFF},
-    {.a = 0x112233445566, .b = 0x361A62F35BC9},
-    {.a = 0x112233445566, .b = 0x361A62F35BC9},
-    {.a = 0xFFFFFFFFFFFF, .b = 0xFFFFFFFFFFFF},
-    {.a = 0xFFFFFFFFFFFF, .b = 0xFFFFFFFFFFFF},
-    {.a = 0xFFFFFFFFFFFF, .b = 0xFFFFFFFFFFFF},
-    {.a = 0xFFFFFFFFFFFF, .b = 0xFFFFFFFFFFFF},
-    {.a = 0xFFFFFFFFFFFF, .b = 0xFFFFFFFFFFFF},
-    {.a = 0xFFFFFFFFFFFF, .b = 0xFFFFFFFFFFFF},
-};
-
 static bool metromoney_parse(const NfcDevice* device, const MfClassicData* data, Metroflip* app) {
     furi_assert(device);
 

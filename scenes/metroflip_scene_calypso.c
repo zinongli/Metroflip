@@ -108,22 +108,19 @@ void update_page_info(void* context, FuriString* parsed_data) {
             ctx->card->card_number);
         return;
     }
-    if(ctx->page_id <= 3) {
+    if(ctx->page_id == 0) {
         switch(ctx->card->card_type) {
         case CALYPSO_CARD_NAVIGO: {
-            furi_string_cat_printf(
-                parsed_data,
-                "\e#%s %u:\n",
-                get_navigo_type(ctx->card->navigo->holder.card_status),
-                ctx->card->card_number);
-            furi_string_cat_printf(parsed_data, "\e#Contract %d:\n", ctx->page_id + 1);
-            show_navigo_contract_info(&ctx->card->navigo->contracts[ctx->page_id], parsed_data);
+            furi_string_cat_printf(parsed_data, "\e#Navigo %u:\n", ctx->card->card_number);
+            furi_string_cat_printf(parsed_data, "\e#Environment:\n");
+            show_navigo_environment_info(
+                &ctx->card->navigo->environment, &ctx->card->navigo->holder, parsed_data);
             break;
         }
         case CALYPSO_CARD_OPUS: {
             furi_string_cat_printf(parsed_data, "\e#Opus %u:\n", ctx->card->card_number);
-            furi_string_cat_printf(parsed_data, "\e#Contract %d:\n", ctx->page_id + 1);
-            show_opus_contract_info(&ctx->card->opus->contracts[ctx->page_id], parsed_data);
+            furi_string_cat_printf(parsed_data, "\e#Environment:\n");
+            show_opus_environment_info(&ctx->card->opus->environment, parsed_data);
             break;
         }
         case CALYPSO_CARD_RAVKAV: {
@@ -132,28 +129,42 @@ void update_page_info(void* context, FuriString* parsed_data) {
             } else {
                 furi_string_cat_printf(parsed_data, "\e#RavKav %u:\n", ctx->card->card_number);
             }
-            furi_string_cat_printf(parsed_data, "\e#Contract %d:\n", ctx->page_id + 1);
-            show_ravkav_contract_info(&ctx->card->ravkav->contracts[ctx->page_id], parsed_data);
+            furi_string_cat_printf(parsed_data, "\e#Environment:\n");
+            show_ravkav_environment_info(&ctx->card->ravkav->environment, parsed_data);
             break;
         }
         default: {
             furi_string_cat_printf(parsed_data, "\e#Unknown %u:\n", ctx->card->card_number);
+            furi_string_cat_printf(
+                parsed_data, "Country: %s\n", get_country_string(ctx->card->country_num));
+            if(guess_card_type(ctx->card->country_num, ctx->card->network_num) !=
+               CALYPSO_CARD_UNKNOWN) {
+                furi_string_cat_printf(
+                    parsed_data,
+                    "Network: %s\n",
+                    get_network_string(
+                        guess_card_type(ctx->card->country_num, ctx->card->network_num)));
+            } else {
+                furi_string_cat_printf(parsed_data, "Network: %d\n", ctx->card->network_num);
+            }
             break;
         }
         }
-    } else if(ctx->page_id == 4) {
-        furi_string_cat_printf(parsed_data, "\e#Environment:\n");
+    } else if(ctx->page_id == 1 || ctx->page_id == 2 || ctx->page_id == 3 || ctx->page_id == 4) {
+        furi_string_cat_printf(parsed_data, "\e#Contract %d:\n", ctx->page_id);
         switch(ctx->card->card_type) {
         case CALYPSO_CARD_NAVIGO: {
-            show_navigo_environment_info(&ctx->card->navigo->environment, parsed_data);
+            show_navigo_contract_info(
+                &ctx->card->navigo->contracts[ctx->page_id - 1], parsed_data);
             break;
         }
         case CALYPSO_CARD_OPUS: {
-            show_opus_environment_info(&ctx->card->opus->environment, parsed_data);
+            show_opus_contract_info(&ctx->card->opus->contracts[ctx->page_id - 1], parsed_data);
             break;
         }
         case CALYPSO_CARD_RAVKAV: {
-            show_ravkav_environment_info(&ctx->card->ravkav->environment, parsed_data);
+            show_ravkav_contract_info(
+                &ctx->card->ravkav->contracts[ctx->page_id - 1], parsed_data);
             break;
         }
         default: {
@@ -254,13 +265,13 @@ void metroflip_back_button_widget_callback(GuiButtonType result, InputType type,
             if(ctx->page_id == 6 && ctx->card->events_count < 1) {
                 ctx->page_id -= 1;
             }
-            if(ctx->page_id == 4 && ctx->card->contracts_count < 4) {
+            if(ctx->page_id == 5 && ctx->card->contracts_count < 4) {
                 ctx->page_id -= 1;
             }
-            if(ctx->page_id == 3 && ctx->card->contracts_count < 3) {
+            if(ctx->page_id == 4 && ctx->card->contracts_count < 3) {
                 ctx->page_id -= 1;
             }
-            if(ctx->page_id == 2 && ctx->card->contracts_count < 2) {
+            if(ctx->page_id == 3 && ctx->card->contracts_count < 2) {
                 ctx->page_id -= 1;
             }
             ctx->page_id -= 1;
@@ -306,13 +317,13 @@ void metroflip_next_button_widget_callback(GuiButtonType result, InputType type,
             return;
         }
         if(ctx->page_id < 10) {
-            if(ctx->page_id == 0 && ctx->card->contracts_count < 2) {
+            if(ctx->page_id == 1 && ctx->card->contracts_count < 2) {
                 ctx->page_id += 1;
             }
-            if(ctx->page_id == 1 && ctx->card->contracts_count < 3) {
+            if(ctx->page_id == 2 && ctx->card->contracts_count < 3) {
                 ctx->page_id += 1;
             }
-            if(ctx->page_id == 2 && ctx->card->contracts_count < 4) {
+            if(ctx->page_id == 3 && ctx->card->contracts_count < 4) {
                 ctx->page_id += 1;
             }
             if(ctx->page_id == 4 && ctx->card->events_count < 1) {
@@ -488,23 +499,23 @@ static NfcCommand metroflip_scene_calypso_poller_callback(NfcGenericEvent event,
                 //     TAG, "Environment bit_representation: %s", environment_bit_representation);
                 start = 13;
                 end = 16;
-                int country_num =
+                card->country_num =
                     bit_slice_to_dec(environment_bit_representation, start, end) * 100 +
                     bit_slice_to_dec(environment_bit_representation, start + 4, end + 4) * 10 +
                     bit_slice_to_dec(environment_bit_representation, start + 8, end + 8);
                 start = 25;
                 end = 28;
-                int network_num =
+                card->network_num =
                     bit_slice_to_dec(environment_bit_representation, start, end) * 100 +
                     bit_slice_to_dec(environment_bit_representation, start + 4, end + 4) * 10 +
                     bit_slice_to_dec(environment_bit_representation, start + 8, end + 8);
-                card->card_type = guess_card_type(country_num, network_num);
+                card->card_type = guess_card_type(card->country_num, card->network_num);
                 switch(card->card_type) {
                 case CALYPSO_CARD_NAVIGO: {
                     card->navigo = malloc(sizeof(NavigoCardData));
 
-                    card->navigo->environment.country_num = country_num;
-                    card->navigo->environment.network_num = network_num;
+                    card->navigo->environment.country_num = card->country_num;
+                    card->navigo->environment.network_num = card->network_num;
 
                     CalypsoApp* IntercodeEnvHolderStructure = get_intercode_structure_env_holder();
 
@@ -731,7 +742,27 @@ static NfcCommand metroflip_scene_calypso_poller_callback(NfcGenericEvent event,
                             card->navigo->contracts[i - 1].zones_available = true;
                         }
 
-                        // 13.7. ContractValidityJourneys  -- pas sûr de le mettre lui
+                        // 13.7. ContractValidityJourneys
+                        contract_key = "ContractValidityJourneys";
+                        if(is_calypso_node_present(
+                               bit_representation, contract_key, IntercodeContractStructure)) {
+                            int positionOffset = get_calypso_node_offset(
+                                bit_representation, contract_key, IntercodeContractStructure);
+                            int start = positionOffset,
+                                end = positionOffset +
+                                      get_calypso_node_size(
+                                          contract_key, IntercodeContractStructure) -
+                                      1;
+                            int decimal_value = bit_slice_to_dec(bit_representation, start, end);
+                            // first 5 bits -> CounterStructureNumber
+                            // last 8 bits -> CounterLastLoad
+                            // other bits -> RFU
+                            card->navigo->contracts[i - 1].counter.struct_number = decimal_value >>
+                                                                                   11;
+                            card->navigo->contracts[i - 1].counter.last_load = decimal_value &
+                                                                               0xFF;
+                            card->navigo->contracts[i - 1].counter_present = true;
+                        }
 
                         // 15.0. ContractValiditySaleDate
                         contract_key = "ContractValiditySaleDate";
@@ -851,6 +882,12 @@ static NfcCommand metroflip_scene_calypso_poller_callback(NfcGenericEvent event,
 
                     // Ticket counts (contracts 1-4)
                     for(int i = 0; i < 4; i++) {
+                        if(card->navigo->contracts[i].present == 0) {
+                            continue;
+                        }
+                        if(card->navigo->contracts[i].counter_present == 0) {
+                            continue;
+                        }
                         start = 0;
                         end = 5;
                         card->navigo->contracts[i].counter.count = bit_slice_to_dec(
@@ -1244,8 +1281,8 @@ static NfcCommand metroflip_scene_calypso_poller_callback(NfcGenericEvent event,
                 case CALYPSO_CARD_OPUS: {
                     card->opus = malloc(sizeof(OpusCardData));
 
-                    card->opus->environment.country_num = country_num;
-                    card->opus->environment.network_num = network_num;
+                    card->opus->environment.country_num = card->country_num;
+                    card->opus->environment.network_num = card->network_num;
 
                     CalypsoApp* OpusEnvHolderStructure = get_opus_env_holder_structure();
 
@@ -1583,13 +1620,13 @@ static NfcCommand metroflip_scene_calypso_poller_callback(NfcGenericEvent event,
                 case CALYPSO_CARD_UNKNOWN: {
                     start = 3;
                     end = 6;
-                    country_num =
+                    int country_num =
                         bit_slice_to_dec(environment_bit_representation, start, end) * 100 +
                         bit_slice_to_dec(environment_bit_representation, start + 4, end + 4) * 10 +
                         bit_slice_to_dec(environment_bit_representation, start + 8, end + 8);
                     start = 15;
                     end = 18;
-                    network_num =
+                    int network_num =
                         bit_slice_to_dec(environment_bit_representation, start, end) * 100 +
                         bit_slice_to_dec(environment_bit_representation, start + 4, end + 4) * 10 +
                         bit_slice_to_dec(environment_bit_representation, start + 8, end + 8);
@@ -1645,6 +1682,7 @@ static NfcCommand metroflip_scene_calypso_poller_callback(NfcGenericEvent event,
                             }
                             bit_representation[response_length * 8] = '\0';
                             card->ravkav->contracts[i - 1].present = 1;
+                            card->events_count = 3;
                             card->contracts_count++;
 
                             // ContractVersion

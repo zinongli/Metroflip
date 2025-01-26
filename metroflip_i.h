@@ -31,6 +31,9 @@ extern const Icon I_RFIDDolphinReceive_97x61;
 #include <furi_hal_bt.h>
 #include <notification/notification_messages.h>
 
+#include "scenes/desfire.h"
+#include "scenes/nfc_detected_protocols.h"
+#include "scenes/keys.h"
 #include <lib/nfc/nfc.h>
 #include <nfc/nfc_poller.h>
 #include <nfc/nfc_scanner.h>
@@ -67,6 +70,8 @@ typedef struct {
     NfcScanner* scanner;
     NfcDevice* nfc_device;
     MfClassicKeyCache* mfc_key_cache;
+    NfcDetectedProtocols* detected_protocols;
+    DesfireCardType desfire_card_type;
 
     // card details:
     uint32_t balance_lari;
@@ -76,6 +81,9 @@ typedef struct {
     float value;
     char currency[4];
     char card_type[32];
+    bool auto_mode;
+    CardType mfc_card_type;
+    NfcProtocol protocol;
 
     // Calypso specific context
     CalypsoContext* calypso_context;
@@ -137,6 +145,8 @@ KeyfileManager manage_keyfiles(
 
 void metroflip_app_blink_start(Metroflip* metroflip);
 void metroflip_app_blink_stop(Metroflip* metroflip);
+
+CardType determine_card_type(Nfc* nfc);
 
 #ifdef FW_ORIGIN_Official
 #define submenu_add_lockable_item(                                             \

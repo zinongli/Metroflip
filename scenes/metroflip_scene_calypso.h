@@ -2,6 +2,7 @@
 #include <gui/modules/widget_elements/widget_element.h>
 #include "../api/calypso/transit/navigo.h"
 #include "../api/calypso/transit/opus.h"
+#include "../api/calypso/transit/ravkav.h"
 #include "../api/calypso/calypso_i.h"
 #include <datetime.h>
 #include <stdbool.h>

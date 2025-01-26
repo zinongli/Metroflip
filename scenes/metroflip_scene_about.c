@@ -44,5 +44,4 @@ bool metroflip_scene_about_on_event(void* context, SceneManagerEvent event) {
 void metroflip_scene_about_on_exit(void* context) {
     Metroflip* app = context;
     widget_reset(app->widget);
-    UNUSED(context);
 }

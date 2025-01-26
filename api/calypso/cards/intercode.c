@@ -581,6 +581,8 @@ const char* get_intercode_string_transition_type(int transition) {
         return "Entry (First validation)";
     case 0x2:
         return "Exit";
+    case 0x3:
+        return "Validation";
     case 0x4:
         return "Inspection";
     case 0x5:
@@ -635,5 +637,75 @@ const char* get_intercode_string_event_result(int result) {
         snprintf(result_str, 6, "%d", result);
         return result_str;
     }
+    }
+}
+
+const char* get_intercode_string_version(int version) {
+    // version is a 6 bits int
+    // if the first 3 bits are 000, it's a 1.x version
+    // if the first 3 bits are 001, it's a 2.x version
+    // else, it's unknown
+    int major = (version >> 3) & 0x07;
+    if(major == 0) {
+        return "Intercode I";
+    } else if(major == 1) {
+        return "Intercode II";
+    }
+    return "Unknown";
+}
+
+int get_intercode_string_subversion(int version) {
+    // subversion is a 3 bits int
+    return version & 0x07;
+}
+
+const char* get_intercode_string_holder_type(int card_status) {
+    // b3 -> RFU
+    // b2 -> linked to an organization
+    // b1..b0 -> personalization status (0: anonymous, 1: identified, 2: personalized, 3: networkSpecific)
+    int status = card_status & 0x03;
+    switch(status) {
+    case 0:
+        return "Anonymous";
+    case 1:
+        return "Identified";
+    case 2:
+        return "Personalized";
+    case 3:
+        return "Network Specific";
+    default:
+        return "Unknown";
+    }
+}
+
+bool is_intercode_string_holder_linked(int card_status) {
+    // b3 -> RFU
+    // b2 -> linked to an organization
+    // b1..b0 -> personalization status (0: anonymous, 1: identified, 2: personalized, 3: networkSpecific)
+    return card_status & 0x04;
+}
+
+const char* get_intercode_string_contract_status(int status) {
+    switch(status) {
+    case 0x0:
+        return "Valid (never used)";
+    case 0x1:
+        return "Valid (used)";
+    case 0x3:
+        return "Renewal required";
+    case 0xD:
+        return "Not validable";
+    case 0x13:
+        return "Blocked";
+    case 0x3F:
+        return "Suspended";
+    case 0x58:
+        return "Invalid";
+    case 0x7F:
+        return "Refunded";
+    case 0xFF:
+        return "Erasable";
+    default:
+        return "Unknown";
     }
 }

@@ -44,30 +44,6 @@ typedef struct {
     uint16_t amount;
 } BipTransaction;
 
-typedef struct {
-    uint64_t a;
-    uint64_t b;
-} MfClassicKeyPair;
-
-static const MfClassicKeyPair bip_1k_keys[] = {
-    {.a = 0x3a42f33af429, .b = 0x1fc235ac1309},
-    {.a = 0x6338a371c0ed, .b = 0x243f160918d1},
-    {.a = 0xf124c2578ad0, .b = 0x9afc42372af1},
-    {.a = 0x32ac3b90ac13, .b = 0x682d401abb09},
-    {.a = 0x4ad1e273eaf1, .b = 0x067db45454a9},
-    {.a = 0xe2c42591368a, .b = 0x15fc4c7613fe},
-    {.a = 0x2a3c347a1200, .b = 0x68d30288910a},
-    {.a = 0x16f3d5ab1139, .b = 0xf59a36a2546d},
-    {.a = 0x937a4fff3011, .b = 0x64e3c10394c2},
-    {.a = 0x35c3d2caee88, .b = 0xb736412614af},
-    {.a = 0x693143f10368, .b = 0x324f5df65310},
-    {.a = 0xa3f97428dd01, .b = 0x643fb6de2217},
-    {.a = 0x63f17a449af0, .b = 0x82f435dedf01},
-    {.a = 0xc4652c54261c, .b = 0x0263de1278f3},
-    {.a = 0xd49e2826664f, .b = 0x51284c3686a6},
-    {.a = 0x3df14c8000a1, .b = 0x6a470d54127c},
-};
-
 static void bip_parse_datetime(const MfClassicBlock* block, DateTime* parsed_data) {
     furi_assert(block);
     furi_assert(parsed_data);

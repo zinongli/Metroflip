@@ -26,6 +26,7 @@ Metroflip* metroflip_alloc() {
     //nfc device
     app->nfc = nfc_alloc();
     app->nfc_device = nfc_device_alloc();
+    app->detected_protocols = nfc_detected_protocols_alloc();
 
     // key cache
     app->mfc_key_cache = mf_classic_key_cache_alloc();
@@ -82,6 +83,7 @@ void metroflip_free(Metroflip* app) {
     //nfc device
     nfc_free(app->nfc);
     nfc_device_free(app->nfc_device);
+    nfc_detected_protocols_free(app->detected_protocols);
 
     // key cache
     mf_classic_key_cache_free(app->mfc_key_cache);
@@ -212,7 +214,7 @@ int bit_slice_to_dec(const char* bit_representation, int start, int end) {
 extern int32_t metroflip(void* p) {
     UNUSED(p);
     Metroflip* app = metroflip_alloc();
-    scene_manager_set_scene_state(app->scene_manager, MetroflipSceneStart, MetroflipSceneRavKav);
+    scene_manager_set_scene_state(app->scene_manager, MetroflipSceneStart, MetroflipSceneCalypso);
     scene_manager_next_scene(app->scene_manager, MetroflipSceneStart);
     view_dispatcher_run(app->view_dispatcher);
     metroflip_free(app);

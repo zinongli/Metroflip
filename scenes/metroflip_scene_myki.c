@@ -34,7 +34,7 @@ static uint8_t myki_calculate_luhn(uint64_t number) {
     return (10 - (sum % 10)) % 10;
 }
 
-static bool myki_parse(const NfcDevice* device, FuriString* parsed_data) {
+bool myki_parse(const NfcDevice* device, FuriString* parsed_data) {
     furi_assert(device);
     furi_assert(parsed_data);
 

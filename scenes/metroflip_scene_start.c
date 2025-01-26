@@ -12,52 +12,14 @@ void metroflip_scene_start_on_enter(void* context) {
     submenu_set_header(submenu, "Metroflip");
 
     submenu_add_item(
-        submenu, "Rav-Kav", MetroflipSceneRavKav, metroflip_scene_start_submenu_callback, app);
-
-    submenu_add_item(
-        submenu, "Calypso", MetroflipSceneCalypso, metroflip_scene_start_submenu_callback, app);
+        submenu, "Scan Card", MetroflipSceneAuto, metroflip_scene_start_submenu_callback, app);
 
     submenu_add_item(
         submenu,
-        "CharlieCard",
-        MetroflipSceneCharlieCard,
+        "OV-Chipkaart (unstable)",
+        MetroflipSceneOVC,
         metroflip_scene_start_submenu_callback,
         app);
-
-    submenu_add_item(
-        submenu, "Clipper", MetroflipSceneClipper, metroflip_scene_start_submenu_callback, app);
-
-    submenu_add_item(
-        submenu,
-        "SmartRider",
-        MetroflipSceneSmartrider,
-        metroflip_scene_start_submenu_callback,
-        app);
-
-    submenu_add_item(
-        submenu, "OV-Chipkaart", MetroflipSceneOVC, metroflip_scene_start_submenu_callback, app);
-
-    submenu_add_item(
-        submenu, "myki", MetroflipSceneMyki, metroflip_scene_start_submenu_callback, app);
-
-    submenu_add_item(
-        submenu, "Troika", MetroflipSceneTroika, metroflip_scene_start_submenu_callback, app);
-
-    submenu_add_item(
-        submenu, "Opal", MetroflipSceneOpal, metroflip_scene_start_submenu_callback, app);
-
-    submenu_add_item(
-        submenu, "ITSO", MetroflipSceneItso, metroflip_scene_start_submenu_callback, app);
-
-    submenu_add_item(
-        submenu,
-        "Metromoney",
-        MetroflipSceneMetromoney,
-        metroflip_scene_start_submenu_callback,
-        app);
-
-    submenu_add_item(
-        submenu, "Bip!", MetroflipSceneBip, metroflip_scene_start_submenu_callback, app);
 
     submenu_add_item(
         submenu, "About", MetroflipSceneAbout, metroflip_scene_start_submenu_callback, app);

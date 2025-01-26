@@ -1,6 +1,6 @@
 ADD_SCENE(metroflip, start, Start)
-ADD_SCENE(metroflip, ravkav, RavKav)
-ADD_SCENE(metroflip, navigo, Calypso)
+ADD_SCENE(metroflip, auto, Auto)
+ADD_SCENE(metroflip, calypso, Calypso)
 ADD_SCENE(metroflip, charliecard, CharlieCard)
 ADD_SCENE(metroflip, clipper, Clipper)
 ADD_SCENE(metroflip, metromoney, Metromoney)

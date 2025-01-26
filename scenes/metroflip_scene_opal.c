@@ -117,7 +117,7 @@ static void opal_days_minutes_to_datetime(uint16_t days, uint16_t minutes, DateT
     out->day = days;
 }
 
-static bool opal_parse(const NfcDevice* device, FuriString* parsed_data) {
+bool opal_parse(const NfcDevice* device, FuriString* parsed_data) {
     furi_assert(device);
     furi_assert(parsed_data);
 

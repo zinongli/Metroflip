@@ -230,7 +230,7 @@ static int16_t get_i16be(const uint8_t* field) {
         return raw;
 }
 
-static bool clipper_parse(const NfcDevice* device, FuriString* parsed_data) {
+bool clipper_parse(const NfcDevice* device, FuriString* parsed_data) {
     furi_assert(device);
     furi_assert(parsed_data);
 
