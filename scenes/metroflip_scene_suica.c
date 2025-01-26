@@ -648,12 +648,13 @@ static void suica_draw_vending_machine_page_2(
 
     // Machine Code
     canvas_set_font(canvas, FontPrimary);
-    canvas_draw_str(canvas, 77, 35, "Machine #");
+    canvas_draw_str(canvas, 75, 35, "Machine");
+    canvas_draw_xbm(canvas, 119, 25, 7, 10, ShopPin);
     furi_string_printf(
         buffer, "%01d:%03d:%03d", history.area_code, history.shop_code[0], history.shop_code[1]);
     canvas_set_font(canvas, FontKeyboard);
-    canvas_draw_str_aligned(
-        canvas, 128, 44, AlignRight, AlignBottom, furi_string_get_cstr(buffer));
+    canvas_draw_str(
+        canvas, 75, 45, furi_string_get_cstr(buffer));
 
     // Animate Vending Machine Flap
     if(model->animator_tick > 6) {
@@ -721,12 +722,13 @@ static void suica_draw_store_page_2(
 
     // Machine Code
     canvas_set_font(canvas, FontPrimary);
-    canvas_draw_str(canvas, 92, 35, "Store #");
+    canvas_draw_str(canvas, 75, 35, "Store");
+    canvas_draw_xbm(canvas, 104, 25, 7, 10, ShopPin);
     furi_string_printf(
         buffer, "%01d:%03d:%03d", history.area_code, history.shop_code[0], history.shop_code[1]);
     canvas_set_font(canvas, FontKeyboard);
-    canvas_draw_str_aligned(
-        canvas, 128, 44, AlignRight, AlignBottom, furi_string_get_cstr(buffer));
+    canvas_draw_str(
+        canvas, 75, 45, furi_string_get_cstr(buffer));
 
     // Store Frame
     canvas_draw_xbm(canvas, 0, 13, 57, 51, StoreFrame);
