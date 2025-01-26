@@ -1,6 +1,7 @@
 #include <datetime.h>
 #include <stdbool.h>
 #include <furi.h>
+
 #include "api/suica/suica_station_list.h"
 
 // Rinkai
