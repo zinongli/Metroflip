@@ -71,10 +71,12 @@ static void suica_model_initialize(SuicaHistoryViewModel* model, size_t initial_
     model->entry = 1;
     model->page = 0;
     model->animator_tick = 0;
-    model->history.entry_station.name = furi_string_alloc();
-    model->history.entry_station.jr_header = furi_string_alloc();
-    model->history.exit_station.name = furi_string_alloc();
-    model->history.exit_station.jr_header = furi_string_alloc();
+    model->history.entry_station.name = furi_string_alloc_set("Unknown");
+    model->history.entry_station.jr_header = furi_string_alloc_set("0");
+    model->history.exit_station.name = furi_string_alloc_set("Unknown");
+    model->history.exit_station.jr_header = furi_string_alloc_set("0"); 
+    model->history.entry_line = RailwaysList[SUICA_RAILWAY_NUM];
+    model->history.exit_line = RailwaysList[SUICA_RAILWAY_NUM];
 
 }
 
@@ -172,7 +174,7 @@ void suica_parse_train_code(
 
     switch(ride_type) {
     case SuicaTrainRideEntry:
-        for(size_t i = 0; i < RAILWAY_NUM; i++) {
+        for(size_t i = 0; i < SUICA_RAILWAY_NUM; i++) {
             if(furi_string_equal_str(line_candidate,RailwaysList[i].long_name)) {            
                 model->history.entry_line = RailwaysList[i];
                 furi_string_set(model->history.entry_station.name, station_candidate);
@@ -183,7 +185,7 @@ void suica_parse_train_code(
         }
         break;
     case SuicaTrainRideExit:
-        for(size_t i = 0; i < RAILWAY_NUM; i++) {
+        for(size_t i = 0; i < SUICA_RAILWAY_NUM; i++) {
             if(furi_string_equal_str(line_candidate,RailwaysList[i].long_name)) {
                 model->history.exit_line = RailwaysList[i];
                 furi_string_set(model->history.exit_station.name, station_candidate);

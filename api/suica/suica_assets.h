@@ -4,7 +4,7 @@
 
 #include "suica_structs_i.h"
 
-#define RAILWAY_NUM 21 // Don't count Unknown
+#define SUICA_RAILWAY_NUM 21 // Don't count Unknown
 
 #define SUICA_RAILWAY_UNKNOWN_NAME "Unknown"
 // Railway
