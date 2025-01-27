@@ -71,8 +71,11 @@ static void suica_model_initialize(SuicaHistoryViewModel* model, size_t initial_
     model->entry = 1;
     model->page = 0;
     model->animator_tick = 0;
-    model->history.entry_station = RailwaysList[SuicaRailwayTypeMax].line[0];
-    model->history.exit_station = RailwaysList[SuicaRailwayTypeMax].line[0];
+    model->history.entry_station.name = furi_string_alloc();
+    model->history.entry_station.jr_header = furi_string_alloc();
+    model->history.exit_station.name = furi_string_alloc();
+    model->history.exit_station.jr_header = furi_string_alloc();
+
 }
 
 static void suica_add_entry(SuicaHistoryViewModel* model, const uint8_t* entry) {
@@ -101,7 +104,7 @@ void suica_parse_train_code(
     uint8_t line_code,
     uint8_t station_code,
     SuicaTrainRideType ride_type,
-    SuicaHistory history) {
+    SuicaHistoryViewModel* model) {
     Storage* storage = furi_record_open(RECORD_STORAGE);
     Stream* stream = file_stream_alloc(storage);
     FuriString* line = furi_string_alloc();
@@ -163,41 +166,33 @@ void suica_parse_train_code(
     furi_string_set(station_JR_header_candidate, line_copy); // Keikyu Main,Shinagawa,1,0
     furi_string_right(station_JR_header_candidate, line_comma_ind + station_comma_ind + station_num_comma_ind + 3); // 0
     station_JR_header_comma_ind = furi_string_search_char(station_JR_header_candidate, ',', 0); 
-    furi_string_left(station_JR_header_candidate, station_JR_header_comma_ind); // 0
-
-    // FURI_LOG_I(TAG, "Station JR header: %s", furi_string_get_cstr(station_JR_header_candidate));
-    
+    furi_string_left(station_JR_header_candidate, station_JR_header_comma_ind); // 0    
 
     switch(ride_type) {
-    // case SuicaTrainRideEntry:
-    //     for(size_t i = 0; i < RAILWAY_NUM; i++) {
-    //         if(furi_string_equal_str(line_candidate,RailwaysList[i].long_name)) {            
-    //             FURI_LOG_I(TAG, "entry comparing %s with %s", furi_string_get_cstr(line_candidate), RailwaysList[i].long_name);
-    //             history.entry_line = RailwaysList[i];
-    //             FURI_LOG_I(TAG, "Found line: %s %d", history.entry_line.long_name, history.entry_line.station_num);
-    //             history.entry_station.name =  strdup(furi_string_get_cstr(station_candidate));
-    //             history.entry_station.station_number = atoi(furi_string_get_cstr(station_num_candidate));
-    //             history.entry_station.jr_header = furi_string_equal_str(station_JR_header_candidate,"0") ? 0 :  strdup(furi_string_get_cstr(station_JR_header_candidate));
-    //             FURI_LOG_I(TAG, "Found entry station: %s %d %s", history.exit_station.name, history.exit_station.station_number, history.exit_station.jr_header);
-    //             break;
-    //         }
-    //     }
-    //     break;
-    // case SuicaTrainRideExit:
-    //     for(size_t i = 0; i < RAILWAY_NUM; i++) {
-    //         if(furi_string_equal_str(line_candidate,RailwaysList[i].long_name)) {
-    //             FURI_LOG_I(TAG, "exit comparing %s with %s", furi_string_get_cstr(line_candidate), RailwaysList[i].long_name);
-    //             history.exit_line = RailwaysList[i];
-    //             history.exit_station.name = strdup(furi_string_get_cstr(station_candidate));
-    //             history.exit_station.station_number = atoi(furi_string_get_cstr(station_num_candidate));
-    //             history.exit_station.jr_header = furi_string_equal_str(station_JR_header_candidate,"0") ? 0 : strdup(furi_string_get_cstr(station_JR_header_candidate));
-    //             FURI_LOG_I(TAG, "Found exit station: %s %d %s", history.exit_station.name, history.exit_station.station_number, history.exit_station.jr_header);
-    //             break;
-    //         }
-    //     }
-    //     break;
+    case SuicaTrainRideEntry:
+        for(size_t i = 0; i < RAILWAY_NUM; i++) {
+            if(furi_string_equal_str(line_candidate,RailwaysList[i].long_name)) {            
+                model->history.entry_line = RailwaysList[i];
+                furi_string_set(model->history.entry_station.name, station_candidate);
+                model->history.entry_station.station_number = atoi(furi_string_get_cstr(station_num_candidate));
+                furi_string_set(model->history.entry_station.jr_header, station_JR_header_candidate);
+                break;
+            }
+        }
+        break;
+    case SuicaTrainRideExit:
+        for(size_t i = 0; i < RAILWAY_NUM; i++) {
+            if(furi_string_equal_str(line_candidate,RailwaysList[i].long_name)) {
+                model->history.exit_line = RailwaysList[i];
+                furi_string_set(model->history.exit_station.name, station_candidate);
+                model->history.exit_station.station_number = atoi(furi_string_get_cstr(station_num_candidate));
+                furi_string_set(model->history.exit_station.jr_header, station_JR_header_candidate);
+                break;
+            }
+        }
+        break;
     default:
-        UNUSED(history);
+        UNUSED(model);
         break;
     }
 
@@ -241,55 +236,14 @@ static void suica_parse(SuicaHistoryViewModel* my_model) {
         my_model->history.history_type = SuicaHistoryTrain;
         uint8_t entry_line = current_block[6];
         uint8_t entry_station = current_block[7];
-        bool entry_line_and_station_found = false;
-        bool exit_line_and_station_found = false;
-        // Match entry line and station
-        for(size_t i = 0; i < RAILWAY_NUM; i++) {
-            if(RailwaysList[i].line_code == entry_line) {
-                for(size_t j = 0; j < RailwaysList[i].station_num; j++) {
-                    if(RailwaysList[i].line[j].station_code == entry_station) {
-                        my_model->history.entry_line = RailwaysList[i];
-                        my_model->history.entry_station = RailwaysList[i].line[j];
-                        entry_line_and_station_found = true;
-                        break;
-                    }
-                }
-            }
-        }
-
-        if(!entry_line_and_station_found) {
-            my_model->history.entry_line = RailwaysList[RAILWAY_NUM];
-            my_model->history.entry_line.type = SuicaRailwayTypeMax;
-            my_model->history.entry_station = UnknownLine[0];
-        }
-
         uint8_t exit_line = current_block[8];
         uint8_t exit_station = current_block[9];
-        FURI_LOG_D(TAG, "Exit Line %02X, Exit Station %02X", exit_line, exit_station);
 
-        // Add 1 to the area code if the exit line is greater than 0x80. Source:
-        // https://github.com/metrodroid/metrodroid/wiki/IC-(Japan)#station-codestore-code
-        my_model->history.area_code = current_block[15] + ((exit_line > 0x80) ? 1 : 0);
-
-        // Match exit line and station
-        for(size_t i = 0; i < RAILWAY_NUM; i++) {
-            if(RailwaysList[i].line_code == exit_line) {
-                for(size_t j = 0; j < RailwaysList[i].station_num; j++) {
-                    if(RailwaysList[i].line[j].station_code == exit_station) {
-                        my_model->history.exit_line = RailwaysList[i];
-                        my_model->history.exit_station = RailwaysList[i].line[j];
-                        exit_line_and_station_found = true;
-                        break;
-                    }
-                }
-            }
+        suica_parse_train_code(entry_line, entry_station, SuicaTrainRideEntry, my_model);
+        if ((uint8_t)current_block[1] != PROCESSING_CODE_NEW_ISSUE) {
+            suica_parse_train_code(exit_line, exit_station, SuicaTrainRideExit, my_model);
         }
-
-        if(!exit_line_and_station_found) {
-            my_model->history.exit_line = RailwaysList[RAILWAY_NUM];
-            my_model->history.exit_line.type = SuicaRailwayTypeMax;
-            my_model->history.exit_station = UnknownLine[0];
-        }
+        
 
         if(((uint8_t)current_block[4] + (uint8_t)current_block[5]) != 0) {
             my_model->history.year = ((uint8_t)current_block[4] & 0xFE) >> 1;
@@ -375,7 +329,7 @@ static void suica_draw_train_page_1(
     canvas_draw_str(canvas, 26, 23, history.entry_line.long_name);
 
     canvas_set_font(canvas, FontSecondary);
-    canvas_draw_str(canvas, 2, 34, history.entry_station.name);
+    canvas_draw_str(canvas, 2, 34, furi_string_get_cstr(history.entry_station.name));
 
     if(!is_birthday) {
         // Exit logo
@@ -410,7 +364,7 @@ static void suica_draw_train_page_1(
         canvas_draw_str(canvas, 26, 51, history.exit_line.long_name);
 
         canvas_set_font(canvas, FontSecondary);
-        canvas_draw_str(canvas, 2, 62, history.exit_station.name);
+        canvas_draw_str(canvas, 2, 62, furi_string_get_cstr(history.exit_station.name));
     } else {
         // Birthday
         canvas_draw_icon(canvas, 5, 42, &I_Suica_CrackingEgg);
@@ -483,13 +437,13 @@ static void
         canvas_draw_str(canvas, 14, 51, furi_string_get_cstr(buffer));
         break;
     case SuicaJR:
-        if(history.entry_station.jr_header) {
+        if(!furi_string_equal_str(history.entry_station.jr_header,"0")) {
             canvas_draw_rbox(canvas, 6, 14, 38, 48, 7);
             canvas_set_color(canvas, ColorWhite);
             canvas_set_font(canvas, FontPrimary);
             canvas_draw_str_aligned(
-                canvas, 25, 24, AlignCenter, AlignBottom, history.entry_station.jr_header);
-            canvas_draw_rbox(canvas, 12, 26, 32, 32, 5);
+                canvas, 25, 24, AlignCenter, AlignBottom, furi_string_get_cstr(history.entry_station.jr_header));
+            canvas_draw_rbox(canvas, 9, 26, 32, 32, 5);
             canvas_set_color(canvas, ColorBlack);
             canvas_draw_frame(canvas, 12, 29, 26, 26);
             canvas_set_font(canvas, FontKeyboard);
@@ -569,12 +523,12 @@ static void
         canvas_draw_str(canvas, 91, 51, furi_string_get_cstr(buffer));
         break;
     case SuicaJR:
-        if(history.exit_station.jr_header) {
+        if(!furi_string_equal_str(history.exit_station.jr_header,"0")) {
             canvas_draw_rbox(canvas, 83, 14, 38, 48, 7);
             canvas_set_color(canvas, ColorWhite);
             canvas_set_font(canvas, FontPrimary);
             canvas_draw_str_aligned(
-                canvas, 101, 24, AlignCenter, AlignBottom, history.exit_station.jr_header);
+                canvas, 101, 24, AlignCenter, AlignBottom, furi_string_get_cstr(history.exit_station.jr_header));
             canvas_draw_rbox(canvas, 86, 26, 32, 32, 5);
             canvas_set_color(canvas, ColorBlack);
             canvas_draw_frame(canvas, 89, 29, 26, 26);

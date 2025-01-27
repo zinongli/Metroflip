@@ -22,13 +22,12 @@ typedef enum {
 typedef struct {
     uint8_t station_code;
     uint8_t station_number;
-    char* name;
-    char* jr_header;
+    FuriString* name;
+    FuriString* jr_header;
 } Station;
 
 typedef struct {
     uint8_t line_code;
-    Station* line;
     int logo_offset[2];
     const char* long_name;
     uint8_t station_num;
