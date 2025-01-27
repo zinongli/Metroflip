@@ -1,0 +1,19 @@
+1,1,Gare Saint-Lazare
+3,1,Pont Cardinet
+4,1,Asnieres
+4,2,Becon-les-Bruyeres
+4,3,Clichy Levallois
+4,4,Courbevoie
+4,5,La Defense (Grande Arche)
+5,1,Puteaux
+5,2,Suresnes Mont-Valerien
+7,1,Garches Marne-la-Coquette
+7,2,Le Val d'Or
+7,3,Saint-Cloud
+8,1,Vaucresson
+9,1,Bougival
+9,2,La Celle-Saint-Cloud
+9,3,Louveciennes
+9,4,Marly-le-Roi
+10,1,L'Etang-la-Ville
+10,2,Saint-Nom-la-Breteche Foret de Marly
