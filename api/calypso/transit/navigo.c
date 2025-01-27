@@ -284,11 +284,10 @@ char* get_navigo_station(
     }
 }
 
-const char* get_navigo_sncf_train_line(int station_group_id) {
-    if(station_group_id < 77) {
-        return NAVIGO_SNCF_TRAIN_LINES_LIST[station_group_id];
-    }
-    return "Unknown";
+char* get_navigo_sncf_sector(int station_group_id) {
+    // group id is in format XY where X is the sector
+    const char* station_name = NAVIGO_SNCF_SECTORS_LIST[station_group_id / 10];
+    return strdup(station_name);
 }
 
 const char* get_navigo_tram_line(int route_number) {
@@ -322,7 +321,12 @@ void show_navigo_event_info(
     }
     char* station = get_navigo_station(
         event->station_group_id, event->station_id, event->station_sub_id, event->service_provider);
-    char* sector = get_navigo_station(event->station_group_id, 0, 0, event->service_provider);
+    char* sector = NULL;
+    if(event->service_provider == NAVIGO_PROVIDER_SNCF) {
+        sector = get_navigo_sncf_sector(event->station_group_id);
+    } else {
+        sector = get_navigo_station(event->station_group_id, 0, 0, event->service_provider);
+    }
 
     if(event->transport_type == URBAN_BUS || event->transport_type == INTERURBAN_BUS ||
        event->transport_type == METRO || event->transport_type == TRAM) {
@@ -396,16 +400,15 @@ void show_navigo_event_info(
         } else {
             furi_string_cat_printf(
                 parsed_data,
-                "%s %s\n%s\n",
+                "%s\n%s\n",
                 get_intercode_string_transport_type(event->transport_type),
-                get_navigo_sncf_train_line(event->station_group_id),
                 get_intercode_string_transition_type(event->transition));
         }
         furi_string_cat_printf(
             parsed_data,
             "Transporter: %s\n",
             get_navigo_service_provider(event->service_provider));
-        furi_string_cat_printf(parsed_data, "Station: %s\n", station);
+        furi_string_cat_printf(parsed_data, "Station: %s\nSector: %s\n", station, sector);
         if(event->location_gate_available) {
             furi_string_cat_printf(parsed_data, "Gate: %d\n", event->location_gate);
         }
@@ -441,7 +444,7 @@ void show_navigo_event_info(
             parsed_data,
             "Transporter: %s\n",
             get_navigo_service_provider(event->service_provider));
-        furi_string_cat_printf(parsed_data, "Station: %s\n", station);
+        furi_string_cat_printf(parsed_data, "Station: %s\nSector: %s\n", station, sector);
         if(event->location_gate_available) {
             furi_string_cat_printf(parsed_data, "Gate: %d\n", event->location_gate);
         }
@@ -527,9 +530,8 @@ void show_navigo_special_event_info(NavigoCardSpecialEvent* event, FuriString* p
         } else {
             furi_string_cat_printf(
                 parsed_data,
-                "%s %s\n%s\n",
+                "%s\n%s\n",
                 get_intercode_string_transport_type(event->transport_type),
-                get_navigo_sncf_train_line(event->station_group_id),
                 get_intercode_string_transition_type(event->transition));
         }
         furi_string_cat_printf(
@@ -538,7 +540,7 @@ void show_navigo_special_event_info(NavigoCardSpecialEvent* event, FuriString* p
             parsed_data,
             "Transporter: %s\n",
             get_navigo_service_provider(event->service_provider));
-        furi_string_cat_printf(parsed_data, "Station: %s\n", station);
+        furi_string_cat_printf(parsed_data, "Station: %s\nSector: %s\n", station, sector);
         if(event->device_available) {
             if(event->service_provider == NAVIGO_PROVIDER_SNCF) {
                 furi_string_cat_printf(parsed_data, "Device: %d\n", event->device & 0xFF);
@@ -560,7 +562,7 @@ void show_navigo_special_event_info(NavigoCardSpecialEvent* event, FuriString* p
             parsed_data,
             "Transporter: %s\n",
             get_navigo_service_provider(event->service_provider));
-        furi_string_cat_printf(parsed_data, "Station: %s\n", station);
+        furi_string_cat_printf(parsed_data, "Station: %s\nSector: %s\n", station, sector);
         if(event->device_available) {
             furi_string_cat_printf(parsed_data, "Device: %d\n", event->device);
         }
