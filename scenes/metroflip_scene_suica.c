@@ -44,8 +44,8 @@
 #define TERMINAL_TURNSTILE              0x16
 #define TERMINAL_MOBILE_PHONE           0x1B
 #define TERMINAL_IN_CAR_SUPP_MACHINE    0x24
-#define TERMINAL_POS_AND_TAXI           0xC8
-#define TERMINAL_VENDING_MACHINE        0xC7
+#define TERMINAL_POS_AND_TAXI           0xC7
+#define TERMINAL_VENDING_MACHINE        0xC8
 #define PROCESSING_CODE_NEW_ISSUE       0x02
 #define ARROW_ANIMATION_FRAME_MS        350
 
@@ -727,7 +727,7 @@ static void suica_draw_vending_machine_page_2(
     canvas_draw_str(canvas, 63, 19, furi_string_get_cstr(buffer));
     canvas_draw_line(canvas, 91, 21, 94, 18);
     canvas_draw_line(canvas, 64, 21, 91, 21);
-    canvas_draw_line(canvas, 94, 7, 94, 17);
+    canvas_draw_line(canvas, 94, 6, 94, 17);
     canvas_draw_line(canvas, 60, 12, 60, 17);
     canvas_draw_line(canvas, 60, 12, 57, 9);
 
@@ -850,7 +850,7 @@ static void
     canvas_draw_str(canvas, 63, 19, furi_string_get_cstr(buffer));
     canvas_draw_line(canvas, 91, 21, 94, 18);
     canvas_draw_line(canvas, 64, 21, 91, 21);
-    canvas_draw_line(canvas, 94, 7, 94, 17);
+    canvas_draw_line(canvas, 94, 6, 94, 17);
     canvas_draw_line(canvas, 60, 12, 60, 17);
     canvas_draw_line(canvas, 60, 12, 57, 9);
 
@@ -1026,7 +1026,7 @@ static void suica_history_draw_callback(Canvas* canvas, void* model) {
     // Date
     furi_string_printf(buffer, "20%02d-%02d-%02d", my_model->history.year, my_model->history.month, my_model->history.day);
     canvas_set_font(canvas, FontPrimary);
-    canvas_draw_str(canvas, 33, 8, furi_string_get_cstr(buffer));
+    canvas_draw_str(canvas, 34, 8, furi_string_get_cstr(buffer));
 
     // Entry Num
     furi_string_printf(buffer, "%02d/%02d", my_model->entry, my_model->size);
