@@ -13,4 +13,5 @@ App(
     fap_description="An implementation of metrodroid on the flipper",
     fap_author="luu176",
     fap_icon_assets="images",  # Image assets to compile for this application
+    fap_file_assets="files",
 )

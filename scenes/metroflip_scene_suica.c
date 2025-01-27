@@ -28,6 +28,11 @@
 #include <datetime.h>
 #include <api/suica/suica_assets.h>
 
+// Probably not needed after upstream include this in their metroflip_i.h
+#include <toolbox/stream/stream.h>
+#include <toolbox/stream/file_stream.h>
+
+#define SUICA_STATION_LIST_PATH         APP_ASSETS_PATH("suica/stations.txt")
 #define SERVICE_CODE_HISTORY_IN_LE      (0x090FU)
 #define SERVICE_CODE_TAPS_LOG_IN_LE     (0x108FU)
 #define BLOCK_COUNT                     1
@@ -50,6 +55,11 @@ const char* suica_service_names[] = {
 };
 
 typedef enum {
+    SuicaTrainRideEntry,
+    SuicaTrainRideExit,
+} SuicaTrainRideType;
+
+typedef enum {
     SuicaRedrawScreen,
 } SuicaCustomEvent;
 
@@ -61,6 +71,8 @@ static void suica_model_initialize(SuicaHistoryViewModel* model, size_t initial_
     model->entry = 1;
     model->page = 0;
     model->animator_tick = 0;
+    model->history.entry_station = RailwaysList[SuicaRailwayTypeMax].line[0];
+    model->history.exit_station = RailwaysList[SuicaRailwayTypeMax].line[0];
 }
 
 static void suica_add_entry(SuicaHistoryViewModel* model, const uint8_t* entry) {
@@ -83,6 +95,123 @@ static void suica_add_entry(SuicaHistoryViewModel* model, const uint8_t* entry) 
 
     model->size++;
     FURI_LOG_I(TAG, "Added entry %d", model->size);
+}
+
+void suica_parse_train_code(
+    uint8_t line_code,
+    uint8_t station_code,
+    SuicaTrainRideType ride_type,
+    SuicaHistory history) {
+    Storage* storage = furi_record_open(RECORD_STORAGE);
+    Stream* stream = file_stream_alloc(storage);
+    FuriString* line = furi_string_alloc();
+
+    FuriString* line_code_str = furi_string_alloc();
+    FuriString* line_and_station_code_str = furi_string_alloc();
+
+    furi_string_printf(line_code_str, "0x%02X", line_code);
+    furi_string_printf(line_and_station_code_str, "0x%02X,0x%02X", line_code, station_code);
+
+    FuriString* line_candidate = furi_string_alloc_set(SUICA_RAILWAY_UNKNOWN_NAME);
+    FuriString* station_candidate = furi_string_alloc_set(SUICA_RAILWAY_UNKNOWN_NAME);
+    FuriString* station_num_candidate = furi_string_alloc_set("0");
+    FuriString* station_JR_header_candidate = furi_string_alloc_set("0");
+    FuriString* line_copy = furi_string_alloc();
+    size_t line_comma_ind = 0;
+    size_t station_comma_ind = 0;
+    size_t station_num_comma_ind = 0;
+    size_t station_JR_header_comma_ind = 0;
+
+    bool station_found = false;
+    if(file_stream_open(stream, SUICA_STATION_LIST_PATH, FSAM_READ, FSOM_OPEN_EXISTING)) {
+        while(stream_read_line(stream, line) && !station_found) {
+            // file is in csv format: station_group_id,station_id,station_sub_id,station_name
+            // search for the station
+            furi_string_replace_all(line, "\r", "");
+            furi_string_replace_all(line, "\n", "");
+            furi_string_set(line_copy, line); // 0xD5,0x02,Keikyu Main,Shinagawa,1,0
+
+            if(furi_string_start_with(line, line_code_str)) {
+                // set line name here
+                furi_string_right(line_copy, 10); // Keikyu Main,Shinagawa,1,0
+                furi_string_set(line_candidate, line_copy);
+                line_comma_ind = furi_string_search_char(line_candidate, ',', 0);
+                furi_string_left(line_candidate, line_comma_ind); // Keikyu Main
+                // we cut the line and station code in the line line copy
+                // and we leave only the line name for the line candidate
+                if(furi_string_start_with(line, line_and_station_code_str)) {
+                    furi_string_set(station_candidate, line_copy); // Keikyu Main,Shinagawa,1,0
+                    furi_string_right(station_candidate, line_comma_ind + 1);
+                    station_comma_ind =
+                        furi_string_search_char(station_candidate, ',', 0); // Shinagawa,1,0
+                    furi_string_left(station_candidate, station_comma_ind); //  Shinagawa
+                    station_found = true;
+                    break;
+                }
+            }
+        }
+    } else {
+        FURI_LOG_E("Metroflip:Scene:Suica", "Failed to open stations.txt");
+    }
+
+    furi_string_set(station_num_candidate, line_copy); // Keikyu Main,Shinagawa,1,0
+    furi_string_right(station_num_candidate, line_comma_ind + station_comma_ind + 2); // 1,0
+    station_num_comma_ind = furi_string_search_char(station_num_candidate, ',', 0); 
+    furi_string_left(station_num_candidate, station_num_comma_ind); // 1
+
+
+    furi_string_set(station_JR_header_candidate, line_copy); // Keikyu Main,Shinagawa,1,0
+    furi_string_right(station_JR_header_candidate, line_comma_ind + station_comma_ind + station_num_comma_ind + 3); // 0
+    station_JR_header_comma_ind = furi_string_search_char(station_JR_header_candidate, ',', 0); 
+    furi_string_left(station_JR_header_candidate, station_JR_header_comma_ind); // 0
+
+    // FURI_LOG_I(TAG, "Station JR header: %s", furi_string_get_cstr(station_JR_header_candidate));
+    
+
+    switch(ride_type) {
+    // case SuicaTrainRideEntry:
+    //     for(size_t i = 0; i < RAILWAY_NUM; i++) {
+    //         if(furi_string_equal_str(line_candidate,RailwaysList[i].long_name)) {            
+    //             FURI_LOG_I(TAG, "entry comparing %s with %s", furi_string_get_cstr(line_candidate), RailwaysList[i].long_name);
+    //             history.entry_line = RailwaysList[i];
+    //             FURI_LOG_I(TAG, "Found line: %s %d", history.entry_line.long_name, history.entry_line.station_num);
+    //             history.entry_station.name =  strdup(furi_string_get_cstr(station_candidate));
+    //             history.entry_station.station_number = atoi(furi_string_get_cstr(station_num_candidate));
+    //             history.entry_station.jr_header = furi_string_equal_str(station_JR_header_candidate,"0") ? 0 :  strdup(furi_string_get_cstr(station_JR_header_candidate));
+    //             FURI_LOG_I(TAG, "Found entry station: %s %d %s", history.exit_station.name, history.exit_station.station_number, history.exit_station.jr_header);
+    //             break;
+    //         }
+    //     }
+    //     break;
+    // case SuicaTrainRideExit:
+    //     for(size_t i = 0; i < RAILWAY_NUM; i++) {
+    //         if(furi_string_equal_str(line_candidate,RailwaysList[i].long_name)) {
+    //             FURI_LOG_I(TAG, "exit comparing %s with %s", furi_string_get_cstr(line_candidate), RailwaysList[i].long_name);
+    //             history.exit_line = RailwaysList[i];
+    //             history.exit_station.name = strdup(furi_string_get_cstr(station_candidate));
+    //             history.exit_station.station_number = atoi(furi_string_get_cstr(station_num_candidate));
+    //             history.exit_station.jr_header = furi_string_equal_str(station_JR_header_candidate,"0") ? 0 : strdup(furi_string_get_cstr(station_JR_header_candidate));
+    //             FURI_LOG_I(TAG, "Found exit station: %s %d %s", history.exit_station.name, history.exit_station.station_number, history.exit_station.jr_header);
+    //             break;
+    //         }
+    //     }
+    //     break;
+    default:
+        UNUSED(history);
+        break;
+    }
+
+    furi_string_free(line);
+    furi_string_free(line_copy);
+    furi_string_free(line_code_str);
+    furi_string_free(line_and_station_code_str);
+    furi_string_free(line_candidate);
+    furi_string_free(station_candidate);
+    furi_string_free(station_num_candidate);
+    furi_string_free(station_JR_header_candidate);
+    file_stream_close(stream);
+    stream_free(stream);
+    furi_record_close(RECORD_STORAGE);
 }
 
 static void suica_parse(SuicaHistoryViewModel* my_model) {
@@ -211,7 +340,7 @@ static void suica_parse(SuicaHistoryViewModel* my_model) {
 
 static void suica_draw_train_page_1(
     Canvas* canvas,
-    SuicaTravelHistory history,
+    SuicaHistory history,
     SuicaHistoryViewModel* model,
     bool is_birthday) {
     // Entry logo
@@ -323,10 +452,8 @@ static void suica_draw_train_page_1(
         (current_arrow_bits & 0b0001) ? &I_Suica_FilledArrowDown : &I_Suica_EmptyArrowDown);
 }
 
-static void suica_draw_train_page_2(
-    Canvas* canvas,
-    SuicaTravelHistory history,
-    SuicaHistoryViewModel* model) {
+static void
+    suica_draw_train_page_2(Canvas* canvas, SuicaHistory history, SuicaHistoryViewModel* model) {
     FuriString* buffer = furi_string_alloc();
 
     // Entry
@@ -424,11 +551,7 @@ static void suica_draw_train_page_2(
         canvas_set_color(canvas, ColorWhite);
         canvas_draw_disc(canvas, 103, 38, 21);
         canvas_set_color(canvas, ColorBlack);
-        canvas_draw_icon(
-            canvas,
-            95,
-            24,
-            history.exit_line.logo_icon);
+        canvas_draw_icon(canvas, 95, 24, history.exit_line.logo_icon);
         canvas_set_font(canvas, FontBigNumbers);
         furi_string_printf(buffer, "%02d", history.exit_station.station_number);
         canvas_draw_str(canvas, 92, 52, furi_string_get_cstr(buffer));
@@ -492,11 +615,7 @@ static void suica_draw_train_page_2(
         canvas_draw_circle(canvas, 103, 38, 20);
         canvas_draw_disc(canvas, 103, 38, 18);
         canvas_set_color(canvas, ColorWhite);
-        canvas_draw_icon(
-            canvas,
-            99,
-            23,
-            history.exit_line.logo_icon);
+        canvas_draw_icon(canvas, 99, 23, history.exit_line.logo_icon);
         canvas_set_font(canvas, FontBigNumbers);
         furi_string_printf(buffer, "%02d", history.exit_station.station_number);
         canvas_draw_str(canvas, 92, 53, furi_string_get_cstr(buffer));
@@ -537,10 +656,8 @@ static void suica_draw_train_page_2(
     furi_string_free(buffer);
 }
 
-static void suica_draw_birthday_page_2(
-    Canvas* canvas,
-    SuicaTravelHistory history,
-    SuicaHistoryViewModel* model) {
+static void
+    suica_draw_birthday_page_2(Canvas* canvas, SuicaHistory history, SuicaHistoryViewModel* model) {
     UNUSED(history);
     canvas_draw_icon(canvas, 27, 14, &I_Suica_PenguinHappyBirthday);
     canvas_draw_icon(canvas, 14, 14, &I_Suica_PenguinTodaysVIP);
@@ -573,7 +690,7 @@ static void suica_draw_birthday_page_2(
 
 static void suica_draw_vending_machine_page_1(
     Canvas* canvas,
-    SuicaTravelHistory history,
+    SuicaHistory history,
     SuicaHistoryViewModel* model) {
     FuriString* buffer = furi_string_alloc();
     canvas_draw_icon(canvas, 0, 10, &I_Suica_VendingPage2Full);
@@ -635,7 +752,7 @@ static void suica_draw_vending_machine_page_1(
 
 static void suica_draw_vending_machine_page_2(
     Canvas* canvas,
-    SuicaTravelHistory history,
+    SuicaHistory history,
     SuicaHistoryViewModel* model) {
     FuriString* buffer = furi_string_alloc();
 
@@ -710,10 +827,8 @@ static void suica_draw_vending_machine_page_2(
     furi_string_free(buffer);
 }
 
-static void suica_draw_store_page_1(
-    Canvas* canvas,
-    SuicaTravelHistory history,
-    SuicaHistoryViewModel* model) {
+static void
+    suica_draw_store_page_1(Canvas* canvas, SuicaHistory history, SuicaHistoryViewModel* model) {
     FuriString* buffer = furi_string_alloc();
     furi_string_printf(buffer, "%d", history.balance_change);
     canvas_draw_icon(canvas, 0, 15, &I_Suica_StoreP1Counter);
@@ -761,10 +876,8 @@ static void suica_draw_store_page_1(
     furi_string_free(buffer);
 }
 
-static void suica_draw_store_page_2(
-    Canvas* canvas,
-    SuicaTravelHistory history,
-    SuicaHistoryViewModel* model) {
+static void
+    suica_draw_store_page_2(Canvas* canvas, SuicaHistory history, SuicaHistoryViewModel* model) {
     FuriString* buffer = furi_string_alloc();
     // Clock Component
     canvas_set_color(canvas, ColorWhite); // Erase part of old frame to allow for new frame
@@ -825,10 +938,8 @@ static void suica_draw_store_page_2(
     furi_string_free(buffer);
 }
 
-static void suica_draw_balance_page(
-    Canvas* canvas,
-    SuicaTravelHistory history,
-    SuicaHistoryViewModel* model) {
+static void
+    suica_draw_balance_page(Canvas* canvas, SuicaHistory history, SuicaHistoryViewModel* model) {
     FuriString* buffer = furi_string_alloc();
 
     // Balance
@@ -922,7 +1033,6 @@ static void suica_draw_balance_page(
 static void suica_history_draw_callback(Canvas* canvas, void* model) {
     canvas_set_bitmap_mode(canvas, true);
     SuicaHistoryViewModel* my_model = (SuicaHistoryViewModel*)model;
-    SuicaTravelHistory history = my_model->history;
     FuriString* buffer = furi_string_alloc();
     // catch the case where the page and entry are not initialized
 
@@ -932,21 +1042,21 @@ static void suica_history_draw_callback(Canvas* canvas, void* model) {
 
     // Get previous balance if we are not at the earliest entry
     if(my_model->entry < my_model->size) {
-        history.previous_balance = my_model->travel_history[(my_model->entry * 16) + 10];
-        history.previous_balance |= my_model->travel_history[(my_model->entry * 16) + 11] << 8;
+        my_model->history.previous_balance = my_model->travel_history[(my_model->entry * 16) + 10];
+        my_model->history.previous_balance |= my_model->travel_history[(my_model->entry * 16) + 11] << 8;
     } else {
-        history.previous_balance = 0;
+        my_model->history.previous_balance = 0;
     }
     // Calculate balance change
-    if(history.previous_balance < history.balance) {
-        history.balance_change = history.balance - history.previous_balance;
-        history.balance_sign = SuicaBalanceAdd;
-    } else if(history.previous_balance > history.balance) {
-        history.balance_change = history.previous_balance - history.balance;
-        history.balance_sign = SuicaBalanceSub;
+    if(my_model->history.previous_balance < my_model->history.balance) {
+        my_model->history.balance_change = my_model->history.balance - my_model->history.previous_balance;
+        my_model->history.balance_sign = SuicaBalanceAdd;
+    } else if(my_model->history.previous_balance > my_model->history.balance) {
+        my_model->history.balance_change = my_model->history.previous_balance - my_model->history.balance;
+        my_model->history.balance_sign = SuicaBalanceSub;
     } else {
-        history.balance_change = 0;
-        history.balance_sign = SuicaBalanceEqual;
+        my_model->history.balance_change = 0;
+        my_model->history.balance_sign = SuicaBalanceEqual;
     }
 
     // Main title
@@ -954,7 +1064,7 @@ static void suica_history_draw_callback(Canvas* canvas, void* model) {
     canvas_draw_str(canvas, 0, 8, "Suica");
 
     // Date
-    furi_string_printf(buffer, "20%02d-%02d-%02d", history.year, history.month, history.day);
+    furi_string_printf(buffer, "20%02d-%02d-%02d", my_model->history.year, my_model->history.month, my_model->history.day);
     canvas_set_font(canvas, FontPrimary);
     canvas_draw_str(canvas, 33, 8, furi_string_get_cstr(buffer));
 
@@ -980,43 +1090,43 @@ static void suica_history_draw_callback(Canvas* canvas, void* model) {
 
     switch((uint8_t)my_model->page) {
     case 0:
-        switch(history.history_type) {
+        switch(my_model->history.history_type) {
         case SuicaHistoryTrain:
-            suica_draw_train_page_1(canvas, history, my_model, false);
+            suica_draw_train_page_1(canvas, my_model->history, my_model, false);
             break;
         case SuicaHistoryHappyBirthday:
-            suica_draw_train_page_1(canvas, history, my_model, true);
+            suica_draw_train_page_1(canvas, my_model->history, my_model, true);
             break;
         case SuicaHistoryVendingMachine:
-            suica_draw_vending_machine_page_1(canvas, history, my_model);
+            suica_draw_vending_machine_page_1(canvas, my_model->history, my_model);
             break;
         case SuicaHistoryPosAndTaxi:
-            suica_draw_store_page_1(canvas, history, my_model);
+            suica_draw_store_page_1(canvas, my_model->history, my_model);
             break;
         default:
             break;
         }
         break;
     case 1:
-        switch(history.history_type) {
+        switch(my_model->history.history_type) {
         case SuicaHistoryTrain:
-            suica_draw_train_page_2(canvas, history, my_model);
+            suica_draw_train_page_2(canvas, my_model->history, my_model);
             break;
         case SuicaHistoryHappyBirthday:
-            suica_draw_birthday_page_2(canvas, history, my_model);
+            suica_draw_birthday_page_2(canvas, my_model->history, my_model);
             break;
         case SuicaHistoryVendingMachine:
-            suica_draw_vending_machine_page_2(canvas, history, my_model);
+            suica_draw_vending_machine_page_2(canvas, my_model->history, my_model);
             break;
         case SuicaHistoryPosAndTaxi:
-            suica_draw_store_page_2(canvas, history, my_model);
+            suica_draw_store_page_2(canvas, my_model->history, my_model);
             break;
         default:
             break;
         }
         break;
     case 2:
-        suica_draw_balance_page(canvas, history, my_model);
+        suica_draw_balance_page(canvas, my_model->history, my_model);
         break;
     default:
         break;

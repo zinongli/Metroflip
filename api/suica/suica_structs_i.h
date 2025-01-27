@@ -22,8 +22,8 @@ typedef enum {
 typedef struct {
     uint8_t station_code;
     uint8_t station_number;
-    const char* name;
-    const char* jr_header;
+    char* name;
+    char* jr_header;
 } Station;
 
 typedef struct {
@@ -54,7 +54,7 @@ typedef struct {
     uint16_t balance_change;
     SuicaBalanceChangeSign balance_sign;
     uint8_t* shop_code;
-} SuicaTravelHistory;
+} SuicaHistory;
 
 
 typedef struct {
@@ -64,5 +64,5 @@ typedef struct {
     size_t size; // Number of entries currently stored
     size_t capacity; // Allocated capacity
     uint8_t animator_tick; // Counter for the animations
-    SuicaTravelHistory history; // Current history entry
+    SuicaHistory history; // Current history entry
 } SuicaHistoryViewModel;

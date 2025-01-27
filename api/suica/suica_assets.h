@@ -3,7 +3,7 @@
 #include <furi.h>
 
 #include "api/suica/suica_station_list.h"
-
+#define SUICA_RAILWAY_UNKNOWN_NAME "Unknown"
 // Railway
 
 static const Railway RailwaysList[] = {
@@ -40,5 +40,5 @@ static const Railway RailwaysList[] = {
     {0xF2, ToeiOedoPartA, {3, 0}, "Oedo", 26, SuicaToei, "E", &I_Suica_OedoE},
     {0xF3, ToeiOedoPartB, {3, 0}, "Oedo", 14, SuicaToei, "E", &I_Suica_OedoE},
     // Unknown
-    {0x00, UnknownLine, {0, 0}, "Unknown", 1, SuicaRailwayTypeMax, "??", &I_Suica_QuestionMarkBig}
+    {0x00, UnknownLine, {0, 0}, SUICA_RAILWAY_UNKNOWN_NAME, 1, SuicaRailwayTypeMax, "??", &I_Suica_QuestionMarkBig}
 };
