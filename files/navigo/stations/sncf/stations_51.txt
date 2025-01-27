@@ -1,0 +1,13 @@
+4,1,La Courneuve-Aubervilliers
+4,2,La Plaine-Stade de France
+5,1,Le Bourget
+7,1,Blanc-Mesnil
+7,2,Drancy
+8,1,Aulnay-sous-Bois
+9,1,Sevran Livry
+9,2,Vert-Galant
+10,1,Villeparisis
+11,1,Compans
+11,2,Mitry-Claye
+12,1,Dammartin Juilly Saint-Mard
+12,2,Thieux Nantouillet

@@ -1,0 +1,11 @@
+0,1,Musee d'Orsay
+0,2,Saint-Michel Notre-Dame
+1,1,Gare d'Austerlitz
+2,1,Bibliotheque-Francois Mitterrand
+4,1,Ivry-sur-Seine
+4,2,Vitry-sur-Seine
+5,1,Choisy-le-Roi
+5,2,Les Ardoines
+7,1,Villeneuve-le-Roi
+8,1,Ablon
+9,1,Athis-Mons

@@ -222,7 +222,16 @@ char* get_navigo_station(
     switch(service_provider) {
     case NAVIGO_PROVIDER_SNCF: {
         if(station_group_id < 77 && station_id < 19) {
-            const char* sncf_stations_path = APP_ASSETS_PATH("navigo/sncf_stations.txt");
+            char* file_path = malloc(256 * sizeof(char));
+            if(!file_path) {
+                return "Unknown";
+            }
+            snprintf(
+                file_path,
+                256,
+                APP_ASSETS_PATH("navigo/stations/sncf/stations_%d.txt"),
+                station_group_id);
+            const char* sncf_stations_path = file_path;
             Storage* storage = furi_record_open(RECORD_STORAGE);
 
             Stream* stream = file_stream_alloc(storage);
@@ -232,7 +241,7 @@ char* get_navigo_station(
 
             if(file_stream_open(stream, sncf_stations_path, FSAM_READ, FSOM_OPEN_EXISTING)) {
                 while(stream_read_line(stream, line)) {
-                    // file is in csv format: station_group_id,station_id,station_sub_id,station_name
+                    // file is in csv format: station_id,station_sub_id,station_name
                     // search for the station
                     furi_string_replace_all(line, "\r", "");
                     furi_string_replace_all(line, "\n", "");
@@ -241,13 +250,10 @@ char* get_navigo_station(
                     if(!string_line_copy) {
                         return "Unknown";
                     }
-                    int line_station_group_id =
-                        atoi(get_token(string_line_copy, ",", string_line_copy));
                     int line_station_id = atoi(get_token(string_line_copy, ",", string_line_copy));
                     int line_station_sub_id =
                         atoi(get_token(string_line_copy, ",", string_line_copy));
-                    if(line_station_group_id == station_group_id &&
-                       line_station_id == station_id && line_station_sub_id == station_sub_id) {
+                    if(line_station_id == station_id && line_station_sub_id == station_sub_id) {
                         found_station_name =
                             strdup(get_token(string_line_copy, ",", string_line_copy));
                         free(string_line_copy);
@@ -262,6 +268,7 @@ char* get_navigo_station(
             furi_string_free(line);
             file_stream_close(stream);
             stream_free(stream);
+            free(file_path);
 
             if(found_station_name) {
                 return found_station_name;
@@ -278,7 +285,16 @@ char* get_navigo_station(
     case NAVIGO_PROVIDER_RATP:
     case NAVIGO_PROVIDER_ORA: {
         if(station_group_id < 32 && station_id < 16) {
-            const char* ratp_stations_path = APP_ASSETS_PATH("navigo/ratp_stations.txt");
+            char* file_path = malloc(256 * sizeof(char));
+            if(!file_path) {
+                return "Unknown";
+            }
+            snprintf(
+                file_path,
+                256,
+                APP_ASSETS_PATH("navigo/stations/ratp/stations_%d.txt"),
+                station_group_id);
+            const char* ratp_stations_path = file_path;
             Storage* storage = furi_record_open(RECORD_STORAGE);
 
             Stream* stream = file_stream_alloc(storage);
@@ -288,7 +304,7 @@ char* get_navigo_station(
 
             if(file_stream_open(stream, ratp_stations_path, FSAM_READ, FSOM_OPEN_EXISTING)) {
                 while(stream_read_line(stream, line)) {
-                    // file is in csv format: station_group_id,station_id,station_name
+                    // file is in csv format: station_id,station_name
                     // search for the station
                     furi_string_replace_all(line, "\r", "");
                     furi_string_replace_all(line, "\n", "");
@@ -297,11 +313,8 @@ char* get_navigo_station(
                     if(!string_line_copy) {
                         return "Unknown";
                     }
-                    int line_station_group_id =
-                        atoi(get_token(string_line_copy, ",", string_line_copy));
                     int line_station_id = atoi(get_token(string_line_copy, ",", string_line_copy));
-                    if(line_station_group_id == station_group_id &&
-                       line_station_id == station_id) {
+                    if(line_station_id == station_id) {
                         found_station_name =
                             strdup(get_token(string_line_copy, ",", string_line_copy));
                         free(string_line_copy);
@@ -316,6 +329,7 @@ char* get_navigo_station(
             furi_string_free(line);
             file_stream_close(stream);
             stream_free(stream);
+            free(file_path);
 
             if(found_station_name) {
                 return found_station_name;

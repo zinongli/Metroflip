@@ -1,0 +1,9 @@
+5,1,Stade de France-Saint-Denis
+6,1,Pierrefitte Stains
+7,1,Garges-Sarcelles
+8,1,Villiers-le-Bel (Gonesse - Arnouville)
+10,1,Goussainville
+10,2,Les Noues
+10,3,Louvres
+11,1,La Borne-Blanche
+11,2,Survilliers-Fosses

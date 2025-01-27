@@ -1,0 +1,12 @@
+8,1,Cernay
+9,1,Franconville Plessis-Bouchard
+9,2,Montigny-Beauchamp
+10,1,Pierrelaye
+11,1,Pontoise
+11,2,Saint-Ouen-l'Aumone-Liesse
+12,1,Boissy-l'Aillerie
+12,2,Osny
+15,1,Chars
+15,2,Montgeroult Courcelles
+15,3,Santeuil Le Perchay
+15,4,Us
