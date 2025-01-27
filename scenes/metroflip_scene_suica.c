@@ -243,7 +243,9 @@ static void suica_parse(SuicaHistoryViewModel* my_model) {
         uint8_t exit_line = current_block[8];
         uint8_t exit_station = current_block[9];
 
-        suica_parse_train_code(entry_line, entry_station, SuicaTrainRideEntry, my_model);
+        if ((uint8_t)current_block[0] != TERMINAL_MOBILE_PHONE) {
+            suica_parse_train_code(entry_line, entry_station, SuicaTrainRideEntry, my_model);
+        }
         if ((uint8_t)current_block[1] != PROCESSING_CODE_NEW_ISSUE) {
             suica_parse_train_code(exit_line, exit_station, SuicaTrainRideExit, my_model);
         }
