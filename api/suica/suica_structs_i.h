@@ -1,6 +1,7 @@
 #include <datetime.h>
 #include <stdbool.h>
 #include <furi.h>
+#include "metroflip_icons.h"
 
 typedef enum {
     SuicaKeikyu,
@@ -28,12 +29,12 @@ typedef struct {
 typedef struct {
     uint8_t line_code;
     Station* line;
-    const uint8_t* logo;
     const int* logo_position;
     const char* long_name;
     uint8_t station_num;
     SuicaRailwayCompany type;
     const char* short_name;
+    const Icon* logo_icon;
 } Railway;
 
 typedef struct {
