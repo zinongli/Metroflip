@@ -6,23 +6,35 @@
 
 typedef struct {
     int service_provider;
+    int result;
     int route_number;
-    bool route_number_available;
+    int route_direction;
+    int location_id;
     int used_contract;
-    bool used_contract_available;
+    bool simulation;
     DateTime date;
+    DateTime first_stamp_date;
 } OpusCardEvent;
 
 typedef struct {
     int app_version;
     int country_num;
     int network_num;
+    int issuer_id;
+    bool card_status;
+    bool card_utilisation;
     DateTime end_dt;
 } OpusCardEnv;
 
 typedef struct {
-    int card_status;
-    int commercial_id;
+    int number;
+    DateTime date;
+} OpusCardHolderProfile;
+
+typedef struct {
+    DateTime birth_date;
+    OpusCardHolderProfile profiles[4];
+    int language;
 } OpusCardHolder;
 
 typedef struct {
@@ -30,8 +42,10 @@ typedef struct {
     int tariff;
     DateTime start_date;
     DateTime end_date;
+    int sale_agent;
     DateTime sale_date;
-    int status;
+    bool inhibition;
+    bool used;
     bool present;
 } OpusCardContract;
 

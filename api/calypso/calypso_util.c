@@ -1,3 +1,4 @@
+#include "metroflip_i.h"
 #include <stdlib.h>
 #include <string.h>
 #include "calypso_util.h"
@@ -50,6 +51,18 @@ CalypsoElement
     return container_element;
 }
 
+CalypsoElement make_calypso_repeater_element(const char* key, int size, CalypsoElement element) {
+    CalypsoElement repeater_element = {};
+
+    repeater_element.type = CALYPSO_ELEMENT_TYPE_REPEATER;
+    repeater_element.repeater = malloc(sizeof(CalypsoRepeaterElement));
+    repeater_element.repeater->size = size;
+    repeater_element.repeater->element = element;
+    strncpy(repeater_element.repeater->key, key, 36);
+
+    return repeater_element;
+}
+
 void free_calypso_element(CalypsoElement* element) {
     if(element->type == CALYPSO_ELEMENT_TYPE_FINAL) {
         free(element->final);
@@ -65,6 +78,9 @@ void free_calypso_element(CalypsoElement* element) {
         }
         free(element->container->elements);
         free(element->container);
+    } else if(element->type == CALYPSO_ELEMENT_TYPE_REPEATER) {
+        free_calypso_element(&element->repeater->element);
+        free(element->repeater);
     }
 }
 
@@ -219,6 +235,26 @@ int get_calypso_subnode_offset(
         }
 
         return count_offset;
+    } else if(elem->type == CALYPSO_ELEMENT_TYPE_REPEATER) {
+        // same as bitmap but instead of a bitmap, we have the count of how many times to repeat the inner element
+        CalypsoRepeaterElement* repeater = elem->repeater;
+
+        char bit_slice[repeater->size + 1];
+        strncpy(bit_slice, binary_string, repeater->size);
+        bit_slice[repeater->size] = '\0';
+
+        int C = bit_slice_to_dec(bit_slice, 0, repeater->size - 1);
+
+        int count_offset = repeater->size;
+        bool f = false;
+        for(int i = 0; i < C; i++) {
+            count_offset += get_calypso_subnode_offset(
+                binary_string + count_offset, key, &repeater->element, &f);
+            if(f) {
+                *found = true;
+                return count_offset;
+            }
+        }
     }
     return 0;
 }
@@ -261,6 +297,14 @@ int get_calypso_subnode_size(const char* key, CalypsoElement* element) {
                 return size;
             }
         }
+    } else if(element->type == CALYPSO_ELEMENT_TYPE_REPEATER) {
+        if(strcmp(element->repeater->key, key) == 0) {
+            return element->repeater->size;
+        }
+        int size = get_calypso_subnode_size(key, &element->repeater->element);
+        if(size != 0) {
+            return size;
+        }
     }
     return 0;
 }
@@ -298,6 +342,8 @@ CALYPSO_CARD_TYPE guess_card_type(int country_num, int network_num) {
             return CALYPSO_CARD_PASSPASS;
         case 64:
             return CALYPSO_CARD_TAM; // Montpellier
+        case 149:
+            return CALYPSO_CARD_TRANSPOLE; // Lille
         case 502:
             return CALYPSO_CARD_OURA;
         case 901:

@@ -2,32 +2,13 @@
 #include "opus.h"
 
 CalypsoApp* get_opus_contract_structure() {
-    /*
-    En1545FixedInteger(CONTRACT_UNKNOWN_A, 3),
-    En1545Bitmap(
-            En1545FixedInteger(CONTRACT_PROVIDER, 8),
-            En1545FixedInteger(CONTRACT_TARIFF, 16),
-            En1545Bitmap(
-                    En1545FixedInteger.date(CONTRACT_START),
-                    En1545FixedInteger.date(CONTRACT_END)
-            ),
-            En1545Container(
-                    En1545FixedInteger(CONTRACT_UNKNOWN_B, 17),
-                    En1545FixedInteger.date(CONTRACT_SALE),
-                    En1545FixedInteger.timeLocal(CONTRACT_SALE),
-                    En1545FixedHex(CONTRACT_UNKNOWN_C, 36),
-                    En1545FixedInteger(CONTRACT_STATUS, 8),
-                    En1545FixedHex(CONTRACT_UNKNOWN_D, 36)
-            )
-    )
-    */
     CalypsoApp* OpusContractStructure = malloc(sizeof(CalypsoApp));
 
     if(!OpusContractStructure) {
         return NULL;
     }
 
-    int app_elements_count = 2;
+    int app_elements_count = 1;
 
     OpusContractStructure->type = CALYPSO_APP_CONTRACT;
     OpusContractStructure->container = malloc(sizeof(CalypsoContainerElement));
@@ -35,74 +16,91 @@ CalypsoApp* get_opus_contract_structure() {
         malloc(app_elements_count * sizeof(CalypsoElement));
     OpusContractStructure->container->size = app_elements_count;
 
-    OpusContractStructure->container->elements[0] =
-        make_calypso_final_element("ContractUnknownA", 3, "Unknown A", CALYPSO_FINAL_TYPE_NUMBER);
-    OpusContractStructure->container->elements[1] = make_calypso_bitmap_element(
+    OpusContractStructure->container->elements[0] = make_calypso_bitmap_element(
         "Contract",
-        4,
+        7,
         (CalypsoElement[]){
             make_calypso_final_element(
-                "ContractProvider", 8, "Provider", CALYPSO_FINAL_TYPE_UNKNOWN),
-            make_calypso_final_element("ContractTariff", 16, "Tariff", CALYPSO_FINAL_TYPE_TARIFF),
+                "ContractProvider",
+                8,
+                "Acteur ou groupe d’acteurs ayant dèfini et assurant le service pour le contrat",
+                CALYPSO_FINAL_TYPE_SERVICE_PROVIDER),
+            make_calypso_final_element(
+                "ContractTariff", 16, "Code tarif du contrat", CALYPSO_FINAL_TYPE_TARIFF),
             make_calypso_bitmap_element(
-                "ContractDates",
+                "ContractValidityInfoBitmap",
                 2,
                 (CalypsoElement[]){
                     make_calypso_final_element(
-                        "ContractStartDate", 14, "Start date", CALYPSO_FINAL_TYPE_DATE),
+                        "ContractValidityStartDate",
+                        14,
+                        "Date de début de validité du contrat",
+                        CALYPSO_FINAL_TYPE_DATE),
                     make_calypso_final_element(
-                        "ContractEndDate", 14, "End date", CALYPSO_FINAL_TYPE_DATE),
+                        "ContractValidityEndDate",
+                        14,
+                        "Date de fin de validité du contrat",
+                        CALYPSO_FINAL_TYPE_DATE),
                 }),
             make_calypso_bitmap_element(
-                "ContractSaleData",
-                6,
+                "ContractData",
+                9,
                 (CalypsoElement[]){
                     make_calypso_final_element(
-                        "ContractUnknownB", 17, "Unknown B", CALYPSO_FINAL_TYPE_NUMBER),
+                        "ContractDataSaleAgent",
+                        8,
+                        "Acteur ayant effectué la dernière vente sur le contrat",
+                        CALYPSO_FINAL_TYPE_SERVICE_PROVIDER),
                     make_calypso_final_element(
-                        "ContractSaleDate", 14, "Sale date", CALYPSO_FINAL_TYPE_DATE),
+                        "ContractDataSaleSecureDevice",
+                        32,
+                        "Numéro du SAM utilisé pour charger le contrat",
+                        CALYPSO_FINAL_TYPE_UNKNOWN),
                     make_calypso_final_element(
-                        "ContractSaleTime", 11, "Sale time", CALYPSO_FINAL_TYPE_TIME),
+                        "ContractDataSaleDate",
+                        14,
+                        "Date de chargement initial du contrat",
+                        CALYPSO_FINAL_TYPE_DATE),
                     make_calypso_final_element(
-                        "ContractUnknownC", 36, "Unknown C", CALYPSO_FINAL_TYPE_NUMBER),
+                        "ContractDataSaleTime",
+                        11,
+                        "Heure de chargement initial du contrat",
+                        CALYPSO_FINAL_TYPE_TIME),
                     make_calypso_final_element(
-                        "ContractStatus", 8, "Status", CALYPSO_FINAL_TYPE_UNKNOWN),
+                        "ContractDataReloadDate",
+                        14,
+                        "Date de rechargement du contrat",
+                        CALYPSO_FINAL_TYPE_DATE),
                     make_calypso_final_element(
-                        "ContractUnknownD", 36, "Unknown D", CALYPSO_FINAL_TYPE_NUMBER),
+                        "ContractDataValidityLimitDate",
+                        14,
+                        "Date limite pour une première utilisation du contrat",
+                        CALYPSO_FINAL_TYPE_DATE),
+                    make_calypso_final_element(
+                        "ContractDataEndInhibitionDate",
+                        14,
+                        "Date jusqu’à laquelle la prèsence du contrat dans une liste de suspension est ignorée",
+                        CALYPSO_FINAL_TYPE_DATE),
+                    make_calypso_final_element(
+                        "ContractDataInhibition", 1, "Contrat invalide", CALYPSO_FINAL_TYPE_UNKNOWN),
+                    make_calypso_final_element(
+                        "ContractDataUsed",
+                        1,
+                        "Contrat déjà validé au moins une fois",
+                        CALYPSO_FINAL_TYPE_UNKNOWN),
                 }),
+            make_calypso_final_element(
+                "ContractUnknownE", 0, "Unknown E", CALYPSO_FINAL_TYPE_UNKNOWN),
+            make_calypso_final_element(
+                "ContractUnknownF", 0, "Unknown F", CALYPSO_FINAL_TYPE_UNKNOWN),
+            make_calypso_final_element(
+                "ContractUnknownG", 0, "Unknown G", CALYPSO_FINAL_TYPE_UNKNOWN),
         });
 
     return OpusContractStructure;
 }
 
 CalypsoApp* get_opus_event_structure() {
-    /*
-    En1545Container(
-                En1545FixedInteger.date(EVENT),
-                En1545FixedInteger.timeLocal(EVENT),
-                En1545FixedInteger("UnknownX", 19), // Possibly part of following bitmap
-                En1545Bitmap(
-                        En1545FixedInteger(EVENT_UNKNOWN_A, 8),
-                        En1545FixedInteger(EVENT_UNKNOWN_B, 8),
-                        En1545FixedInteger(EVENT_SERVICE_PROVIDER, 8),
-                        En1545FixedInteger(EVENT_UNKNOWN_C, 16),
-                        En1545FixedInteger(EVENT_ROUTE_NUMBER, 16),
-                        // How 32 bits are split among next 2 fields is unclear
-                        En1545FixedInteger(EVENT_UNKNOWN_D, 16),
-                        En1545FixedInteger(EVENT_UNKNOWN_E, 16),
-                        En1545FixedInteger(EVENT_CONTRACT_POINTER, 5),
-                        En1545Bitmap(
-                                En1545FixedInteger.date(EVENT_FIRST_STAMP),
-                                En1545FixedInteger.timeLocal(EVENT_FIRST_STAMP),
-                                En1545FixedInteger("EventDataSimulation", 1),
-                                En1545FixedInteger(EVENT_UNKNOWN_F, 4),
-                                En1545FixedInteger(EVENT_UNKNOWN_G, 4),
-                                En1545FixedInteger(EVENT_UNKNOWN_H, 4),
-                                En1545FixedInteger(EVENT_UNKNOWN_I, 4)
-                        )
-                )
-        )
-    */
     CalypsoApp* OpusEventStructure = malloc(sizeof(CalypsoApp));
 
     if(!OpusEventStructure) {
@@ -126,35 +124,51 @@ CalypsoApp* get_opus_event_structure() {
         "Event",
         9,
         (CalypsoElement[]){
-            make_calypso_final_element("EventUnknownA", 8, "Unknown A", CALYPSO_FINAL_TYPE_NUMBER),
-            make_calypso_final_element("EventUnknownB", 8, "Unknown B", CALYPSO_FINAL_TYPE_NUMBER),
+            make_calypso_final_element("EventUnknownA", 8, "Unknown A", CALYPSO_FINAL_TYPE_UNKNOWN),
             make_calypso_final_element(
-                "EventServiceProvider", 8, "Service provider", CALYPSO_FINAL_TYPE_SERVICE_PROVIDER),
-            make_calypso_final_element("EventUnknownC", 16, "Unknown C", CALYPSO_FINAL_TYPE_NUMBER),
+                "EventResult", 8, "Code Résultat", CALYPSO_FINAL_TYPE_UNKNOWN),
             make_calypso_final_element(
-                "EventRouteNumber", 16, "Route number", CALYPSO_FINAL_TYPE_NUMBER),
-            make_calypso_final_element("EventUnknownD", 16, "Unknown D", CALYPSO_FINAL_TYPE_NUMBER),
-            make_calypso_final_element("EventUnknownE", 16, "Unknown E", CALYPSO_FINAL_TYPE_NUMBER),
+                "EventServiceProvider",
+                8,
+                "Identité de l’exploitant",
+                CALYPSO_FINAL_TYPE_SERVICE_PROVIDER),
             make_calypso_final_element(
-                "EventContractPointer", 5, "Contract pointer", CALYPSO_FINAL_TYPE_NUMBER),
+                "EventLocationId", 16, "Lieu de l’événement", CALYPSO_FINAL_TYPE_UNKNOWN),
+            make_calypso_final_element(
+                "EventRouteNumber", 16, "Référence de la ligne", CALYPSO_FINAL_TYPE_UNKNOWN),
+            make_calypso_final_element(
+                "EventUnknownD", 16, "Unknown D", CALYPSO_FINAL_TYPE_UNKNOWN),
+            make_calypso_final_element(
+                "EventUnknownE", 16, "Unknown E", CALYPSO_FINAL_TYPE_UNKNOWN),
+            make_calypso_final_element(
+                "EventContractPointer",
+                5,
+                "Référence du contrat concerné",
+                CALYPSO_FINAL_TYPE_UNKNOWN),
             make_calypso_bitmap_element(
                 "EventData",
                 7,
                 (CalypsoElement[]){
                     make_calypso_final_element(
-                        "EventFirstStampDate", 14, "First stamp date", CALYPSO_FINAL_TYPE_DATE),
+                        "EventDataDateFirstStamp",
+                        14,
+                        "Date de la première montée",
+                        CALYPSO_FINAL_TYPE_DATE),
                     make_calypso_final_element(
-                        "EventFirstStampTime", 11, "First stamp time", CALYPSO_FINAL_TYPE_TIME),
+                        "EventDataTimeFirstStamp",
+                        11,
+                        "Heure de la première montée",
+                        CALYPSO_FINAL_TYPE_TIME),
                     make_calypso_final_element(
                         "EventDataSimulation", 1, "Simulation", CALYPSO_FINAL_TYPE_UNKNOWN),
                     make_calypso_final_element(
-                        "EventUnknownF", 4, "Unknown F", CALYPSO_FINAL_TYPE_NUMBER),
+                        "EventDataRouteDirection", 4, "Sens", CALYPSO_FINAL_TYPE_UNKNOWN),
                     make_calypso_final_element(
-                        "EventUnknownG", 4, "Unknown G", CALYPSO_FINAL_TYPE_NUMBER),
+                        "EventUnknownG", 4, "Unknown G", CALYPSO_FINAL_TYPE_UNKNOWN),
                     make_calypso_final_element(
-                        "EventUnknownH", 4, "Unknown H", CALYPSO_FINAL_TYPE_NUMBER),
+                        "EventUnknownH", 4, "Unknown H", CALYPSO_FINAL_TYPE_UNKNOWN),
                     make_calypso_final_element(
-                        "EventUnknownI", 4, "Unknown I", CALYPSO_FINAL_TYPE_NUMBER),
+                        "EventUnknownI", 4, "Unknown I", CALYPSO_FINAL_TYPE_UNKNOWN),
                 }),
         });
 
@@ -196,49 +210,66 @@ CalypsoApp* get_opus_env_holder_structure() {
                 14,
                 "Date de fin de validité de l’application",
                 CALYPSO_FINAL_TYPE_DATE),
-            make_calypso_final_element(
-                "EnvPayMethod", 11, "Code mode de paiement", CALYPSO_FINAL_TYPE_PAY_METHOD),
-            make_calypso_final_element(
-                "EnvAuthenticator",
-                16,
-                "Code de contrôle de l’intégrité des données",
-                CALYPSO_FINAL_TYPE_UNKNOWN),
-            make_calypso_final_element(
-                "EnvSelectList",
-                32,
-                "Bitmap de tableau de paramètre multiple",
-                CALYPSO_FINAL_TYPE_UNKNOWN),
-            make_calypso_container_element(
+            make_calypso_bitmap_element(
                 "EnvData",
-                2,
+                4,
                 (CalypsoElement[]){
                     make_calypso_final_element(
                         "EnvDataCardStatus", 1, "Statut de la carte", CALYPSO_FINAL_TYPE_UNKNOWN),
                     make_calypso_final_element(
                         "EnvData2", 0, "Données complémentaires", CALYPSO_FINAL_TYPE_UNKNOWN),
+                    make_calypso_final_element(
+                        "EnvData_CardUtilisation",
+                        1,
+                        "Utilisation de la carte",
+                        CALYPSO_FINAL_TYPE_UNKNOWN),
+                    make_calypso_final_element(
+                        "EnvData4", 0, "Données complémentaires", CALYPSO_FINAL_TYPE_UNKNOWN),
                 }),
+            make_calypso_final_element("EnvUnknownA", 0, "Unknown A", CALYPSO_FINAL_TYPE_UNKNOWN),
+            make_calypso_final_element("EnvUnknownB", 0, "Unknown B", CALYPSO_FINAL_TYPE_UNKNOWN),
+            make_calypso_final_element("EnvUnknownC", 0, "Unknown C", CALYPSO_FINAL_TYPE_UNKNOWN),
         });
 
     OpusEnvHolderStructure->container->elements[2] = make_calypso_bitmap_element(
         "Holder",
-        2,
+        8,
         (CalypsoElement[]){
-            make_calypso_container_element(
-                "HolderData",
-                5,
+            make_calypso_bitmap_element(
+                "HolderBirthBitmap",
+                2,
                 (CalypsoElement[]){
                     make_calypso_final_element(
-                        "HolderUnknownA", 3, "Unknown A", CALYPSO_FINAL_TYPE_NUMBER),
+                        "HolderBirthDate", 32, "Date de naissance", CALYPSO_FINAL_TYPE_DATE),
                     make_calypso_final_element(
-                        "HolderBirthDate", 8, "Birth date", CALYPSO_FINAL_TYPE_DATE),
-                    make_calypso_final_element(
-                        "HolderUnknownB", 13, "Unknown B", CALYPSO_FINAL_TYPE_NUMBER),
-                    make_calypso_final_element(
-                        "HolderProfile", 17, "Profile", CALYPSO_FINAL_TYPE_DATE),
-                    make_calypso_final_element(
-                        "HolderUnknownC", 8, "Unknown C", CALYPSO_FINAL_TYPE_NUMBER),
+                        "HolderBirthUnknownA", 0, "Unknown A", CALYPSO_FINAL_TYPE_UNKNOWN),
                 }),
-            make_calypso_final_element("HolderUnknownD", 8, "Unknown D", CALYPSO_FINAL_TYPE_NUMBER),
+            make_calypso_repeater_element(
+                "HolderProfilesList",
+                4,
+                make_calypso_bitmap_element(
+                    "HolderProfile",
+                    3,
+                    (CalypsoElement[]){
+                        make_calypso_final_element(
+                            "HolderProfileNumber", 6, "Numéro de profil", CALYPSO_FINAL_TYPE_NUMBER),
+                        make_calypso_final_element(
+                            "HolderProfileDate", 14, "Date de profil", CALYPSO_FINAL_TYPE_DATE),
+                        make_calypso_final_element(
+                            "HolderProfileUnknownA", 0, "Unknown A", CALYPSO_FINAL_TYPE_UNKNOWN),
+                    })),
+            make_calypso_final_element(
+                "HolderData_Language", 6, "Langue de l'utilisateur", CALYPSO_FINAL_TYPE_UNKNOWN),
+            make_calypso_final_element(
+                "HolderUnknownA", 0, "Unknown A", CALYPSO_FINAL_TYPE_UNKNOWN),
+            make_calypso_final_element(
+                "HolderUnknownB", 0, "Unknown B", CALYPSO_FINAL_TYPE_UNKNOWN),
+            make_calypso_final_element(
+                "HolderUnknownC", 0, "Unknown C", CALYPSO_FINAL_TYPE_UNKNOWN),
+            make_calypso_final_element(
+                "HolderUnknownD", 0, "Unknown D", CALYPSO_FINAL_TYPE_UNKNOWN),
+            make_calypso_final_element(
+                "HolderUnknownE", 0, "Unknown E", CALYPSO_FINAL_TYPE_UNKNOWN),
         });
 
     return OpusEnvHolderStructure;

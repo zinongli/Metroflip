@@ -1,0 +1,459 @@
+station_group_id,station_id,station_sub_id,station_name
+1,0,1,Chatelet-Les Halles
+1,1,1,Chatelet-Les Halles
+1,7,1,Luxembourg
+3,0,1,Saint-Michel Notre-Dame
+6,0,1,Auber
+6,6,1,Auber
+14,4,1,Cite Universitaire
+15,12,1,Port Royal
+16,1,1,Nation
+16,2,1,Fontenay-sous-Bois
+16,2,2,Vincennes
+16,3,1,Joinville-le-Pont
+16,3,2,Nogent-sur-Marne
+16,4,1,Saint-Maur Creteil
+16,5,1,Le Parc de Saint-Maur
+16,6,1,Champigny
+16,7,1,La Varenne-Chennevieres
+16,8,1,Boissy-Saint-Leger
+16,8,2,Sucy Bonneuil
+17,1,1,Charles de Gaulle-Etoile
+17,4,1,La Defense (Grande Arche)
+17,5,1,Nanterre-Ville
+17,6,1,Rueil-Malmaison
+17,8,1,Chatou-Croissy
+17,9,1,Le Vesinet-Centre
+17,9,2,Le Vesinet-Le Pecq
+17,9,3,Saint-Germain-en-Laye
+18,0,1,Denfert-Rochereau
+18,1,1,Gentilly
+18,2,1,Arcueil-Cachan
+18,2,2,Laplace
+18,3,1,Bagneux
+18,3,2,Bourg-la-Reine
+18,4,1,La Croix-de-Berny
+18,4,2,Parc de Sceaux
+18,5,1,Antony
+18,5,2,Fontaine-Michalon
+18,5,3,Les Baconnets
+18,6,1,Massy-Palaiseau
+18,6,2,Massy-Verrieres
+18,7,1,Palaiseau Villebon
+18,7,2,Palaiseau
+18,8,1,Lozere
+18,9,1,Le Guichet
+18,9,2,Orsay-Ville
+18,10,1,Bures-sur-Yvette
+18,10,2,Courcelle-sur-Yvette
+18,10,3,Gif-sur-Yvette
+18,10,4,La Hacquiniere
+18,10,5,Saint-Remy-les-Chevreuse
+20,1,1,Gare de l'Est
+20,4,1,Pantin
+20,5,1,Noisy-le-Sec
+20,6,1,Bondy
+20,7,1,Gagny
+20,7,2,Le Raincy Villemomble Montfermeil
+20,9,1,Chelles Gournay
+20,9,2,Le Chenay Gagny
+20,10,1,Vaires Torcy
+20,11,1,Lagny-Thorigny
+20,13,1,Esbly
+20,14,1,Meaux
+20,15,1,Changis-Saint-Jean
+20,15,2,Isles-Armentieres Congis
+20,15,3,Lizy-sur-Ourcq
+20,15,4,Trilport
+20,16,1,Crouy-sur-Ourcq
+20,16,2,La Ferte-sous-Jouarre
+20,16,3,Nanteuil Saacy
+21,5,1,Rosny-Bois-Perrier
+21,5,2,Rosny-sous-Bois
+21,5,3,Val de Fontenay
+21,6,1,Nogent Le-Perreux
+21,7,1,Les Boullereaux Champigny
+21,8,1,Villiers-sur-Marne Plessis-Trevise
+21,9,1,Les Yvris Noisy-le-Grand
+21,10,1,Emerainville Pontault-Combault
+21,10,2,Roissy-en-Brie
+21,11,1,Ozoir-la-Ferriere
+21,12,1,Gretz-Armainvilliers
+21,12,2,Tournan
+21,15,1,Courquetaine
+21,15,2,Faremoutiers Pommeuse
+21,15,3,Guerard La-Celle-sur-Morin
+21,15,4,Liverdy en Brie
+21,15,5,Marles-en-Brie
+21,15,6,Mormant
+21,15,7,Mortcerf
+21,15,8,Mouroux
+21,15,9,Ozouer le voulgis
+21,15,10,Verneuil-l'Etang
+21,15,11,Villepatour - Presles
+21,15,12,Yebles - Guignes
+21,15,13,Yebles
+21,16,1,Chailly Boissy-le-Châtel
+21,16,2,Chauffry
+21,16,3,Coulommiers
+21,16,4,Jouy-sur-Morin Le-Marais
+21,16,5,Nangis
+21,16,6,Saint-Remy-la-Vanne
+21,16,7,Saint-Simeon
+21,17,1,Champbenoist-Poigny
+21,17,2,La Ferte-Gaucher
+21,17,3,Longueville
+21,17,4,Provins
+21,17,5,Sainte-Colombe-Septveilles
+21,18,1,Flamboin
+21,18,2,Meilleray
+21,18,3,Villiers St Georges
+22,7,1,Allee de la Tour-Rendez-Vous
+22,7,2,La Remise-a-Jorelle
+22,7,3,Les Coquetiers
+22,7,4,Les Pavillons-sous-Bois
+22,8,1,Gargan
+22,9,1,Freinville Sevran
+22,9,2,L'Abbaye
+23,13,1,Couilly Saint-Germain Quincy
+23,13,2,Les Champs-Forts
+23,13,3,Montry Conde
+23,14,1,Crecy-en-Brie La Chapelle
+23,14,2,Villiers-Montbarbin
+26,5,1,Val de Fontenay
+26,6,1,Bry-sur-Marne
+26,6,2,Neuilly-Plaisance
+26,7,1,Noisy-le-Grand (Mont d'Est)
+26,8,1,Noisy-Champs
+26,10,1,Lognes
+26,10,2,Noisiel
+26,10,3,Torcy
+26,11,1,Bussy-Saint-Georges
+26,12,1,Val d'europe
+26,13,1,Marne-la-Vallee Chessy
+28,4,1,Fontenay-aux-Roses
+28,4,2,Robinson
+28,4,3,Sceaux
+30,1,1,Gare Saint-Lazare
+30,3,1,Pont Cardinet
+30,4,1,Asnieres
+30,4,2,Becon-les-Bruyeres
+30,4,3,Clichy Levallois
+30,4,4,Courbevoie
+30,4,5,La Defense (Grande Arche)
+30,5,1,Puteaux
+30,5,2,Suresnes Mont-Valerien
+30,7,1,Garches Marne-la-Coquette
+30,7,2,Le Val d'Or
+30,7,3,Saint-Cloud
+30,8,1,Vaucresson
+30,9,1,Bougival
+30,9,2,La Celle-Saint-Cloud
+30,9,3,Louveciennes
+30,9,4,Marly-le-Roi
+30,10,1,L'Etang-la-Ville
+30,10,2,Saint-Nom-la-Breteche Foret de Marly
+31,7,1,Chaville-Rive Droite
+31,7,2,Sevres Ville-d'Avray
+31,7,3,Viroflay-Rive Droite
+31,8,1,Montreuil
+31,8,2,Versailles-Rive Droite
+32,5,1,La Garenne-Colombes
+32,5,2,Les Vallees
+32,5,3,Nanterre-Universite
+32,7,1,Houilles Carrieres-sur-Seine
+32,7,2,Sartrouville
+32,9,1,Maisons-Laffitte
+32,10,1,Poissy
+32,11,1,Villennes-sur-Seine
+32,12,1,Les Clairieres de Verneuil
+32,12,2,Vernouillet Verneuil
+32,13,1,Aubergenville-Elisabethville
+32,13,2,Les Mureaux
+32,14,1,Epone Mezieres
+32,16,1,Bonnieres
+32,16,2,Mantes-Station
+32,16,3,Mantes-la-Jolie
+32,16,4,Port-Villez
+32,16,5,Rosny-sur-Seine
+33,10,1,Acheres-Grand-Cormier
+33,10,2,Acheres-Ville
+33,11,1,Cergy-Prefecture
+33,11,2,Neuville-Universite
+33,12,1,Cergy-Saint-Christophe
+33,12,2,Cergy-le-Haut
+35,4,1,Bois-Colombes
+35,5,1,Colombes
+35,5,2,Le Stade
+35,6,1,Argenteuil
+35,6,2,Argenteuil
+35,8,1,Cormeilles-en-Parisis
+35,8,2,Val d'Argenteuil
+35,8,3,Val d'Argenteuil
+35,9,1,Herblay
+35,9,2,La Frette Montigny
+35,10,1,Conflans-Fin d'Oise
+35,10,2,Conflans-Sainte-Honorine
+35,11,1,Andresy
+35,11,2,Chanteloup-les-Vignes
+35,11,3,Maurecourt
+35,12,1,Triel-sur-Seine
+35,12,2,Vaux-sur-Seine
+35,13,1,Meulan Hadricourt
+35,13,2,Thun-le-Paradis
+35,14,1,Gargenville
+35,14,2,Juziers
+35,15,1,Issou Porcheville
+35,15,2,Limay
+35,16,1,Breval
+35,16,2,Menerville
+40,1,1,Gare de Lyon
+40,5,1,Le Vert de Maisons
+40,5,2,Maisons-Alfort Alfortville
+40,6,1,Villeneuve-Prairie
+40,7,1,Villeneuve-Triage
+40,8,1,Villeneuve-Saint-Georges
+40,9,1,Juvisy
+40,9,2,Vigneux-sur-Seine
+40,10,1,Ris-Orangis
+40,10,2,Viry-Châtillon
+40,11,1,Evry Val de Seine
+40,11,2,Grand-Bourg
+40,12,1,Corbeil-Essonnes
+40,12,2,Mennecy
+40,12,3,Moulin-Galant
+40,13,1,Ballancourt
+40,13,2,Fontenay le Vicomte
+40,14,1,La Ferte-Alais
+40,16,1,Boutigny
+40,16,2,Maisse
+40,17,1,Boigneville
+40,17,2,Buno-Gironville
+41,0,1,Musee d'Orsay
+41,0,2,Saint-Michel Notre-Dame
+41,1,1,Gare d'Austerlitz
+41,2,1,Bibliotheque-Francois Mitterrand
+41,4,1,Ivry-sur-Seine
+41,4,2,Vitry-sur-Seine
+41,5,1,Choisy-le-Roi
+41,5,2,Les Ardoines
+41,7,1,Villeneuve-le-Roi
+41,8,1,Ablon
+41,9,1,Athis-Mons
+42,9,1,Epinay-sur-Orge
+42,9,2,Savigny-sur-Orge
+42,10,1,Sainte-Genevieve-des-Bois
+42,11,1,Saint-Michel-sur-Orge
+42,12,1,Bretigny-sur-Orge
+42,12,2,Marolles-en-Hurepoix
+42,13,1,Bouray
+42,13,2,Lardy
+42,14,1,Chamarande
+42,14,2,Etampes
+42,14,3,Etrechy
+42,16,1,Saint-Martin d'Etampes
+42,17,1,Guillerval
+43,9,1,Montgeron Crosne
+43,9,2,Yerres
+43,10,1,Brunoy
+43,11,1,Boussy-Saint-Antoine
+43,11,2,Combs-la-Ville Quincy
+43,12,1,Lieusaint Moissy
+43,13,1,Cesson
+43,13,2,Savigny-le-Temple Nandy
+43,15,1,Le Mee
+43,15,2,Melun
+43,16,1,Chartrettes
+43,16,2,Fontaine-le-Port
+43,16,3,Livry-sur-Seine
+43,17,1,Champagne-sur-Seine
+43,17,2,Hericy
+43,17,3,La Grande Paroisse
+43,17,4,Vernou-sur-Seine
+43,17,5,Vulaines-sur-Seine Samoreau
+44,12,1,Essonnes-Robinson
+44,12,2,Villabe
+44,13,1,Coudray-Montceaux
+44,13,2,Le Plessis-Chenet-IBM
+44,13,3,Saint-Fargeau
+44,14,1,Boissise-le-Roi
+44,14,2,Ponthierry Pringy
+44,15,1,Vosves
+44,16,1,Bois-le-Roi
+44,17,1,Bagneaux-sur-Loing
+44,17,2,Bourron-Marlotte Grez
+44,17,3,Fontainebleau-Avon
+44,17,4,Montereau
+44,17,5,Montigny-sur-Loing
+44,17,6,Moret Veneux-les-Sablons
+44,17,7,Nemours Saint-Pierre
+44,17,8,Saint-Mammes
+44,17,9,Souppes
+44,17,10,Thomery
+45,10,1,Grigny-Centre
+45,11,1,Evry Courcouronnes
+45,11,2,Orangis Bois de l'Epine
+45,12,1,Le Bras-de-Fer - Evry Genopole
+50,0,1,Haussmann-Saint-Lazare
+50,1,1,Gare du Nord
+50,1,2,Magenta
+50,1,3,Paris-Nord
+50,5,1,Epinay-Villetaneuse
+50,5,2,Saint-Denis
+50,5,3,Sevres-Rive Gauche
+50,6,1,La Barre-Ormesson
+50,7,1,Champ de Courses d'Enghien
+50,7,2,Enghien-les-Bains
+50,8,1,Ermont-Eaubonne
+50,8,2,Ermont-Halte
+50,8,3,Gros-Noyer Saint-Prix
+50,9,1,Saint-Leu-La-Foret
+50,9,2,Taverny
+50,9,3,Vaucelles
+50,10,1,Bessancourt
+50,10,2,Frepillon
+50,10,3,Mery
+50,11,1,Meriel
+50,11,2,Valmondois
+50,12,1,Bruyeres-sur-Oise
+50,12,2,Champagne-sur-Oise
+50,12,3,L'Isle-Adam Parmain
+50,12,4,Persan Beaumont
+51,4,1,La Courneuve-Aubervilliers
+51,4,2,La Plaine-Stade de France
+51,5,1,Le Bourget
+51,7,1,Blanc-Mesnil
+51,7,2,Drancy
+51,8,1,Aulnay-sous-Bois
+51,9,1,Sevran Livry
+51,9,2,Vert-Galant
+51,10,1,Villeparisis
+51,11,1,Compans
+51,11,2,Mitry-Claye
+51,12,1,Dammartin Juilly Saint-Mard
+51,12,2,Thieux Nantouillet
+52,5,1,Stade de France-Saint-Denis
+52,6,1,Pierrefitte Stains
+52,7,1,Garges-Sarcelles
+52,8,1,Villiers-le-Bel (Gonesse - Arnouville)
+52,10,1,Goussainville
+52,10,2,Les Noues
+52,10,3,Louvres
+52,11,1,La Borne-Blanche
+52,11,2,Survilliers-Fosses
+53,6,1,Deuil Montmagny
+53,7,1,Groslay
+53,8,1,Sarcelles Saint-Brice
+53,9,1,Domont
+53,9,2,Ecouen Ezanville
+53,10,1,Bouffemont Moisselles
+53,10,2,Montsoult Maffliers
+53,11,1,Belloy-Saint-Martin
+53,11,2,Luzarches
+53,11,3,Seugy
+53,11,4,Viarmes
+53,11,5,Villaines
+54,8,1,Cernay
+54,9,1,Franconville Plessis-Bouchard
+54,9,2,Montigny-Beauchamp
+54,10,1,Pierrelaye
+54,11,1,Pontoise
+54,11,2,Saint-Ouen-l'Aumone-Liesse
+54,12,1,Boissy-l'Aillerie
+54,12,2,Osny
+54,15,1,Chars
+54,15,2,Montgeroult Courcelles
+54,15,3,Santeuil Le Perchay
+54,15,4,Us
+55,0,1,Avenue Foch
+55,0,2,Avenue Henri-Martin
+55,0,3,Boulainvilliers
+55,0,4,Kennedy Radio-France
+55,0,5,Neuilly-Porte Maillot (Palais des congres)
+55,1,1,Pereire-Levallois
+55,2,1,Porte de Clichy
+55,3,1,Saint-Ouen
+55,4,1,Les Gresillons
+55,5,1,Gennevilliers
+55,6,1,Epinay-sur-Seine
+55,7,1,Saint-Gratien
+56,11,1,Auvers-sur-Oise
+56,11,2,Chaponval
+56,11,3,Epluches
+56,11,4,Pont Petit
+57,11,1,Presles Courcelles
+57,12,1,Nointel Mours
+60,1,1,Gare Montparnasse
+60,4,1,Clamart
+60,4,2,Vanves Malakoff
+60,5,1,Bellevue
+60,5,2,Bievres
+60,5,3,Meudon
+60,6,1,Chaville-Rive Gauche
+60,6,2,Chaville-Velizy
+60,6,3,Viroflay-Rive Gauche
+60,7,1,Versailles-Chantiers
+60,10,1,Saint-Cyr
+60,11,1,Saint-Quentin-en-Yvelines - Montigny le Bretonneux
+60,11,2,Trappes
+60,12,1,Coignieres
+60,12,2,La Verriere
+60,13,1,Les Essarts-le-Roi
+60,14,1,Le Perray
+60,14,2,Rambouillet
+60,15,1,Gazeran
+61,10,1,Fontenay-le-Fleury
+61,11,1,Villepreux Les-Clayes
+61,12,1,Plaisir Grignon
+61,12,2,Plaisir Les-Clayes
+61,13,1,Beynes
+61,13,2,Mareil-sur-Mauldre
+61,13,3,Maule
+61,13,4,Nezel Aulnay
+61,15,1,Garancieres La-Queue
+61,15,2,Montfort-l'Amaury Mere
+61,15,3,Orgerus Behoust
+61,15,4,Tacoigneres Richebourg
+61,15,5,Villiers Neauphle Pontchartrain
+61,16,1,Houdan
+63,7,1,Porchefontaine
+63,7,2,Versailles-Rive Gauche
+64,0,1,Invalides
+64,0,2,Pont de l'alma
+64,1,1,Champ de Mars-Tour Eiffel
+64,2,1,Javel
+64,3,1,Boulevard Victor - Pont du Garigliano
+64,3,2,Issy-Val de Seine
+64,3,3,Issy
+64,5,1,Meudon-Val-Fleury
+65,8,1,Jouy-en-Josas
+65,8,2,Petit-Jouy-les-Loges
+65,9,1,Vauboyen
+65,10,1,Igny
+65,11,1,Massy-Palaiseau
+65,12,1,Longjumeau
+65,13,1,Chilly-Mazarin
+65,14,1,Gravigny-Balizy
+65,14,2,Petit-Vaux
+70,9,1,Parc des Expositions
+70,9,2,Sevran-Beaudottes
+70,9,3,Villepinte
+70,10,1,Aeroport Charles de Gaulle
+72,7,1,Sannois
+73,11,1,Eragny Neuville
+73,11,2,Saint-Ouen-l'Aumone (Eglise)
+75,7,1,Les Saules
+75,7,2,Orly-Ville
+75,9,1,Pont de Rungis Aeroport d'Orly
+75,9,2,Rungis-La Fraternelle
+75,10,1,Chemin d'Antony
+75,12,1,Massy-Verrieres
+75,12,2,Arpajon
+76,12,1,Egly
+76,12,2,La Norville Saint-Germain-les-Arpajon
+76,13,1,Breuillet Bruyeres-le-Châtel
+76,13,2,Breuillet-Village
+76,13,3,Saint-Cheron
+76,14,1,Sermaise
+76,15,1,Dourdan
+76,15,2,Dourdan-la-Foret
