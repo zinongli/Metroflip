@@ -32,7 +32,7 @@
 #include <toolbox/stream/stream.h>
 #include <toolbox/stream/file_stream.h>
 
-#define SUICA_STATION_LIST_PATH         APP_ASSETS_PATH("suica/stations.txt")
+#define SUICA_STATION_LIST_PATH         APP_ASSETS_PATH("suica/line_")
 #define SERVICE_CODE_HISTORY_IN_LE      (0x090FU)
 #define SERVICE_CODE_TAPS_LOG_IN_LE     (0x108FU)
 #define BLOCK_COUNT                     1
@@ -126,7 +126,9 @@ void suica_parse_train_code(
     size_t station_JR_header_comma_ind = 0;
 
     bool station_found = false;
-    if(file_stream_open(stream, SUICA_STATION_LIST_PATH, FSAM_READ, FSOM_OPEN_EXISTING)) {
+    FuriString* file_name = furi_string_alloc();
+    furi_string_printf(file_name, "%s0x%02X.txt", SUICA_STATION_LIST_PATH, line_code);
+    if(file_stream_open(stream, furi_string_get_cstr(file_name), FSAM_READ, FSOM_OPEN_EXISTING)) {
         while(stream_read_line(stream, line) && !station_found) {
             // file is in csv format: station_group_id,station_id,station_sub_id,station_name
             // search for the station
