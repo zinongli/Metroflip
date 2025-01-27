@@ -391,8 +391,8 @@ static void suica_draw_train_page_2(
         canvas_set_font(canvas, FontBigNumbers);
         canvas_draw_icon(
             canvas,
-            17 + history.entry_line.logo_position[0],
-            22 + history.entry_line.logo_position[1],
+            17 + history.entry_line.logo_offset[0],
+            22 + history.entry_line.logo_offset[1],
             history.entry_line.logo_icon);
         furi_string_printf(buffer, "%02d", history.entry_station.station_number);
         canvas_draw_str(canvas, 13, 53, furi_string_get_cstr(buffer));
@@ -480,8 +480,8 @@ static void suica_draw_train_page_2(
         canvas_set_color(canvas, ColorBlack);
         canvas_draw_icon(
             canvas,
-            96 + history.exit_line.logo_position[0],
-            22 + history.exit_line.logo_position[1],
+            96 + history.exit_line.logo_offset[0],
+            22 + history.exit_line.logo_offset[1],
             history.exit_line.logo_icon);
         canvas_set_font(canvas, FontBigNumbers);
         furi_string_printf(buffer, "%02d", history.exit_station.station_number);
@@ -1104,7 +1104,7 @@ static NfcCommand metroflip_scene_suica_poller_callback(NfcGenericEvent event, v
             if(model->size == 1) { // Have to let the poller run once before knowing we failed
                 furi_string_printf(
                     parsed_data,
-                    "\e#Suica\nSorry, no data found.\nPlease let the developer know and we will add support.");
+                    "\e#Suica\nSorry, no data found.\nPlease let the developers know and we will add support.");
             }
             widget_add_text_scroll_element(
                 widget, 0, 0, 128, 64, furi_string_get_cstr(parsed_data));

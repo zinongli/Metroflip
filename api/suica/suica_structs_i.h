@@ -29,7 +29,7 @@ typedef struct {
 typedef struct {
     uint8_t line_code;
     Station* line;
-    const int* logo_position;
+    int logo_offset[2];
     const char* long_name;
     uint8_t station_num;
     SuicaRailwayCompany type;
