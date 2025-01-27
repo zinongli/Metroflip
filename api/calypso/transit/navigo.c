@@ -147,9 +147,9 @@ char* get_navigo_station(
     int station_group_id,
     int station_id,
     int station_sub_id,
-    int service_provider) {
-    switch(service_provider) {
-    case NAVIGO_PROVIDER_SNCF: {
+    int transport_type) {
+    switch(transport_type) {
+    case COMMUTER_TRAIN: {
         if(station_group_id < 77 && station_id < 19) {
             char* file_path = malloc(256 * sizeof(char));
             if(!file_path) {
@@ -158,7 +158,7 @@ char* get_navigo_station(
             snprintf(
                 file_path,
                 256,
-                APP_ASSETS_PATH("navigo/stations/sncf/stations_%d.txt"),
+                APP_ASSETS_PATH("navigo/stations/train/stations_%d.txt"),
                 station_group_id);
             const char* sncf_stations_path = file_path;
             Storage* storage = furi_record_open(RECORD_STORAGE);
@@ -191,7 +191,7 @@ char* get_navigo_station(
                     free(string_line_copy);
                 }
             } else {
-                FURI_LOG_E("Metroflip:Scene:Calypso", "Failed to open sncf_stations.txt");
+                FURI_LOG_E("Metroflip:Scene:Calypso", "Failed to open train stations file");
             }
 
             furi_string_free(line);
@@ -211,8 +211,73 @@ char* get_navigo_station(
         snprintf(station, 10, "%d-%d-%d", station_group_id, station_id, station_sub_id);
         return station;
     }
-    case NAVIGO_PROVIDER_RATP:
-    case NAVIGO_PROVIDER_ORA: {
+    case TRAM: {
+        char* file_path = malloc(256 * sizeof(char));
+        if(!file_path) {
+            return "Unknown";
+        }
+        snprintf(
+            file_path,
+            256,
+            APP_ASSETS_PATH("navigo/stations/tram/stations_%d.txt"),
+            station_group_id);
+        const char* sncf_stations_path = file_path;
+        Storage* storage = furi_record_open(RECORD_STORAGE);
+
+        Stream* stream = file_stream_alloc(storage);
+        FuriString* line = furi_string_alloc();
+
+        char* found_station_name = NULL;
+
+        if(file_stream_open(stream, sncf_stations_path, FSAM_READ, FSOM_OPEN_EXISTING)) {
+            while(stream_read_line(stream, line)) {
+                // file is in csv format: station_id,station_sub_id,station_name
+                // search for the station
+                furi_string_replace_all(line, "\r", "");
+                furi_string_replace_all(line, "\n", "");
+                const char* string_line = furi_string_get_cstr(line);
+                char* string_line_copy = strdup(string_line);
+                if(!string_line_copy) {
+                    return "Unknown";
+                }
+                int line_station_id = atoi(get_token(string_line_copy, ",", string_line_copy));
+                int line_station_sub_id = atoi(get_token(string_line_copy, ",", string_line_copy));
+                if(line_station_id == station_id && line_station_sub_id == station_sub_id) {
+                    found_station_name =
+                        strdup(get_token(string_line_copy, ",", string_line_copy));
+                    free(string_line_copy);
+                    break;
+                }
+                free(string_line_copy);
+            }
+        } else {
+            FURI_LOG_E("Metroflip:Scene:Calypso", "Failed to open tram stations file");
+        }
+
+        furi_string_free(line);
+        file_stream_close(stream);
+        stream_free(stream);
+        free(file_path);
+
+        if(found_station_name) {
+            return found_station_name;
+        }
+
+        // cast station_group_id-station_id-station_sub_id to a string
+        char* station = malloc(12 * sizeof(char));
+        if(!station) {
+            return "Unknown";
+        }
+        if(station_sub_id != 0) {
+            snprintf(station, 10, "%d-%d-%d", station_group_id, station_id, station_sub_id);
+        } else if(station_id != 0) {
+            snprintf(station, 10, "%d-%d", station_group_id, station_id);
+        } else {
+            snprintf(station, 10, "%d", station_group_id);
+        }
+        return station;
+    }
+    case METRO: {
         if(station_group_id < 32 && station_id < 16) {
             char* file_path = malloc(256 * sizeof(char));
             if(!file_path) {
@@ -221,7 +286,7 @@ char* get_navigo_station(
             snprintf(
                 file_path,
                 256,
-                APP_ASSETS_PATH("navigo/stations/ratp/stations_%d.txt"),
+                APP_ASSETS_PATH("navigo/stations/metro/stations_%d.txt"),
                 station_group_id);
             const char* ratp_stations_path = file_path;
             Storage* storage = furi_record_open(RECORD_STORAGE);
@@ -252,7 +317,7 @@ char* get_navigo_station(
                     free(string_line_copy);
                 }
             } else {
-                FURI_LOG_E("Metroflip:Scene:Calypso", "Failed to open ratp_stations.txt");
+                FURI_LOG_E("Metroflip:Scene:Calypso", "Failed to open metro stations file");
             }
 
             furi_string_free(line);
@@ -269,7 +334,13 @@ char* get_navigo_station(
         if(!station) {
             return "Unknown";
         }
-        snprintf(station, 10, "%d-%d", station_group_id, station_id);
+        if(station_sub_id != 0) {
+            snprintf(station, 10, "%d-%d-%d", station_group_id, station_id, station_sub_id);
+        } else if(station_id != 0) {
+            snprintf(station, 10, "%d-%d", station_group_id, station_id);
+        } else {
+            snprintf(station, 10, "%d", station_group_id);
+        }
         return station;
     }
     default: {
@@ -278,13 +349,19 @@ char* get_navigo_station(
         if(!station) {
             return "Unknown";
         }
-        snprintf(station, 10, "%d-%d", station_group_id, station_id);
+        if(station_sub_id != 0) {
+            snprintf(station, 10, "%d-%d-%d", station_group_id, station_id, station_sub_id);
+        } else if(station_id != 0) {
+            snprintf(station, 10, "%d-%d", station_group_id, station_id);
+        } else {
+            snprintf(station, 10, "%d", station_group_id);
+        }
         return station;
     }
     }
 }
 
-char* get_navigo_sncf_sector(int station_group_id) {
+char* get_navigo_train_sector(int station_group_id) {
     // group id is in format XY where X is the sector
     const char* station_name = NAVIGO_SNCF_SECTORS_LIST[station_group_id / 10];
     return strdup(station_name);
@@ -293,6 +370,7 @@ char* get_navigo_sncf_sector(int station_group_id) {
 const char* get_navigo_tram_line(int route_number) {
     switch(route_number) {
     case 1:
+    case 13:
         return "T3a";
     case 9:
         return "T9";
@@ -320,12 +398,12 @@ void show_navigo_event_info(
         return;
     }
     char* station = get_navigo_station(
-        event->station_group_id, event->station_id, event->station_sub_id, event->service_provider);
+        event->station_group_id, event->station_id, event->station_sub_id, event->transport_type);
     char* sector = NULL;
-    if(event->service_provider == NAVIGO_PROVIDER_SNCF) {
-        sector = get_navigo_sncf_sector(event->station_group_id);
+    if(event->transport_type == COMMUTER_TRAIN) {
+        sector = get_navigo_train_sector(event->station_group_id);
     } else {
-        sector = get_navigo_station(event->station_group_id, 0, 0, event->service_provider);
+        sector = get_navigo_station(event->station_group_id, 0, 0, event->transport_type);
     }
 
     if(event->transport_type == URBAN_BUS || event->transport_type == INTERURBAN_BUS ||
@@ -474,8 +552,13 @@ void show_navigo_event_info(
 
 void show_navigo_special_event_info(NavigoCardSpecialEvent* event, FuriString* parsed_data) {
     char* station = get_navigo_station(
-        event->station_group_id, event->station_id, event->station_sub_id, event->service_provider);
-    char* sector = get_navigo_station(event->station_group_id, 0, 0, event->service_provider);
+        event->station_group_id, event->station_id, event->station_sub_id, event->transport_type);
+    char* sector = NULL;
+    if(event->transport_type == COMMUTER_TRAIN) {
+        sector = get_navigo_train_sector(event->station_group_id);
+    } else {
+        sector = get_navigo_station(event->station_group_id, 0, 0, event->transport_type);
+    }
 
     if(event->transport_type == URBAN_BUS || event->transport_type == INTERURBAN_BUS ||
        event->transport_type == METRO || event->transport_type == TRAM) {
