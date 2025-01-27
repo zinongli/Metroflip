@@ -609,6 +609,54 @@ const char* get_intercode_string_transition_type(int transition) {
     }
 }
 
+const char* get_intercode_string_transport_type(int type) {
+    switch(type) {
+    case URBAN_BUS:
+        return "Urban Bus";
+    case INTERURBAN_BUS:
+        return "Interurban Bus";
+    case METRO:
+        return "Metro";
+    case TRAM:
+        return "Tram";
+    case COMMUTER_TRAIN:
+        return "Train";
+    case PARKING:
+        return "Parking";
+    default:
+        return "Unknown";
+    }
+}
+
+const char* get_intercode_string_pay_method(int pay_method) {
+    switch(pay_method) {
+    case 0x30:
+        return "Apple Pay/Google Pay";
+    case 0x80:
+        return "Debit PME";
+    case 0x90:
+        return "Cash";
+    case 0xA0:
+        return "Mobility Check";
+    case 0xB3:
+        return "Payment Card";
+    case 0xA4:
+        return "Check";
+    case 0xA5:
+        return "Vacation Check";
+    case 0xB7:
+        return "Telepayment";
+    case 0xD0:
+        return "Remote Payment";
+    case 0xD7:
+        return "Voucher, Prepayment, Exchange Voucher, Travel Voucher";
+    case 0xD9:
+        return "Discount Voucher";
+    default:
+        return "Unknown";
+    }
+}
+
 const char* get_intercode_string_event_result(int result) {
     switch(result) {
     case 0x0:

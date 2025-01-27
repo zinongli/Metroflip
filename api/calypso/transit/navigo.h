@@ -40,14 +40,6 @@ void show_navigo_environment_info(
     FuriString* parsed_data);
 
 typedef enum {
-    NAVIGO_EASY = 0,
-    NAVIGO_DECOUVERTE = 1,
-    NAVIGO_STANDARD = 2,
-    NAVIGO_INTEGRAL = 6,
-    IMAGINE_R = 14
-} NAVIGO_CARD_STATUS;
-
-typedef enum {
     NAVIGO_PROVIDER_SNCF = 2,
     NAVIGO_PROVIDER_RATP = 3,
     NAVIGO_PROVIDER_IDFM = 4,

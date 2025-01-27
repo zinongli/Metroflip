@@ -2,27 +2,6 @@
 #include "navigo_lists.h"
 #include "../../../metroflip_i.h"
 
-const char* get_navigo_transport_type(int type) {
-    switch(type) {
-    case URBAN_BUS:
-        return "Urban Bus";
-    case INTERURBAN_BUS:
-        return "Interurban Bus";
-    case METRO:
-        return "Metro";
-    case TRAM:
-        return "Tram";
-    case COMMUTER_TRAIN:
-        return "Train";
-    case PARKING:
-        return "Parking";
-    case EXPRESS_COMMUTER_TRAIN:
-        return "TER";
-    default:
-        return "Unknown";
-    }
-}
-
 const char* get_navigo_service_provider(int provider) {
     switch(provider) {
     case NAVIGO_PROVIDER_SNCF:
@@ -47,23 +26,6 @@ const char* get_navigo_service_provider(int provider) {
         snprintf(provider_str, 6, "%d", provider);
         return provider_str;
     }
-    }
-}
-
-const char* get_navigo_type(int type) {
-    switch(type) {
-    case NAVIGO_EASY:
-        return "Navigo Easy";
-    case NAVIGO_DECOUVERTE:
-        return "Navigo Decouverte";
-    case NAVIGO_STANDARD:
-        return "Navigo Standard";
-    case NAVIGO_INTEGRAL:
-        return "Navigo Integral";
-    case IMAGINE_R:
-        return "Imagine R";
-    default:
-        return "Navigo";
     }
 }
 
@@ -120,39 +82,6 @@ const char* get_navigo_tariff(int tariff) {
         snprintf(tariff_str, 6, "%d", tariff);
         return tariff_str;
     }
-    }
-}
-
-bool is_ticket_count_available(int tariff) {
-    return tariff >= 0x5000 && tariff <= 0x501b;
-}
-
-const char* get_pay_method(int pay_method) {
-    switch(pay_method) {
-    case 0x30:
-        return "Apple Pay/Google Pay";
-    case 0x80:
-        return "Debit PME";
-    case 0x90:
-        return "Cash";
-    case 0xA0:
-        return "Mobility Check";
-    case 0xB3:
-        return "Payment Card";
-    case 0xA4:
-        return "Check";
-    case 0xA5:
-        return "Vacation Check";
-    case 0xB7:
-        return "Telepayment";
-    case 0xD0:
-        return "Remote Payment";
-    case 0xD7:
-        return "Voucher, Prepayment, Exchange Voucher, Travel Voucher";
-    case 0xD9:
-        return "Discount Voucher";
-    default:
-        return "Unknown";
     }
 }
 
@@ -402,20 +331,20 @@ void show_navigo_event_info(
                 furi_string_cat_printf(
                     parsed_data,
                     "%s 3 bis\n%s\n",
-                    get_navigo_transport_type(event->transport_type),
+                    get_intercode_string_transport_type(event->transport_type),
                     get_intercode_string_transition_type(event->transition));
             } else if(event->transport_type == TRAM) {
                 furi_string_cat_printf(
                     parsed_data,
                     "%s %s\n%s\n",
-                    get_navigo_transport_type(event->transport_type),
+                    get_intercode_string_transport_type(event->transport_type),
                     get_navigo_tram_line(event->route_number),
                     get_intercode_string_transition_type(event->transition));
             } else {
                 furi_string_cat_printf(
                     parsed_data,
                     "%s %d\n%s\n",
-                    get_navigo_transport_type(event->transport_type),
+                    get_intercode_string_transport_type(event->transport_type),
                     event->route_number,
                     get_intercode_string_transition_type(event->transition));
             }
@@ -423,7 +352,7 @@ void show_navigo_event_info(
             furi_string_cat_printf(
                 parsed_data,
                 "%s\n%s\n",
-                get_navigo_transport_type(event->transport_type),
+                get_intercode_string_transport_type(event->transport_type),
                 get_intercode_string_transition_type(event->transition));
         }
         furi_string_cat_printf(
@@ -468,7 +397,7 @@ void show_navigo_event_info(
             furi_string_cat_printf(
                 parsed_data,
                 "%s %s\n%s\n",
-                get_navigo_transport_type(event->transport_type),
+                get_intercode_string_transport_type(event->transport_type),
                 get_navigo_sncf_train_line(event->station_group_id),
                 get_intercode_string_transition_type(event->transition));
         }
@@ -506,7 +435,7 @@ void show_navigo_event_info(
         furi_string_cat_printf(
             parsed_data,
             "%s - %s\n",
-            get_navigo_transport_type(event->transport_type),
+            get_intercode_string_transport_type(event->transport_type),
             get_intercode_string_transition_type(event->transition));
         furi_string_cat_printf(
             parsed_data,
@@ -552,20 +481,20 @@ void show_navigo_special_event_info(NavigoCardSpecialEvent* event, FuriString* p
                 furi_string_cat_printf(
                     parsed_data,
                     "%s 3 bis\n%s\n",
-                    get_navigo_transport_type(event->transport_type),
+                    get_intercode_string_transport_type(event->transport_type),
                     get_intercode_string_transition_type(event->transition));
             } else if(event->transport_type == TRAM) {
                 furi_string_cat_printf(
                     parsed_data,
                     "%s %s\n%s\n",
-                    get_navigo_transport_type(event->transport_type),
+                    get_intercode_string_transport_type(event->transport_type),
                     get_navigo_tram_line(event->route_number),
                     get_intercode_string_transition_type(event->transition));
             } else {
                 furi_string_cat_printf(
                     parsed_data,
                     "%s %d\n%s\n",
-                    get_navigo_transport_type(event->transport_type),
+                    get_intercode_string_transport_type(event->transport_type),
                     event->route_number,
                     get_intercode_string_transition_type(event->transition));
             }
@@ -573,7 +502,7 @@ void show_navigo_special_event_info(NavigoCardSpecialEvent* event, FuriString* p
             furi_string_cat_printf(
                 parsed_data,
                 "%s\n%s\n",
-                get_navigo_transport_type(event->transport_type),
+                get_intercode_string_transport_type(event->transport_type),
                 get_intercode_string_transition_type(event->transition));
         }
         furi_string_cat_printf(
@@ -599,7 +528,7 @@ void show_navigo_special_event_info(NavigoCardSpecialEvent* event, FuriString* p
             furi_string_cat_printf(
                 parsed_data,
                 "%s %s\n%s\n",
-                get_navigo_transport_type(event->transport_type),
+                get_intercode_string_transport_type(event->transport_type),
                 get_navigo_sncf_train_line(event->station_group_id),
                 get_intercode_string_transition_type(event->transition));
         }
@@ -623,7 +552,7 @@ void show_navigo_special_event_info(NavigoCardSpecialEvent* event, FuriString* p
         furi_string_cat_printf(
             parsed_data,
             "%s - %s\n",
-            get_navigo_transport_type(event->transport_type),
+            get_intercode_string_transport_type(event->transport_type),
             get_intercode_string_transition_type(event->transition));
         furi_string_cat_printf(
             parsed_data, "Result: %s\n", get_intercode_string_event_result(event->result));
@@ -670,7 +599,9 @@ void show_navigo_contract_info(NavigoCardContract* contract, FuriString* parsed_
     }
     if(contract->pay_method_available) {
         furi_string_cat_printf(
-            parsed_data, "Payment Method: %s\n", get_pay_method(contract->pay_method));
+            parsed_data,
+            "Payment Method: %s\n",
+            get_intercode_string_pay_method(contract->pay_method));
     }
     if(contract->zones_available) {
         furi_string_cat_printf(parsed_data, "%s\n", get_zones(contract->zones));
