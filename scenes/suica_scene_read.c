@@ -1150,27 +1150,41 @@ static NfcCommand suica_scene_suica_poller_callback(NfcGenericEvent event, void*
     uint8_t blocks[1] = {0x00};
     FelicaPoller* felica_poller = event.instance;
     FURI_LOG_I(TAG, "Poller set");
+    if(felica_event->type == FelicaPollerEventTypeError) {
+        view_dispatcher_send_custom_event(app->view_dispatcher, SuicaCustomEventPollerFail);
+        command = NfcCommandStop;
+    }
     if(felica_event->type == FelicaPollerEventTypeRequestAuthContext) {
+        view_dispatcher_send_custom_event(app->view_dispatcher, SuicaCustomEventCardDetected);
+        command = NfcCommandContinue;
         if(stage == SuicaPollerEventTypeStart) {
             nfc_device_set_data(
                 app->nfc_device, NfcProtocolFelica, nfc_poller_get_data(app->poller));
             furi_string_printf(parsed_data, "\e#Suica\n");
 
-            FelicaError error;
+            FelicaError error = FelicaErrorNone;
+            int service_code_index = 0;
             // Authenticate with the card
             // Iterate through the two services
-            for(int service_code_index = 0; service_code_index < 2; service_code_index++) {
+            while(service_code_index < 2 && error == FelicaErrorNone) {
                 furi_string_cat_printf(
                     parsed_data, "%s: \n", suica_service_names[service_code_index]);
                 rx_resp->SF1 = 0;
                 rx_resp->SF2 = 0;
-                blocks[0] = 0;
-                uint8_t max_blocks = 120; // Arbitrary limit to prevent infinite loops
-                while((rx_resp->SF1 + rx_resp->SF2) == 0 && blocks[0] < max_blocks) {
+                blocks[0] = 0; // firmware api requires this to be a list
+                uint8_t max_blocks = 25; // Arbitrary limit to prevent infinite loops
+                while((rx_resp->SF1 + rx_resp->SF2) == 0 && blocks[0] < max_blocks &&
+                      error == FelicaErrorNone) {
                     uint8_t block_data[16] = {0};
                     error = felica_poller_read_blocks(
                         felica_poller, 1, blocks, service_code[service_code_index], &rx_resp);
-
+                    FURI_LOG_I(TAG, "Erorr = %d", error);
+                    if(error != FelicaErrorNone) {
+                        view_dispatcher_send_custom_event(
+                            app->view_dispatcher, SuicaCustomEventCardLost);
+                        command = NfcCommandStop;
+                        break;
+                    }
                     furi_string_cat_printf(parsed_data, "Block %02X\n", blocks[0]);
                     blocks[0]++;
                     for(size_t i = 0; i < FELICA_DATA_BLOCK_SIZE; i++) {
@@ -1182,16 +1196,11 @@ static NfcCommand suica_scene_suica_poller_callback(NfcGenericEvent event, void*
                         FURI_LOG_I(TAG, "Service code %d, adding entry", service_code_index);
                         suica_add_entry(model, block_data);
                     }
-
-                    if(error != FelicaErrorNone) {
-                        stage = SuicaPollerEventTypeFail;
-                        break;
-                    }
                 }
+                service_code_index++;
             }
             suica_app_blink_stop(app);
-            stage = (error == FelicaErrorNone) ? SuicaPollerEventTypeSuccess :
-                                                 SuicaPollerEventTypeFail;
+
             if(model->size == 1) { // Have to let the poller run once before knowing we failed
                 furi_string_printf(
                     parsed_data,
@@ -1344,43 +1353,49 @@ void suica_scene_read_on_enter(void* context) {
 
     view_dispatcher_add_view(
         app->view_dispatcher, SuicaViewCanvas, app->suica_context->view_history);
-    // Setup view
-    Popup* popup = app->popup;
-    popup_set_header(popup, "Apply\n card to\nthe back", 68, 30, AlignLeft, AlignTop);
-    popup_set_icon(popup, 0, 3, &I_RFIDDolphinReceive_97x61);
 
-    // Start worker
-    view_dispatcher_switch_to_view(app->view_dispatcher, SuicaViewPopup);
     nfc_scanner_alloc(app->nfc);
     app->poller = nfc_poller_alloc(app->nfc, NfcProtocolFelica);
     nfc_poller_start(app->poller, suica_scene_suica_poller_callback, app);
 
     suica_app_blink_start(app);
+
+    view_dispatcher_send_custom_event(
+                            app->view_dispatcher, SuicaCustomEventPollerSuccess);
 }
 
 bool suica_scene_read_on_event(void* context, SceneManagerEvent event) {
     Suica* app = context;
     bool consumed = false;
-
+    Popup* popup = app->popup;
     if(event.type == SceneManagerEventTypeCustom) {
         if(event.event == SuicaCustomEventCardDetected) {
-            Popup* popup = app->popup;
             popup_set_header(popup, "DON'T\nMOVE", 68, 30, AlignLeft, AlignTop);
             consumed = true;
         } else if(event.event == SuicaCustomEventCardLost) {
-            Popup* popup = app->popup;
             popup_set_header(popup, "Card \n lost", 68, 30, AlignLeft, AlignTop);
+            // popup_set_timeout(popup, 2000);
+            // popup_enable_timeout(popup);
+            // view_dispatcher_switch_to_view(app->view_dispatcher, SuicaViewPopup);
+            // popup_disable_timeout(popup);
+            scene_manager_search_and_switch_to_previous_scene(app->scene_manager, SuicaSceneStart);
             consumed = true;
         } else if(event.event == SuicaCustomEventWrongCard) {
-            Popup* popup = app->popup;
             popup_set_header(popup, "WRONG \n CARD", 68, 30, AlignLeft, AlignTop);
+            scene_manager_search_and_switch_to_previous_scene(app->scene_manager, SuicaSceneStart);
             consumed = true;
         } else if(event.event == SuicaCustomEventPollerFail) {
-            Popup* popup = app->popup;
             popup_set_header(popup, "Failed", 68, 30, AlignLeft, AlignTop);
+            scene_manager_search_and_switch_to_previous_scene(app->scene_manager, SuicaSceneStart);
             consumed = true;
+        } else {
+            popup_set_header(popup, "Apply\n card to\nthe back", 68, 30, AlignLeft, AlignTop);
+            popup_set_icon(popup, 0, 3, &I_RFIDDolphinReceive_97x61);
+            view_dispatcher_switch_to_view(app->view_dispatcher, SuicaViewPopup);
         }
+
     } else if(event.type == SceneManagerEventTypeBack) {
+        UNUSED(popup);
         scene_manager_search_and_switch_to_previous_scene(app->scene_manager, SuicaSceneStart);
         consumed = true;
     }

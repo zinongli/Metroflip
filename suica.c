@@ -48,6 +48,7 @@ Suica* suica_alloc() {
         app->view_dispatcher, SuicaViewTextInput, text_input_get_view(app->text_input));
 
     app->popup = popup_alloc();
+popup_set_timeout(app->popup, 2000);
     view_dispatcher_add_view(app->view_dispatcher, SuicaViewPopup, popup_get_view(app->popup));
     app->nfc_device = nfc_device_alloc();
 
