@@ -29,17 +29,14 @@ Suica* suica_alloc() {
 
     view_dispatcher_set_event_callback_context(app->view_dispatcher, app);
 
-    view_dispatcher_set_custom_event_callback(
-        app->view_dispatcher, suica_custom_event_callback);
-    view_dispatcher_set_navigation_event_callback(
-        app->view_dispatcher, suica_back_event_callback);
+    view_dispatcher_set_custom_event_callback(app->view_dispatcher, suica_custom_event_callback);
+    view_dispatcher_set_navigation_event_callback(app->view_dispatcher, suica_back_event_callback);
 
     view_dispatcher_attach_to_gui(app->view_dispatcher, app->gui, ViewDispatcherTypeFullscreen);
 
     // Custom Widget
     app->widget = widget_alloc();
-    view_dispatcher_add_view(
-        app->view_dispatcher, SuicaViewWidget, widget_get_view(app->widget));
+    view_dispatcher_add_view(app->view_dispatcher, SuicaViewWidget, widget_get_view(app->widget));
 
     // Gui Modules
     app->submenu = submenu_alloc();
@@ -118,7 +115,6 @@ void suica_exit_widget_callback(GuiButtonType result, InputType type, void* cont
     }
 }
 
-
 extern int32_t suica_ep(void* p) {
     UNUSED(p);
     Suica* app = suica_alloc();
@@ -128,5 +124,3 @@ extern int32_t suica_ep(void* p) {
     suica_free(app);
     return 0;
 }
-
-

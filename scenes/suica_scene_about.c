@@ -17,8 +17,7 @@ void suica_scene_about_on_enter(void* context) {
 
     widget_add_text_scroll_element(widget, 0, 0, 128, 64, furi_string_get_cstr(str));
 
-    widget_add_button_element(
-        widget, GuiButtonTypeRight, "Exit", suica_exit_widget_callback, app);
+    widget_add_button_element(widget, GuiButtonTypeRight, "Exit", suica_exit_widget_callback, app);
 
     furi_string_free(str);
     view_dispatcher_switch_to_view(app->view_dispatcher, SuicaViewWidget);

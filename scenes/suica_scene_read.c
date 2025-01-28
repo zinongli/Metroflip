@@ -74,10 +74,9 @@ static void suica_model_initialize(SuicaHistoryViewModel* model, size_t initial_
     model->history.entry_station.name = furi_string_alloc_set("Unknown");
     model->history.entry_station.jr_header = furi_string_alloc_set("0");
     model->history.exit_station.name = furi_string_alloc_set("Unknown");
-    model->history.exit_station.jr_header = furi_string_alloc_set("0"); 
+    model->history.exit_station.jr_header = furi_string_alloc_set("0");
     model->history.entry_line = RailwaysList[SUICA_RAILWAY_NUM];
     model->history.exit_line = RailwaysList[SUICA_RAILWAY_NUM];
-
 }
 
 static void suica_add_entry(SuicaHistoryViewModel* model, const uint8_t* entry) {
@@ -163,34 +162,39 @@ void suica_parse_train_code(
 
     furi_string_set(station_num_candidate, line_copy); // Keikyu Main,Shinagawa,1,0
     furi_string_right(station_num_candidate, line_comma_ind + station_comma_ind + 2); // 1,0
-    station_num_comma_ind = furi_string_search_char(station_num_candidate, ',', 0); 
+    station_num_comma_ind = furi_string_search_char(station_num_candidate, ',', 0);
     furi_string_left(station_num_candidate, station_num_comma_ind); // 1
 
-
     furi_string_set(station_JR_header_candidate, line_copy); // Keikyu Main,Shinagawa,1,0
-    furi_string_right(station_JR_header_candidate, line_comma_ind + station_comma_ind + station_num_comma_ind + 3); // 0
-    station_JR_header_comma_ind = furi_string_search_char(station_JR_header_candidate, ',', 0); 
-    furi_string_left(station_JR_header_candidate, station_JR_header_comma_ind); // 0    
+    furi_string_right(
+        station_JR_header_candidate,
+        line_comma_ind + station_comma_ind + station_num_comma_ind + 3); // 0
+    station_JR_header_comma_ind = furi_string_search_char(station_JR_header_candidate, ',', 0);
+    furi_string_left(station_JR_header_candidate, station_JR_header_comma_ind); // 0
 
     switch(ride_type) {
     case SuicaTrainRideEntry:
         for(size_t i = 0; i < SUICA_RAILWAY_NUM; i++) {
-            if(furi_string_equal_str(line_candidate,RailwaysList[i].long_name)) {            
+            if(furi_string_equal_str(line_candidate, RailwaysList[i].long_name)) {
                 model->history.entry_line = RailwaysList[i];
                 furi_string_set(model->history.entry_station.name, station_candidate);
-                model->history.entry_station.station_number = atoi(furi_string_get_cstr(station_num_candidate));
-                furi_string_set(model->history.entry_station.jr_header, station_JR_header_candidate);
+                model->history.entry_station.station_number =
+                    atoi(furi_string_get_cstr(station_num_candidate));
+                furi_string_set(
+                    model->history.entry_station.jr_header, station_JR_header_candidate);
                 break;
             }
         }
         break;
     case SuicaTrainRideExit:
         for(size_t i = 0; i < SUICA_RAILWAY_NUM; i++) {
-            if(furi_string_equal_str(line_candidate,RailwaysList[i].long_name)) {
+            if(furi_string_equal_str(line_candidate, RailwaysList[i].long_name)) {
                 model->history.exit_line = RailwaysList[i];
                 furi_string_set(model->history.exit_station.name, station_candidate);
-                model->history.exit_station.station_number = atoi(furi_string_get_cstr(station_num_candidate));
-                furi_string_set(model->history.exit_station.jr_header, station_JR_header_candidate);
+                model->history.exit_station.station_number =
+                    atoi(furi_string_get_cstr(station_num_candidate));
+                furi_string_set(
+                    model->history.exit_station.jr_header, station_JR_header_candidate);
                 break;
             }
         }
@@ -243,13 +247,12 @@ static void suica_parse(SuicaHistoryViewModel* my_model) {
         uint8_t exit_line = current_block[8];
         uint8_t exit_station = current_block[9];
 
-        if ((uint8_t)current_block[0] != TERMINAL_MOBILE_PHONE) {
+        if((uint8_t)current_block[0] != TERMINAL_MOBILE_PHONE) {
             suica_parse_train_code(entry_line, entry_station, SuicaTrainRideEntry, my_model);
         }
-        if ((uint8_t)current_block[1] != PROCESSING_CODE_NEW_ISSUE) {
+        if((uint8_t)current_block[1] != PROCESSING_CODE_NEW_ISSUE) {
             suica_parse_train_code(exit_line, exit_station, SuicaTrainRideExit, my_model);
         }
-        
 
         if(((uint8_t)current_block[4] + (uint8_t)current_block[5]) != 0) {
             my_model->history.year = ((uint8_t)current_block[4] & 0xFE) >> 1;
@@ -443,12 +446,17 @@ static void
         canvas_draw_str(canvas, 14, 51, furi_string_get_cstr(buffer));
         break;
     case SuicaJR:
-        if(!furi_string_equal_str(history.entry_station.jr_header,"0")) {
+        if(!furi_string_equal_str(history.entry_station.jr_header, "0")) {
             canvas_draw_rbox(canvas, 6, 14, 38, 48, 7);
             canvas_set_color(canvas, ColorWhite);
             canvas_set_font(canvas, FontPrimary);
             canvas_draw_str_aligned(
-                canvas, 25, 24, AlignCenter, AlignBottom, furi_string_get_cstr(history.entry_station.jr_header));
+                canvas,
+                25,
+                24,
+                AlignCenter,
+                AlignBottom,
+                furi_string_get_cstr(history.entry_station.jr_header));
             canvas_draw_rbox(canvas, 9, 26, 32, 32, 5);
             canvas_set_color(canvas, ColorBlack);
             canvas_draw_frame(canvas, 12, 29, 26, 26);
@@ -529,12 +537,17 @@ static void
         canvas_draw_str(canvas, 91, 51, furi_string_get_cstr(buffer));
         break;
     case SuicaJR:
-        if(!furi_string_equal_str(history.exit_station.jr_header,"0")) {
+        if(!furi_string_equal_str(history.exit_station.jr_header, "0")) {
             canvas_draw_rbox(canvas, 83, 14, 38, 48, 7);
             canvas_set_color(canvas, ColorWhite);
             canvas_set_font(canvas, FontPrimary);
             canvas_draw_str_aligned(
-                canvas, 101, 24, AlignCenter, AlignBottom, furi_string_get_cstr(history.exit_station.jr_header));
+                canvas,
+                101,
+                24,
+                AlignCenter,
+                AlignBottom,
+                furi_string_get_cstr(history.exit_station.jr_header));
             canvas_draw_rbox(canvas, 86, 26, 32, 32, 5);
             canvas_set_color(canvas, ColorBlack);
             canvas_draw_frame(canvas, 89, 29, 26, 26);
@@ -1003,16 +1016,19 @@ static void suica_history_draw_callback(Canvas* canvas, void* model) {
     // Get previous balance if we are not at the earliest entry
     if(my_model->entry < my_model->size) {
         my_model->history.previous_balance = my_model->travel_history[(my_model->entry * 16) + 10];
-        my_model->history.previous_balance |= my_model->travel_history[(my_model->entry * 16) + 11] << 8;
+        my_model->history.previous_balance |= my_model->travel_history[(my_model->entry * 16) + 11]
+                                              << 8;
     } else {
         my_model->history.previous_balance = 0;
     }
     // Calculate balance change
     if(my_model->history.previous_balance < my_model->history.balance) {
-        my_model->history.balance_change = my_model->history.balance - my_model->history.previous_balance;
+        my_model->history.balance_change =
+            my_model->history.balance - my_model->history.previous_balance;
         my_model->history.balance_sign = SuicaBalanceAdd;
     } else if(my_model->history.previous_balance > my_model->history.balance) {
-        my_model->history.balance_change = my_model->history.previous_balance - my_model->history.balance;
+        my_model->history.balance_change =
+            my_model->history.previous_balance - my_model->history.balance;
         my_model->history.balance_sign = SuicaBalanceSub;
     } else {
         my_model->history.balance_change = 0;
@@ -1024,7 +1040,12 @@ static void suica_history_draw_callback(Canvas* canvas, void* model) {
     canvas_draw_str(canvas, 0, 8, "Suica");
 
     // Date
-    furi_string_printf(buffer, "20%02d-%02d-%02d", my_model->history.year, my_model->history.month, my_model->history.day);
+    furi_string_printf(
+        buffer,
+        "20%02d-%02d-%02d",
+        my_model->history.year,
+        my_model->history.month,
+        my_model->history.day);
     canvas_set_font(canvas, FontPrimary);
     canvas_draw_str(canvas, 34, 8, furi_string_get_cstr(buffer));
 
@@ -1118,7 +1139,7 @@ static NfcCommand suica_scene_suica_poller_callback(NfcGenericEvent event, void*
     Suica* app = (Suica*)context;
     FuriString* parsed_data = furi_string_alloc();
     SuicaHistoryViewModel* model = view_get_model(app->suica_context->view_history);
-    
+
     Widget* widget = app->widget;
     const uint16_t service_code[2] = {SERVICE_CODE_HISTORY_IN_LE, SERVICE_CODE_TAPS_LOG_IN_LE};
 

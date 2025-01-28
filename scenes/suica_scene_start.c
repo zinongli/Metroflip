@@ -11,11 +11,9 @@ void suica_scene_start_on_enter(void* context) {
 
     submenu_set_header(submenu, "Suica Reader");
 
-    submenu_add_item(
-        submenu, "Read", SuicaSceneRead, suica_scene_start_submenu_callback, app);
+    submenu_add_item(submenu, "Read", SuicaSceneRead, suica_scene_start_submenu_callback, app);
 
-    submenu_add_item(
-        submenu, "About", SuicaSceneAbout, suica_scene_start_submenu_callback, app);
+    submenu_add_item(submenu, "About", SuicaSceneAbout, suica_scene_start_submenu_callback, app);
 
     submenu_add_item(
         submenu, "Credits", SuicaSceneCredits, suica_scene_start_submenu_callback, app);
