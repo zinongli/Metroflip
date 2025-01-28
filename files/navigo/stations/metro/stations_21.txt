@@ -2,9 +2,9 @@
 1,Chaussee d'Antin - La Fayette
 2,Le Peletier
 3,Cadet
-4,Château Rouge
+4,Chateau Rouge
 7,Barbes - Rochechouart
 8,Gare du Nord
 9,Gare de l'Est
 10,Poissonniere
-11,Château-Landon
+11,Chateau-Landon

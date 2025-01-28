@@ -1,4 +1,5 @@
 0,Passy
+1,Charles de Gaulle - Etoile
 2,Porte Dauphine
 4,La Motte-Picquet - Grenelle
 5,Commerce

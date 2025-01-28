@@ -6,4 +6,5 @@
 7,Villejuif - Leo Lagrange
 8,Villejuif - Paul Vaillant-Couturier
 9,Villejuif - Louis Aragon
+10,Hopital Bicetre
 11,Villejuif - Institut Gustave Roussy

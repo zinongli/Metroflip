@@ -5,3 +5,5 @@
 7,Gare d'Austerlitz
 8,Gare de Lyon
 10,Quai de la Rapee
+13,Gare de Lyon
+14,Gare de Lyon
