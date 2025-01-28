@@ -1118,7 +1118,7 @@ static NfcCommand metroflip_scene_suica_poller_callback(NfcGenericEvent event, v
     Metroflip* app = (Metroflip*)context;
     FuriString* parsed_data = furi_string_alloc();
     SuicaHistoryViewModel* model = view_get_model(app->suica_context->view_history);
-    furi_string_reset(app->text_box_store);
+    
     Widget* widget = app->widget;
     const uint16_t service_code[2] = {SERVICE_CODE_HISTORY_IN_LE, SERVICE_CODE_TAPS_LOG_IN_LE};
 
