@@ -15,7 +15,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "metroflip_i.h"
+#include "suica_i.h"
 #include <flipper_application.h>
 
 #include <lib/nfc/protocols/felica/felica.h>
@@ -28,7 +28,7 @@
 #include <datetime.h>
 #include <api/suica/suica_assets.h>
 
-// Probably not needed after upstream include this in their metroflip_i.h
+// Probably not needed after upstream include this in their suica_i.h
 #include <toolbox/stream/stream.h>
 #include <toolbox/stream/file_stream.h>
 
@@ -37,7 +37,7 @@
 #define SERVICE_CODE_TAPS_LOG_IN_LE     (0x108FU)
 #define BLOCK_COUNT                     1
 #define HISTORY_VIEW_PAGE_NUM           3
-#define TAG                             "Metroflip:Scene:Suica"
+#define TAG                             "Suica:Scene:Suica"
 #define TERMINAL_NULL                   0x02
 #define TERMINAL_BUS                    0x05
 #define TERMINAL_TICKET_VENDING_MACHINE 0x12
@@ -158,7 +158,7 @@ void suica_parse_train_code(
             }
         }
     } else {
-        FURI_LOG_E("Metroflip:Scene:Suica", "Failed to open stations.txt");
+        FURI_LOG_E("Suica:Scene:Suica", "Failed to open stations.txt");
     }
 
     furi_string_set(station_num_candidate, line_copy); // Keikyu Main,Shinagawa,1,0
@@ -1095,27 +1095,27 @@ static void suica_history_draw_callback(Canvas* canvas, void* model) {
 }
 
 static void suica_parse_detail_callback(GuiButtonType result, InputType type, void* context) {
-    Metroflip* app = context;
+    Suica* app = context;
     UNUSED(result);
     if(type == InputTypeShort) {
         SuicaHistoryViewModel* my_model = view_get_model(app->suica_context->view_history);
         suica_parse(my_model);
         FURI_LOG_I(TAG, "Draw Callback: We have %d entries", my_model->size);
-        view_dispatcher_switch_to_view(app->view_dispatcher, MetroflipViewCanvas);
+        view_dispatcher_switch_to_view(app->view_dispatcher, SuicaViewCanvas);
     }
 }
 
 static uint32_t suica_navigation_raw_callback(void* _context) {
     UNUSED(_context);
-    return MetroflipViewWidget;
+    return SuicaViewWidget;
 }
 
-static NfcCommand metroflip_scene_suica_poller_callback(NfcGenericEvent event, void* context) {
+static NfcCommand suica_scene_suica_poller_callback(NfcGenericEvent event, void* context) {
     furi_assert(event.protocol == NfcProtocolFelica);
     NfcCommand command = NfcCommandContinue;
-    MetroflipPollerEventType stage = MetroflipPollerEventTypeStart;
+    SuicaPollerEventType stage = SuicaPollerEventTypeStart;
 
-    Metroflip* app = (Metroflip*)context;
+    Suica* app = (Suica*)context;
     FuriString* parsed_data = furi_string_alloc();
     SuicaHistoryViewModel* model = view_get_model(app->suica_context->view_history);
     
@@ -1130,7 +1130,7 @@ static NfcCommand metroflip_scene_suica_poller_callback(NfcGenericEvent event, v
     FelicaPoller* felica_poller = event.instance;
     FURI_LOG_I(TAG, "Poller set");
     if(felica_event->type == FelicaPollerEventTypeRequestAuthContext) {
-        if(stage == MetroflipPollerEventTypeStart) {
+        if(stage == SuicaPollerEventTypeStart) {
             nfc_device_set_data(
                 app->nfc_device, NfcProtocolFelica, nfc_poller_get_data(app->poller));
             furi_string_printf(parsed_data, "\e#Suica\n");
@@ -1163,14 +1163,14 @@ static NfcCommand metroflip_scene_suica_poller_callback(NfcGenericEvent event, v
                     }
 
                     if(error != FelicaErrorNone) {
-                        stage = MetroflipPollerEventTypeFail;
+                        stage = SuicaPollerEventTypeFail;
                         break;
                     }
                 }
             }
-            metroflip_app_blink_stop(app);
-            stage = (error == FelicaErrorNone) ? MetroflipPollerEventTypeSuccess :
-                                                 MetroflipPollerEventTypeFail;
+            suica_app_blink_stop(app);
+            stage = (error == FelicaErrorNone) ? SuicaPollerEventTypeSuccess :
+                                                 SuicaPollerEventTypeFail;
             if(model->size == 1) { // Have to let the poller run once before knowing we failed
                 furi_string_printf(
                     parsed_data,
@@ -1180,13 +1180,13 @@ static NfcCommand metroflip_scene_suica_poller_callback(NfcGenericEvent event, v
                 widget, 0, 0, 128, 64, furi_string_get_cstr(parsed_data));
 
             widget_add_button_element(
-                widget, GuiButtonTypeRight, "Exit", metroflip_exit_widget_callback, app);
+                widget, GuiButtonTypeRight, "Exit", suica_exit_widget_callback, app);
 
             if(model->size > 1) {
                 widget_add_button_element(
                     widget, GuiButtonTypeCenter, "Parse", suica_parse_detail_callback, app);
             }
-            view_dispatcher_switch_to_view(app->view_dispatcher, MetroflipViewWidget);
+            view_dispatcher_switch_to_view(app->view_dispatcher, SuicaViewWidget);
         }
     }
     furi_string_free(parsed_data);
@@ -1195,7 +1195,7 @@ static NfcCommand metroflip_scene_suica_poller_callback(NfcGenericEvent event, v
 }
 
 static bool suica_history_input_callback(InputEvent* event, void* context) {
-    Metroflip* app = (Metroflip*)context;
+    Suica* app = (Suica*)context;
     if(event->type == InputTypeShort) {
         switch(event->key) {
         case InputKeyLeft: {
@@ -1264,13 +1264,13 @@ static bool suica_history_input_callback(InputEvent* event, void* context) {
 }
 
 static void suica_view_history_timer_callback(void* context) {
-    Metroflip* app = (Metroflip*)context;
+    Suica* app = (Suica*)context;
     view_dispatcher_send_custom_event(app->view_dispatcher, 0);
 }
 
 static void suica_view_history_enter_callback(void* context) {
     uint32_t period = furi_ms_to_ticks(ARROW_ANIMATION_FRAME_MS);
-    Metroflip* app = (Metroflip*)context;
+    Suica* app = (Suica*)context;
     furi_assert(app->suica_context->timer == NULL);
     app->suica_context->timer =
         furi_timer_alloc(suica_view_history_timer_callback, FuriTimerTypePeriodic, context);
@@ -1278,14 +1278,14 @@ static void suica_view_history_enter_callback(void* context) {
 }
 
 static void suica_view_history_exit_callback(void* context) {
-    Metroflip* app = (Metroflip*)context;
+    Suica* app = (Suica*)context;
     furi_timer_stop(app->suica_context->timer);
     furi_timer_free(app->suica_context->timer);
     app->suica_context->timer = NULL;
 }
 
 static bool suica_view_history_custom_event_callback(uint32_t event, void* context) {
-    Metroflip* app = (Metroflip*)context;
+    Suica* app = (Suica*)context;
     switch(event) {
     case 0:
         // Redraw screen by passing true to last parameter of with_view_model.
@@ -1303,8 +1303,8 @@ static bool suica_view_history_custom_event_callback(uint32_t event, void* conte
     }
 }
 
-void metroflip_scene_suica_on_enter(void* context) {
-    Metroflip* app = context;
+void suica_scene_read_on_enter(void* context) {
+    Suica* app = context;
     // Gui* gui = furi_record_open(RECORD_GUI);
     dolphin_deed(DolphinDeedNfcRead);
 
@@ -1322,58 +1322,58 @@ void metroflip_scene_suica_on_enter(void* context) {
         app->suica_context->view_history, ViewModelTypeLockFree, sizeof(SuicaHistoryViewModel));
 
     view_dispatcher_add_view(
-        app->view_dispatcher, MetroflipViewCanvas, app->suica_context->view_history);
+        app->view_dispatcher, SuicaViewCanvas, app->suica_context->view_history);
     // Setup view
     Popup* popup = app->popup;
     popup_set_header(popup, "Apply\n card to\nthe back", 68, 30, AlignLeft, AlignTop);
     popup_set_icon(popup, 0, 3, &I_RFIDDolphinReceive_97x61);
 
     // Start worker
-    view_dispatcher_switch_to_view(app->view_dispatcher, MetroflipViewPopup);
+    view_dispatcher_switch_to_view(app->view_dispatcher, SuicaViewPopup);
     nfc_scanner_alloc(app->nfc);
     app->poller = nfc_poller_alloc(app->nfc, NfcProtocolFelica);
-    nfc_poller_start(app->poller, metroflip_scene_suica_poller_callback, app);
+    nfc_poller_start(app->poller, suica_scene_suica_poller_callback, app);
 
-    metroflip_app_blink_start(app);
+    suica_app_blink_start(app);
 }
 
-bool metroflip_scene_suica_on_event(void* context, SceneManagerEvent event) {
-    Metroflip* app = context;
+bool suica_scene_read_on_event(void* context, SceneManagerEvent event) {
+    Suica* app = context;
     bool consumed = false;
 
     if(event.type == SceneManagerEventTypeCustom) {
-        if(event.event == MetroflipCustomEventCardDetected) {
+        if(event.event == SuicaCustomEventCardDetected) {
             Popup* popup = app->popup;
             popup_set_header(popup, "DON'T\nMOVE", 68, 30, AlignLeft, AlignTop);
             consumed = true;
-        } else if(event.event == MetroflipCustomEventCardLost) {
+        } else if(event.event == SuicaCustomEventCardLost) {
             Popup* popup = app->popup;
             popup_set_header(popup, "Card \n lost", 68, 30, AlignLeft, AlignTop);
             consumed = true;
-        } else if(event.event == MetroflipCustomEventWrongCard) {
+        } else if(event.event == SuicaCustomEventWrongCard) {
             Popup* popup = app->popup;
             popup_set_header(popup, "WRONG \n CARD", 68, 30, AlignLeft, AlignTop);
             consumed = true;
-        } else if(event.event == MetroflipCustomEventPollerFail) {
+        } else if(event.event == SuicaCustomEventPollerFail) {
             Popup* popup = app->popup;
             popup_set_header(popup, "Failed", 68, 30, AlignLeft, AlignTop);
             consumed = true;
         }
     } else if(event.type == SceneManagerEventTypeBack) {
-        scene_manager_search_and_switch_to_previous_scene(app->scene_manager, MetroflipSceneStart);
+        scene_manager_search_and_switch_to_previous_scene(app->scene_manager, SuicaSceneStart);
         consumed = true;
     }
 
     return consumed;
 }
 
-void metroflip_scene_suica_on_exit(void* context) {
-    Metroflip* app = context;
+void suica_scene_read_on_exit(void* context) {
+    Suica* app = context;
     widget_reset(app->widget);
     view_free(app->suica_context->view_history);
-    view_dispatcher_remove_view(app->view_dispatcher, MetroflipViewCanvas);
+    view_dispatcher_remove_view(app->view_dispatcher, SuicaViewCanvas);
     free(app->suica_context);
-    metroflip_app_blink_stop(app);
+    suica_app_blink_stop(app);
     if(app->poller) {
         nfc_poller_stop(app->poller);
         nfc_poller_free(app->poller);

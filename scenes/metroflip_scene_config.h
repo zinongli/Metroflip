@@ -1,5 +1,0 @@
-ADD_SCENE(metroflip, start, Start)
-ADD_SCENE(metroflip, read_success, ReadSuccess)
-ADD_SCENE(metroflip, suica, Suica)
-ADD_SCENE(metroflip, about, About)
-ADD_SCENE(metroflip, credits, Credits)
