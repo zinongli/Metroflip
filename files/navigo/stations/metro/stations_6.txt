@@ -2,10 +2,10 @@
 1,Malesherbes
 2,Monceau
 3,Villiers
-4,Quatre-Septembre
+4,Quatre Septembre
 5,Opera
 6,Auber
-7,Havre - Caumartin
+7,Havre-Caumartin
 8,Saint-Lazare
 9,Saint-Lazare
 10,Saint-Augustin

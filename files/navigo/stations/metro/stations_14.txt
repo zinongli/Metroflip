@@ -6,7 +6,7 @@
 9,Maison Blanche
 10,Tolbiac
 11,Nationale
-12,Campo-Formio
+12,Campo Formio
 13,Les Gobelins
 14,Place d'Italie
 15,Corvisart

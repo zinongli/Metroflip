@@ -1,6 +1,6 @@
 0,Etoile
 1,Iena
-3,Alma - Marceau
+3,Alma-Marceau
 4,Miromesnil
 5,Saint-Philippe du Roule
 7,Franklin D. Roosevelt

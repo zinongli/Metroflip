@@ -4,7 +4,7 @@
 5,Mairie d'Ivry
 6,Le Kremlin-Bicetre
 7,Villejuif - Leo Lagrange
-8,Villejuif - Paul Vaillant-Couturier
+8,Villejuif Paul Vaillant-Couturier
 9,Villejuif - Louis Aragon
 10,Hopital Bicetre
-11,Villejuif - Institut Gustave Roussy
+11,Villejuif - Gustave Roussy

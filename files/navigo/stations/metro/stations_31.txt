@@ -5,7 +5,7 @@
 5,Abbesses
 6,Pigalle
 7,Blanche
-8,Trinite - d'Estienne d'Orves
+8,Trinite d'Estienne d'Orves
 9,Notre-Dame-de-Lorette
 10,Saint-Georges
 12,Rome
