@@ -1155,7 +1155,7 @@ static NfcCommand suica_scene_suica_poller_callback(NfcGenericEvent event, void*
         view_dispatcher_send_custom_event(app->view_dispatcher, SuicaCustomEventPollerFail);
         command = NfcCommandStop;
     }
-    if(felica_event->type == FelicaPollerEventTypeRequestAuthContext ) {
+    if(felica_event->type == FelicaPollerEventTypeRequestAuthContext && felica_poller->data->pmm.data[0] == SUICA_IC_TYPE_CODE) {
         view_dispatcher_send_custom_event(app->view_dispatcher, SuicaCustomEventCardDetected);
         command = NfcCommandContinue;
 
