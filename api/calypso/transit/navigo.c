@@ -397,13 +397,19 @@ void show_navigo_event_info(
         furi_string_cat_printf(parsed_data, "No event data\n");
         return;
     }
+    int navigo_station_type = event->transport_type;
+    if(event->transport_type == COMMUTER_TRAIN && event->route_number_available &&
+       event->route_number >= 16 && event->service_provider == NAVIGO_PROVIDER_RATP &&
+       event->station_sub_id == 0) {
+        navigo_station_type = METRO;
+    }
     char* station = get_navigo_station(
-        event->station_group_id, event->station_id, event->station_sub_id, event->transport_type);
+        event->station_group_id, event->station_id, event->station_sub_id, navigo_station_type);
     char* sector = NULL;
-    if(event->transport_type == COMMUTER_TRAIN) {
+    if(navigo_station_type == COMMUTER_TRAIN) {
         sector = get_navigo_train_sector(event->station_group_id);
     } else {
-        sector = get_navigo_station(event->station_group_id, 0, 0, event->transport_type);
+        sector = get_navigo_station(event->station_group_id, 0, 0, navigo_station_type);
     }
 
     if(event->transport_type == URBAN_BUS || event->transport_type == INTERURBAN_BUS ||
@@ -473,7 +479,7 @@ void show_navigo_event_info(
             furi_string_cat_printf(
                 parsed_data,
                 "RER %c\n%s\n",
-                (65 + event->route_number - 17),
+                (65 + event->route_number - 16),
                 get_intercode_string_transition_type(event->transition));
         } else {
             furi_string_cat_printf(
@@ -551,13 +557,19 @@ void show_navigo_event_info(
 }
 
 void show_navigo_special_event_info(NavigoCardSpecialEvent* event, FuriString* parsed_data) {
+    int navigo_station_type = event->transport_type;
+    if(event->transport_type == COMMUTER_TRAIN && event->route_number_available &&
+       event->route_number >= 16 && event->service_provider == NAVIGO_PROVIDER_RATP &&
+       event->station_sub_id == 0) {
+        navigo_station_type = METRO;
+    }
     char* station = get_navigo_station(
-        event->station_group_id, event->station_id, event->station_sub_id, event->transport_type);
+        event->station_group_id, event->station_id, event->station_sub_id, navigo_station_type);
     char* sector = NULL;
-    if(event->transport_type == COMMUTER_TRAIN) {
+    if(navigo_station_type == COMMUTER_TRAIN) {
         sector = get_navigo_train_sector(event->station_group_id);
     } else {
-        sector = get_navigo_station(event->station_group_id, 0, 0, event->transport_type);
+        sector = get_navigo_station(event->station_group_id, 0, 0, navigo_station_type);
     }
 
     if(event->transport_type == URBAN_BUS || event->transport_type == INTERURBAN_BUS ||
@@ -608,7 +620,7 @@ void show_navigo_special_event_info(NavigoCardSpecialEvent* event, FuriString* p
             furi_string_cat_printf(
                 parsed_data,
                 "RER %c\n%s\n",
-                (65 + event->route_number - 17),
+                (65 + event->route_number - 16),
                 get_intercode_string_transition_type(event->transition));
         } else {
             furi_string_cat_printf(
