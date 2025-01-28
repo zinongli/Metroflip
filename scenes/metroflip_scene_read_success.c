@@ -12,19 +12,6 @@ void metroflip_scene_read_success_on_enter(void* context) {
 
     FuriString* str = furi_string_alloc();
 
-    if(strcmp(app->card_type, "Metromoney") == 0) {
-        FURI_LOG_I(TAG, "Metromoney card detected");
-        furi_string_printf(
-            str,
-            "\e#Metromoney\nCard number: %lu\nBalance: %lu.%02u GEL",
-            app->card_number,
-            app->balance_lari,
-            app->balance_tetri);
-    } else {
-        FURI_LOG_I(TAG, "Unknown card type");
-        furi_string_printf(str, "\e#Unknown card\n");
-    }
-
     widget_add_text_scroll_element(widget, 0, 0, 128, 64, furi_string_get_cstr(str));
 
     widget_add_button_element(

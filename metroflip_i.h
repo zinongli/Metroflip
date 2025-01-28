@@ -43,7 +43,6 @@ extern const Icon I_RFIDDolphinReceive_97x61;
 
 #include "scenes/metroflip_scene.h"
 
-#include "scenes/navigo_structs.h"
 #include "api/suica/suica_structs.h"
 
 typedef struct {
@@ -64,18 +63,6 @@ typedef struct {
     NfcPoller* poller;
     NfcScanner* scanner;
     NfcDevice* nfc_device;
-
-    // card details:
-    uint32_t balance_lari;
-    uint8_t balance_tetri;
-    uint32_t card_number;
-    size_t sec_num;
-    float value;
-    char currency[4];
-    char card_type[32];
-
-    // Navigo specific context
-    NavigoContext* navigo_context;
 
     // Suica specific context
     SuicaContext* suica_context;
@@ -137,18 +124,4 @@ void metroflip_exit_widget_callback(GuiButtonType result, InputType type, void* 
 
 #define Metroflip_POLLER_MAX_BUFFER_SIZE 1024
 
-#define epoch 852073200
 
-void locale_format_datetime_cat(FuriString* out, const DateTime* dt, bool time);
-
-extern uint8_t read_file[5];
-extern uint8_t apdu_success[2];
-extern uint8_t select_app[8];
-
-void byte_to_binary(uint8_t byte, char* bits);
-
-int binary_to_decimal(const char binary[]);
-
-int bit_slice_to_dec(const char* bit_representation, int start, int end);
-
-void dec_to_bits(char dec_representation, char* bit_representation);

@@ -135,77 +135,15 @@ void metroflip_exit_widget_callback(GuiButtonType result, InputType type, void* 
     }
 }
 
-// Calypso
-
-void byte_to_binary(uint8_t byte, char* bits) {
-    for(int i = 7; i >= 0; i--) {
-        bits[7 - i] = (byte & (1 << i)) ? '1' : '0';
-    }
-    bits[8] = '\0';
-}
-
-int binary_to_decimal(const char binary[]) {
-    int decimal = 0;
-    int length = strlen(binary);
-
-    for(int i = 0; i < length; i++) {
-        decimal = decimal * 2 + (binary[i] - '0');
-    }
-
-    return decimal;
-}
-
-void locale_format_datetime_cat(FuriString* out, const DateTime* dt, bool time) {
-    // helper to print datetimes
-    FuriString* s = furi_string_alloc();
-
-    LocaleDateFormat date_format = locale_get_date_format();
-    const char* separator = (date_format == LocaleDateFormatDMY) ? "." : "/";
-    locale_format_date(s, dt, date_format, separator);
-    furi_string_cat(out, s);
-    if(time) {
-        locale_format_time(s, dt, locale_get_time_format(), false);
-        furi_string_cat_printf(out, "  ");
-        furi_string_cat(out, s);
-    }
-
-    furi_string_free(s);
-}
-
-// read file
-uint8_t read_file[5] = {0x94, 0xb2, 0x01, 0x04, 0x1D};
-//                                 ^^^
-//                                 |||
-//                                 FID
-
-// select app
-uint8_t select_app[8] = {0x94, 0xA4, 0x00, 0x00, 0x02, 0x20, 0x00, 0x00};
-//                                                    ^^^^^^^^^
-//                                                    |||||||||
-//                                                    AID: 20XX
-
-uint8_t apdu_success[2] = {0x90, 0x00};
-
-int bit_slice_to_dec(const char* bit_representation, int start, int end) {
-    char bit_slice[end - start + 2];
-    strncpy(bit_slice, bit_representation + start, end - start + 1);
-    bit_slice[end - start + 1] = '\0';
-    return binary_to_decimal(bit_slice);
-}
 
 extern int32_t metroflip(void* p) {
     UNUSED(p);
     Metroflip* app = metroflip_alloc();
-    scene_manager_set_scene_state(app->scene_manager, MetroflipSceneStart, MetroflipSceneRavKav);
+    scene_manager_set_scene_state(app->scene_manager, MetroflipSceneStart, MetroflipSceneSuica);
     scene_manager_next_scene(app->scene_manager, MetroflipSceneStart);
     view_dispatcher_run(app->view_dispatcher);
     metroflip_free(app);
     return 0;
 }
 
-void dec_to_bits(char dec_representation, char* bit_representation) {
-    int decimal = dec_representation - '0';
-    for(int i = 7; i >= 0; --i) {
-        bit_representation[i] = (decimal & (1 << i)) ? '1' : '0';
-    }
-}
+

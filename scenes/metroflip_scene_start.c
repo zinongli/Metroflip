@@ -15,44 +15,6 @@ void metroflip_scene_start_on_enter(void* context) {
         submenu, "Suica", MetroflipSceneSuica, metroflip_scene_start_submenu_callback, app);
 
     submenu_add_item(
-        submenu, "Rav-Kav", MetroflipSceneRavKav, metroflip_scene_start_submenu_callback, app);
-
-    submenu_add_item(
-        submenu, "Navigo", MetroflipSceneNavigo, metroflip_scene_start_submenu_callback, app);
-
-    submenu_add_item(
-        submenu,
-        "CharlieCard",
-        MetroflipSceneCharlieCard,
-        metroflip_scene_start_submenu_callback,
-        app);
-
-    submenu_add_item(
-        submenu, "Clipper", MetroflipSceneClipper, metroflip_scene_start_submenu_callback, app);
-
-    submenu_add_item(
-        submenu, "myki", MetroflipSceneMyki, metroflip_scene_start_submenu_callback, app);
-
-    submenu_add_item(
-        submenu, "Troika", MetroflipSceneTroika, metroflip_scene_start_submenu_callback, app);
-
-    submenu_add_item(
-        submenu, "Opal", MetroflipSceneOpal, metroflip_scene_start_submenu_callback, app);
-
-    submenu_add_item(
-        submenu, "ITSO", MetroflipSceneItso, metroflip_scene_start_submenu_callback, app);
-
-    submenu_add_item(
-        submenu,
-        "Metromoney",
-        MetroflipSceneMetromoney,
-        metroflip_scene_start_submenu_callback,
-        app);
-
-    submenu_add_item(
-        submenu, "Bip!", MetroflipSceneBip, metroflip_scene_start_submenu_callback, app);
-
-    submenu_add_item(
         submenu, "About", MetroflipSceneAbout, metroflip_scene_start_submenu_callback, app);
 
     submenu_add_item(
