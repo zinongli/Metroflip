@@ -11,10 +11,10 @@ void suica_scene_credits_on_enter(void* context) {
 
     FuriString* str = furi_string_alloc();
 
-    furi_string_printf(str, "\e#Credits:\n\n");
-    furi_string_cat_printf(str, "Original App Metroflip\n\n");
-    furi_string_cat_printf(str, "Created by luu176\n");
-    furi_string_cat_printf(str, "Inspired by Metrodroid\n\n");
+    furi_string_printf(str, "\e#Credits:\n");
+    furi_string_cat_printf(str, "Original app Metroflip created by luu176\n\n");
+    furi_string_cat_printf(str, "Code adapted by Torron\n");
+    furi_string_cat_printf(str, "Suica parsing & \ngraphics created by Torron\n\n");
 
     widget_add_text_scroll_element(widget, 0, 0, 128, 64, furi_string_get_cstr(str));
 

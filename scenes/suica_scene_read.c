@@ -33,6 +33,7 @@
 #include <toolbox/stream/file_stream.h>
 
 #define SUICA_STATION_LIST_PATH         APP_ASSETS_PATH("suica/line_")
+#define SUICA_IC_TYPE_CODE              0x31
 #define SERVICE_CODE_HISTORY_IN_LE      (0x090FU)
 #define SERVICE_CODE_TAPS_LOG_IN_LE     (0x108FU)
 #define BLOCK_COUNT                     1
@@ -1154,9 +1155,10 @@ static NfcCommand suica_scene_suica_poller_callback(NfcGenericEvent event, void*
         view_dispatcher_send_custom_event(app->view_dispatcher, SuicaCustomEventPollerFail);
         command = NfcCommandStop;
     }
-    if(felica_event->type == FelicaPollerEventTypeRequestAuthContext) {
+    if(felica_event->type == FelicaPollerEventTypeRequestAuthContext ) {
         view_dispatcher_send_custom_event(app->view_dispatcher, SuicaCustomEventCardDetected);
         command = NfcCommandContinue;
+
         if(stage == SuicaPollerEventTypeStart) {
             nfc_device_set_data(
                 app->nfc_device, NfcProtocolFelica, nfc_poller_get_data(app->poller));
