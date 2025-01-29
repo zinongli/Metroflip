@@ -401,7 +401,7 @@ void show_navigo_event_info(
     char* station = get_navigo_station(
         event->station_group_id, event->station_id, event->station_sub_id, navigo_station_type);
     char* sector = NULL;
-    if(navigo_station_type == COMMUTER_TRAIN) {
+    if(navigo_station_type == COMMUTER_TRAIN || navigo_station_type == TRAM) {
         sector = get_navigo_train_sector(event->station_group_id);
     } else {
         sector = get_navigo_station(event->station_group_id, 0, 0, navigo_station_type);
@@ -556,7 +556,7 @@ void show_navigo_special_event_info(NavigoCardSpecialEvent* event, FuriString* p
     char* station = get_navigo_station(
         event->station_group_id, event->station_id, event->station_sub_id, navigo_station_type);
     char* sector = NULL;
-    if(navigo_station_type == COMMUTER_TRAIN) {
+    if(navigo_station_type == COMMUTER_TRAIN || navigo_station_type == TRAM) {
         sector = get_navigo_train_sector(event->station_group_id);
     } else {
         sector = get_navigo_station(event->station_group_id, 0, 0, navigo_station_type);
