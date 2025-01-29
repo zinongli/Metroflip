@@ -7,19 +7,19 @@
 8,2,Val d'Argenteuil
 8,3,Val d'Argenteuil
 9,1,Herblay
-9,2,La Frette Montigny
-10,1,Conflans-Fin d'Oise
-10,2,Conflans-Sainte-Honorine
+9,2,La Frette - Montigny
+10,1,Conflans Fin d'Oise
+10,2,Conflans Sainte-Honorine
 11,1,Andresy
 11,2,Chanteloup-les-Vignes
 11,3,Maurecourt
 12,1,Triel-sur-Seine
 12,2,Vaux-sur-Seine
 13,1,Meulan Hadricourt
-13,2,Thun-le-Paradis
+13,2,Thun le Paradis
 14,1,Gargenville
 14,2,Juziers
-15,1,Issou Porcheville
+15,1,Issou - Porcheville
 15,2,Limay
 16,1,Breval
 16,2,Menerville

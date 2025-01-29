@@ -7,7 +7,7 @@
 9,1,Juvisy
 9,2,Vigneux-sur-Seine
 10,1,Ris-Orangis
-10,2,Viry-Châtillon
+10,2,Viry-Chatillon
 11,1,Evry Val de Seine
 11,2,Grand-Bourg
 12,1,Corbeil-Essonnes

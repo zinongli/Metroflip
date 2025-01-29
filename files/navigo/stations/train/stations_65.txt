@@ -1,8 +1,8 @@
 8,1,Jouy-en-Josas
-8,2,Petit-Jouy-les-Loges
+8,2,Petit Jouy Les Loges
 9,1,Vauboyen
 10,1,Igny
-11,1,Massy-Palaiseau
+11,1,Massy - Palaiseau
 12,1,Longjumeau
 13,1,Chilly-Mazarin
 14,1,Gravigny-Balizy

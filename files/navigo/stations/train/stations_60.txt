@@ -1,16 +1,16 @@
 1,1,Gare Montparnasse
 1,2,Paris Montparnasse3 Vaug.
 4,1,Clamart
-4,2,Vanves Malakoff
+4,2,Vanves - Malakoff
 5,1,Bellevue
 5,2,Bievres
 5,3,Meudon
-6,1,Chaville-Rive Gauche
+6,1,Chaville Rive Gauche
 6,2,Chaville-Velizy
-6,3,Viroflay-Rive Gauche
-7,1,Versailles-Chantiers
+6,3,Viroflay Rive Gauche
+7,1,Versailles Chantiers
 10,1,Saint-Cyr
-11,1,Saint-Quentin-en-Yvelines - Montigny le Bretonneux
+11,1,Saint-Quentin en Yvelines - Montigny-le-Bretonneux
 11,2,Trappes
 12,1,Coignieres
 12,2,La Verriere

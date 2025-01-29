@@ -8,12 +8,12 @@
 15,1,Vosves
 16,1,Bois-le-Roi
 17,1,Bagneaux-sur-Loing
-17,2,Bourron-Marlotte Grez
-17,3,Fontainebleau-Avon
+17,2,Bourron-Marlotte - Grez
+17,3,Fontainebleau - Avon
 17,4,Montereau
 17,5,Montigny-sur-Loing
-17,6,Moret Veneux-les-Sablons
-17,7,Nemours Saint-Pierre
+17,6,Moret - Veneux-les-Sablons
+17,7,Nemours - Saint-Pierre
 17,8,Saint-Mammes
 17,9,Souppes
 17,10,Thomery

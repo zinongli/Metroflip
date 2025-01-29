@@ -8,6 +8,6 @@
 9,2,Vert-Galant
 10,1,Villeparisis
 11,1,Compans
-11,2,Mitry-Claye
-12,1,Dammartin Juilly Saint-Mard
-12,2,Thieux Nantouillet
+11,2,Mitry - Claye
+12,1,Dammartin - Juilly - Saint-Mard
+12,2,Thieux - Nantouillet
