@@ -1,8 +1,9 @@
-0,1,Invalides
-0,2,Pont de l'alma
-1,1,Champ de Mars-Tour Eiffel
+0,2,Pont de l'Alma
+0,4,Invalides
+1,1,Champ de Mars Tour Eiffel
 2,1,Javel
-3,1,Boulevard Victor - Pont du Garigliano
-3,2,Issy-Val de Seine
-3,3,Issy
-5,1,Meudon-Val-Fleury
+3,1,Pont du Garigliano - Hopital Europeen G. Pompidou
+4,1,Issy - Val de Seine
+5,1,Issy
+5,2,Meudon Val Fleury
+6,1,Chaville - Velizy

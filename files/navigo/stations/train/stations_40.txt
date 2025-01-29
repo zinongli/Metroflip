@@ -1,22 +1,23 @@
 1,1,Gare de Lyon
-5,1,Le Vert de Maisons
-5,2,Maisons-Alfort Alfortville
-6,1,Villeneuve-Prairie
-7,1,Villeneuve-Triage
+1,3,Paris-Bercy Bourgogne - Pays d'Auvergne
+5,1,Maisons-Alfort - Alfortville
+5,2,Le Vert de Maisons
+6,2,Creteil Pompadour
+7,1,Villeneuve Triage
 8,1,Villeneuve-Saint-Georges
-9,1,Juvisy
-9,2,Vigneux-sur-Seine
-10,1,Ris-Orangis
-10,2,Viry-Chatillon
-11,1,Evry Val de Seine
-11,2,Grand-Bourg
+9,1,Vigneux-sur-Seine
+9,2,Juvisy
+10,1,Viry-Chatillon
+10,2,Ris-Orangis
+11,1,Grand Bourg
+11,2,Evry - Val de Seine
 12,1,Corbeil-Essonnes
-12,2,Mennecy
-12,3,Moulin-Galant
+12,2,Moulin Galant
+12,3,Mennecy
 13,1,Ballancourt
-13,2,Fontenay le Vicomte
 14,1,La Ferte-Alais
 16,1,Boutigny
 16,2,Maisse
-17,1,Boigneville
-17,2,Buno-Gironville
+17,1,Buno - Gironville
+17,2,Boigneville
+17,4,Boigneville

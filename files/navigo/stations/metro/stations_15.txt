@@ -5,9 +5,8 @@
 4,Mouton-Duvernet
 5,Alesia
 6,Olympiades
+7,Mairie de Montrouge
 8,Glaciere
 9,Saint-Jacques
 10,Raspail
-13,Denfert-Rochereau
 14,Denfert-Rochereau
-15,Denfert-Rochereau

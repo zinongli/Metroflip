@@ -4,9 +4,8 @@
 3,Madeleine
 4,Bir-Hakeim
 7,Ecole Militaire
-8,La Tour Maubourg
+8,La Tour-Maubourg
 9,Invalides
-10,Invalides
 11,Saint-Denis - Universite
 12,Varenne
 13,Assemblee Nationale

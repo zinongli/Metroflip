@@ -8,6 +8,6 @@
 10,Oberkampf
 11,Parmentier
 12,Filles du Calvaire
-13,Saint-Sebastien-Froissart
-14,Richard Lenoir
+13,Saint-Sebastien - Froissart
+14,Richard-Lenoir
 15,Saint-Ambroise

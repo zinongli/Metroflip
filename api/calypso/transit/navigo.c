@@ -398,11 +398,6 @@ void show_navigo_event_info(
         return;
     }
     int navigo_station_type = event->transport_type;
-    if(event->transport_type == COMMUTER_TRAIN && event->route_number_available &&
-       event->route_number >= 16 && event->service_provider == NAVIGO_PROVIDER_RATP &&
-       event->station_sub_id == 0) {
-        navigo_station_type = METRO;
-    }
     char* station = get_navigo_station(
         event->station_group_id, event->station_id, event->station_sub_id, navigo_station_type);
     char* sector = NULL;
@@ -558,11 +553,6 @@ void show_navigo_event_info(
 
 void show_navigo_special_event_info(NavigoCardSpecialEvent* event, FuriString* parsed_data) {
     int navigo_station_type = event->transport_type;
-    if(event->transport_type == COMMUTER_TRAIN && event->route_number_available &&
-       event->route_number >= 16 && event->service_provider == NAVIGO_PROVIDER_RATP &&
-       event->station_sub_id == 0) {
-        navigo_station_type = METRO;
-    }
     char* station = get_navigo_station(
         event->station_group_id, event->station_id, event->station_sub_id, navigo_station_type);
     char* sector = NULL;

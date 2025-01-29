@@ -4,10 +4,10 @@
 3,Pyramides
 4,Bourse
 6,Grands Boulevards
-7,Richelieu-Drouot
+7,Richelieu - Drouot
 8,Bonne Nouvelle
-10,Strasbourg-Saint-Denis
+10,Strasbourg - Saint-Denis
 11,Chateau d'Eau
 13,Sentier
-14,Reaumur Sebastopol
+14,Reaumur - Sebastopol
 15,Etienne Marcel

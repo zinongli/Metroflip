@@ -1,7 +1,6 @@
 0,Passy
-1,Charles De Gaulle-Etoile
 2,Porte Dauphine
-4,La Motte Picquet-Grenelle
+4,La Motte-Picquet - Grenelle
 5,Commerce
 6,Avenue Emile Zola
 7,Dupleix
