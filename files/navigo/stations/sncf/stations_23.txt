@@ -1,5 +1,0 @@
-13,1,Couilly Saint-Germain Quincy
-13,2,Les Champs-Forts
-13,3,Montry Conde
-14,1,Crecy-en-Brie La Chapelle
-14,2,Villiers-Montbarbin

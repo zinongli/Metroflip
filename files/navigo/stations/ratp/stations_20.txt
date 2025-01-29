@@ -1,8 +1,0 @@
-0,Montmartre
-1,Porte de Clignancourt
-6,Porte de la Chapelle
-7,Marx Dormoy
-9,Marcadet - Poissonniers
-10,Simplon
-11,Jules Joffrin
-12,Lamarck - Caulaincourt

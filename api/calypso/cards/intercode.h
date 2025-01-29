@@ -13,6 +13,10 @@ CalypsoApp* get_intercode_structure_counter();
 
 const char* get_intercode_string_transition_type(int transition);
 
+const char* get_intercode_string_transport_type(int type);
+
+const char* get_intercode_string_pay_method(int pay_method);
+
 const char* get_intercode_string_event_result(int result);
 
 const char* get_intercode_string_version(int version);
