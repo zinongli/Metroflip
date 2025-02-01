@@ -1,4 +1,4 @@
-name: UFBT Build and Test
+name: UFBT Build and Test App
 on:
   push:
     branches:
