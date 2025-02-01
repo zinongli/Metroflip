@@ -1,9 +1,11 @@
-#include "metroflip_scene_calypso.h"
-#include "../metroflip_i.h"
+#include "../../api/metroflip/metroflip_api.h"
+#include "../../metroflip_i.h"
 #include <datetime.h>
 #include <dolphin/dolphin.h>
 #include <notification/notification_messages.h>
 #include <locale/locale.h>
+#include "../../api/metroflip/metroflip_api.h"
+#include "../../metroflip_plugins.h"
 
 #include <nfc/protocols/iso14443_4b/iso14443_4b_poller.h>
 
@@ -382,7 +384,7 @@ void delay(int milliseconds) {
     furi_thread_flags_wait(0, FuriFlagWaitAny, milliseconds);
 }
 
-static NfcCommand metroflip_scene_calypso_poller_callback(NfcGenericEvent event, void* context) {
+static NfcCommand calypso_poller_callback(NfcGenericEvent event, void* context) {
     furi_assert(event.protocol == NfcProtocolIso14443_4b);
     NfcCommand next_command = NfcCommandContinue;
     MetroflipPollerEventType stage = MetroflipPollerEventTypeStart;
@@ -2439,8 +2441,7 @@ static NfcCommand metroflip_scene_calypso_poller_callback(NfcGenericEvent event,
     return next_command;
 }
 
-void metroflip_scene_calypso_on_enter(void* context) {
-    Metroflip* app = context;
+static void calypso_on_enter(Metroflip* app) {
     dolphin_deed(DolphinDeedNfcRead);
 
     // Setup view
@@ -2452,13 +2453,12 @@ void metroflip_scene_calypso_on_enter(void* context) {
     view_dispatcher_switch_to_view(app->view_dispatcher, MetroflipViewPopup);
     nfc_scanner_alloc(app->nfc);
     app->poller = nfc_poller_alloc(app->nfc, NfcProtocolIso14443_4b);
-    nfc_poller_start(app->poller, metroflip_scene_calypso_poller_callback, app);
+    nfc_poller_start(app->poller, calypso_poller_callback, app);
 
     metroflip_app_blink_start(app);
 }
 
-bool metroflip_scene_calypso_on_event(void* context, SceneManagerEvent event) {
-    Metroflip* app = context;
+static bool calypso_on_event(Metroflip* app, SceneManagerEvent event) {
     bool consumed = false;
 
     if(event.type == SceneManagerEventTypeCustom) {
@@ -2483,9 +2483,7 @@ bool metroflip_scene_calypso_on_event(void* context, SceneManagerEvent event) {
     return consumed;
 }
 
-void metroflip_scene_calypso_on_exit(void* context) {
-    Metroflip* app = context;
-
+static void calypso_on_exit(Metroflip* app) {
     if(app->poller) {
         nfc_poller_stop(app->poller);
         nfc_poller_free(app->poller);
@@ -2505,4 +2503,25 @@ void metroflip_scene_calypso_on_exit(void* context) {
         free(ctx);
         app->calypso_context = NULL;
     }
+}
+
+/* Actual implementation of app<>plugin interface */
+static const MetroflipPlugin calypso_plugin = {
+    .card_name = "Calypso",
+    .plugin_on_enter = calypso_on_enter,
+    .plugin_on_event = calypso_on_event,
+    .plugin_on_exit = calypso_on_exit,
+
+};
+
+/* Plugin descriptor to comply with basic plugin specification */
+static const FlipperAppPluginDescriptor calypso_plugin_descriptor = {
+    .appid = METROFLIP_SUPPORTED_CARD_PLUGIN_APP_ID,
+    .ep_api_version = METROFLIP_SUPPORTED_CARD_PLUGIN_API_VERSION,
+    .entry_point = &calypso_plugin,
+};
+
+/* Plugin entry point - must return a pointer to const descriptor  */
+const FlipperAppPluginDescriptor* calypso_plugin_ep(void) {
+    return &calypso_plugin_descriptor;
 }

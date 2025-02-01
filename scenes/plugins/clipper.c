@@ -19,7 +19,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 #include <flipper_application.h>
-#include "../metroflip_i.h"
+#include "../../metroflip_i.h"
 #include <nfc/protocols/mf_desfire/mf_desfire_poller.h>
 
 #include <lib/nfc/protocols/mf_desfire/mf_desfire.h>
@@ -28,6 +28,8 @@
 #include <datetime.h>
 #include <locale/locale.h>
 #include <inttypes.h>
+#include "../../api/metroflip/metroflip_api.h"
+#include "../../metroflip_plugins.h"
 
 #define TAG "Metroflip:Scene:Clipper"
 
@@ -564,7 +566,7 @@ static void furi_string_cat_timestamp(
     furi_string_free(time_str);
 }
 
-static NfcCommand metroflip_scene_clipper_poller_callback(NfcGenericEvent event, void* context) {
+static NfcCommand clipper_poller_callback(NfcGenericEvent event, void* context) {
     furi_assert(event.protocol == NfcProtocolMfDesfire);
 
     Metroflip* app = context;
@@ -599,8 +601,7 @@ static NfcCommand metroflip_scene_clipper_poller_callback(NfcGenericEvent event,
     return command;
 }
 
-void metroflip_scene_clipper_on_enter(void* context) {
-    Metroflip* app = context;
+static void clipper_on_enter(Metroflip* app) {
     dolphin_deed(DolphinDeedNfcRead);
 
     // Setup view
@@ -612,13 +613,12 @@ void metroflip_scene_clipper_on_enter(void* context) {
     view_dispatcher_switch_to_view(app->view_dispatcher, MetroflipViewPopup);
     nfc_scanner_alloc(app->nfc);
     app->poller = nfc_poller_alloc(app->nfc, NfcProtocolMfDesfire);
-    nfc_poller_start(app->poller, metroflip_scene_clipper_poller_callback, app);
+    nfc_poller_start(app->poller, clipper_poller_callback, app);
 
     metroflip_app_blink_start(app);
 }
 
-bool metroflip_scene_clipper_on_event(void* context, SceneManagerEvent event) {
-    Metroflip* app = context;
+static bool clipper_on_event(Metroflip* app, SceneManagerEvent event) {
     bool consumed = false;
 
     if(event.type == SceneManagerEventTypeCustom) {
@@ -647,8 +647,7 @@ bool metroflip_scene_clipper_on_event(void* context, SceneManagerEvent event) {
     return consumed;
 }
 
-void metroflip_scene_clipper_on_exit(void* context) {
-    Metroflip* app = context;
+static void clipper_on_exit(Metroflip* app) {
     widget_reset(app->widget);
     metroflip_app_blink_stop(app);
 
@@ -656,4 +655,25 @@ void metroflip_scene_clipper_on_exit(void* context) {
         nfc_poller_stop(app->poller);
         nfc_poller_free(app->poller);
     }
+}
+
+/* Actual implementation of app<>plugin interface */
+static const MetroflipPlugin clipper_plugin = {
+    .card_name = "Clipper",
+    .plugin_on_enter = clipper_on_enter,
+    .plugin_on_event = clipper_on_event,
+    .plugin_on_exit = clipper_on_exit,
+
+};
+
+/* Plugin descriptor to comply with basic plugin specification */
+static const FlipperAppPluginDescriptor clipper_plugin_descriptor = {
+    .appid = METROFLIP_SUPPORTED_CARD_PLUGIN_APP_ID,
+    .ep_api_version = METROFLIP_SUPPORTED_CARD_PLUGIN_API_VERSION,
+    .entry_point = &clipper_plugin,
+};
+
+/* Plugin entry point - must return a pointer to const descriptor  */
+const FlipperAppPluginDescriptor* clipper_plugin_ep(void) {
+    return &clipper_plugin_descriptor;
 }

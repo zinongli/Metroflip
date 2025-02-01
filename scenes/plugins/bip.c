@@ -17,7 +17,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 #include <flipper_application.h>
-#include "../metroflip_i.h"
+#include "../../metroflip_i.h"
 
 #include <nfc/protocols/mf_classic/mf_classic_poller_sync.h>
 #include <nfc/protocols/mf_classic/mf_classic.h>
@@ -30,6 +30,8 @@
 #include <nfc/nfc_device.h>
 #include <nfc/nfc_listener.h>
 #include <locale/locale.h>
+#include "../../api/metroflip/metroflip_api.h"
+#include "../../metroflip_plugins.h"
 
 #define TAG "Metroflip:Scene:Bip"
 
@@ -38,6 +40,25 @@
 #define BIP_TRIP_TIME_WINDOW_SECTOR_NUMBER (5)
 #define BIP_LAST_TOP_UPS_SECTOR_NUMBER     (10)
 #define BIP_TRIPS_INFO_SECTOR_NUMBER       (11)
+
+const MfClassicKeyPair bip_1k_keys[16] = {
+    {.a = 0x3a42f33af429, .b = 0x1fc235ac1309},
+    {.a = 0x6338a371c0ed, .b = 0x243f160918d1},
+    {.a = 0xf124c2578ad0, .b = 0x9afc42372af1},
+    {.a = 0x32ac3b90ac13, .b = 0x682d401abb09},
+    {.a = 0x4ad1e273eaf1, .b = 0x067db45454a9},
+    {.a = 0xe2c42591368a, .b = 0x15fc4c7613fe},
+    {.a = 0x2a3c347a1200, .b = 0x68d30288910a},
+    {.a = 0x16f3d5ab1139, .b = 0xf59a36a2546d},
+    {.a = 0x937a4fff3011, .b = 0x64e3c10394c2},
+    {.a = 0x35c3d2caee88, .b = 0xb736412614af},
+    {.a = 0x693143f10368, .b = 0x324f5df65310},
+    {.a = 0xa3f97428dd01, .b = 0x643fb6de2217},
+    {.a = 0x63f17a449af0, .b = 0x82f435dedf01},
+    {.a = 0xc4652c54261c, .b = 0x0263de1278f3},
+    {.a = 0xd49e2826664f, .b = 0x51284c3686a6},
+    {.a = 0x3df14c8000a1, .b = 0x6a470d54127c},
+};
 
 typedef struct {
     DateTime datetime;
@@ -248,7 +269,7 @@ static bool
     return parsed;
 }
 
-static NfcCommand metroflip_scene_bip_poller_callback(NfcGenericEvent event, void* context) {
+static NfcCommand bip_poller_callback(NfcGenericEvent event, void* context) {
     furi_assert(context);
     furi_assert(event.event_data);
     furi_assert(event.protocol == NfcProtocolMfClassic);
@@ -313,8 +334,7 @@ static NfcCommand metroflip_scene_bip_poller_callback(NfcGenericEvent event, voi
     return command;
 }
 
-void metroflip_scene_bip_on_enter(void* context) {
-    Metroflip* app = context;
+static void bip_on_enter(Metroflip* app) {
     dolphin_deed(DolphinDeedNfcRead);
 
     app->sec_num = 0;
@@ -328,13 +348,12 @@ void metroflip_scene_bip_on_enter(void* context) {
     view_dispatcher_switch_to_view(app->view_dispatcher, MetroflipViewPopup);
     nfc_scanner_alloc(app->nfc);
     app->poller = nfc_poller_alloc(app->nfc, NfcProtocolMfClassic);
-    nfc_poller_start(app->poller, metroflip_scene_bip_poller_callback, app);
+    nfc_poller_start(app->poller, bip_poller_callback, app);
 
     metroflip_app_blink_start(app);
 }
 
-bool metroflip_scene_bip_on_event(void* context, SceneManagerEvent event) {
-    Metroflip* app = context;
+static bool bip_on_event(Metroflip* app, SceneManagerEvent event) {
     bool consumed = false;
 
     if(event.type == SceneManagerEventTypeCustom) {
@@ -363,8 +382,7 @@ bool metroflip_scene_bip_on_event(void* context, SceneManagerEvent event) {
     return consumed;
 }
 
-void metroflip_scene_bip_on_exit(void* context) {
-    Metroflip* app = context;
+static void bip_on_exit(Metroflip* app) {
     widget_reset(app->widget);
 
     if(app->poller) {
@@ -376,4 +394,25 @@ void metroflip_scene_bip_on_exit(void* context) {
     popup_reset(app->popup);
 
     metroflip_app_blink_stop(app);
+}
+
+/* Actual implementation of app<>plugin interface */
+static const MetroflipPlugin bip_plugin = {
+    .card_name = "Bip",
+    .plugin_on_enter = bip_on_enter,
+    .plugin_on_event = bip_on_event,
+    .plugin_on_exit = bip_on_exit,
+
+};
+
+/* Plugin descriptor to comply with basic plugin specification */
+static const FlipperAppPluginDescriptor bip_plugin_descriptor = {
+    .appid = METROFLIP_SUPPORTED_CARD_PLUGIN_APP_ID,
+    .ep_api_version = METROFLIP_SUPPORTED_CARD_PLUGIN_API_VERSION,
+    .entry_point = &bip_plugin,
+};
+
+/* Plugin entry point - must return a pointer to const descriptor  */
+const FlipperAppPluginDescriptor* bip_plugin_ep(void) {
+    return &bip_plugin_descriptor;
 }

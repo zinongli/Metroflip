@@ -1,6 +1,7 @@
 #include "navigo.h"
 #include "navigo_lists.h"
 #include "../../../metroflip_i.h"
+#include "../../metroflip/metroflip_api.h"
 
 const char* get_navigo_service_provider(int provider) {
     switch(provider) {

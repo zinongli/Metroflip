@@ -1,5 +1,6 @@
 #include "../metroflip_i.h"
 #include <dolphin/dolphin.h>
+#include "../api/metroflip/metroflip_api.h"
 
 #define TAG "Metroflip:Scene:About"
 

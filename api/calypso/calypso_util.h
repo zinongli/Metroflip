@@ -91,24 +91,12 @@ CalypsoElement make_calypso_container_element(const char* key, int size, Calypso
 
 CalypsoElement make_calypso_repeater_element(const char* key, int size, CalypsoElement element);
 
-void free_calypso_structure(CalypsoApp* structure);
-
 int* get_bitmap_positions(const char* binary_string, int* count);
 
 int is_bit_present(int* positions, int count, int bit);
 
-bool is_calypso_node_present(const char* binary_string, const char* key, CalypsoApp* structure);
-
-int get_calypso_node_offset(const char* binary_string, const char* key, CalypsoApp* structure);
-
-int get_calypso_node_size(const char* key, CalypsoApp* structure);
-
 // Calypso known Card types
 
-CALYPSO_CARD_TYPE guess_card_type(int country_num, int network_num);
-
 const char* get_country_string(int country_num);
-
-const char* get_network_string(CALYPSO_CARD_TYPE card_type);
 
 #endif // CALYPSO_UTIL_H

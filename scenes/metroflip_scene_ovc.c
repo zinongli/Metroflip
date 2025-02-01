@@ -5,6 +5,7 @@
 #include <nfc/protocols/mf_classic/mf_classic_poller_sync.h>
 #include <nfc/protocols/mf_classic/mf_classic.h>
 #include <nfc/protocols/mf_classic/mf_classic_poller.h>
+#include "../api/metroflip/metroflip_api.h"
 
 #include <dolphin/dolphin.h>
 #include <bit_lib.h>
@@ -278,9 +279,6 @@ bool metroflip_scene_ovc_on_event(void* context, SceneManagerEvent event) {
         } else if(event.event == MetroflipCustomEventPollerFail) {
             Popup* popup = app->popup;
             popup_set_header(popup, "Failed", 68, 30, AlignLeft, AlignTop);
-            consumed = true;
-        } else if(event.event == MetroflipCustomEventPollerSuccess) {
-            scene_manager_next_scene(app->scene_manager, MetroflipSceneReadSuccess);
             consumed = true;
         }
     } else if(event.type == SceneManagerEventTypeBack) {

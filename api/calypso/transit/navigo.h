@@ -25,20 +25,6 @@ const char* get_navigo_sncf_station(int station_group_id, int station_id);
 
 const char* get_navigo_tram_line(int route_number);
 
-void show_navigo_event_info(
-    NavigoCardEvent* event,
-    NavigoCardContract* contracts,
-    FuriString* parsed_data);
-
-void show_navigo_special_event_info(NavigoCardSpecialEvent* event, FuriString* parsed_data);
-
-void show_navigo_contract_info(NavigoCardContract* contract, FuriString* parsed_data);
-
-void show_navigo_environment_info(
-    NavigoCardEnv* environment,
-    NavigoCardHolder* holder,
-    FuriString* parsed_data);
-
 typedef enum {
     NAVIGO_PROVIDER_SNCF = 2,
     NAVIGO_PROVIDER_RATP = 3,

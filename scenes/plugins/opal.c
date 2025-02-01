@@ -28,11 +28,13 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "../metroflip_i.h"
+#include "../../metroflip_i.h"
 #include <flipper_application.h>
 
 #include <lib/nfc/protocols/mf_desfire/mf_desfire.h>
 #include <lib/nfc/protocols/mf_desfire/mf_desfire_poller.h>
+#include "../../api/metroflip/metroflip_api.h"
+#include "../../metroflip_plugins.h"
 
 #include <applications/services/locale/locale.h>
 #include <datetime.h>
@@ -215,7 +217,7 @@ bool opal_parse(const NfcDevice* device, FuriString* parsed_data) {
     return parsed;
 }
 
-static NfcCommand metroflip_scene_opal_poller_callback(NfcGenericEvent event, void* context) {
+static NfcCommand opal_poller_callback(NfcGenericEvent event, void* context) {
     furi_assert(event.protocol == NfcProtocolMfDesfire);
 
     Metroflip* app = context;
@@ -250,8 +252,7 @@ static NfcCommand metroflip_scene_opal_poller_callback(NfcGenericEvent event, vo
     return command;
 }
 
-void metroflip_scene_opal_on_enter(void* context) {
-    Metroflip* app = context;
+static void opal_on_enter(Metroflip* app) {
     dolphin_deed(DolphinDeedNfcRead);
 
     // Setup view
@@ -263,13 +264,12 @@ void metroflip_scene_opal_on_enter(void* context) {
     view_dispatcher_switch_to_view(app->view_dispatcher, MetroflipViewPopup);
     nfc_scanner_alloc(app->nfc);
     app->poller = nfc_poller_alloc(app->nfc, NfcProtocolMfDesfire);
-    nfc_poller_start(app->poller, metroflip_scene_opal_poller_callback, app);
+    nfc_poller_start(app->poller, opal_poller_callback, app);
 
     metroflip_app_blink_start(app);
 }
 
-bool metroflip_scene_opal_on_event(void* context, SceneManagerEvent event) {
-    Metroflip* app = context;
+static bool opal_on_event(Metroflip* app, SceneManagerEvent event) {
     bool consumed = false;
 
     if(event.type == SceneManagerEventTypeCustom) {
@@ -298,12 +298,32 @@ bool metroflip_scene_opal_on_event(void* context, SceneManagerEvent event) {
     return consumed;
 }
 
-void metroflip_scene_opal_on_exit(void* context) {
-    Metroflip* app = context;
+static void opal_on_exit(Metroflip* app) {
     widget_reset(app->widget);
     metroflip_app_blink_stop(app);
     if(app->poller) {
         nfc_poller_stop(app->poller);
         nfc_poller_free(app->poller);
     }
+}
+
+/* Actual implementation of app<>plugin interface */
+static const MetroflipPlugin opal_plugin = {
+    .card_name = "Opal",
+    .plugin_on_enter = opal_on_enter,
+    .plugin_on_event = opal_on_event,
+    .plugin_on_exit = opal_on_exit,
+
+};
+
+/* Plugin descriptor to comply with basic plugin specification */
+static const FlipperAppPluginDescriptor opal_plugin_descriptor = {
+    .appid = METROFLIP_SUPPORTED_CARD_PLUGIN_APP_ID,
+    .ep_api_version = METROFLIP_SUPPORTED_CARD_PLUGIN_API_VERSION,
+    .entry_point = &opal_plugin,
+};
+
+/* Plugin entry point - must return a pointer to const descriptor  */
+const FlipperAppPluginDescriptor* opal_plugin_ep(void) {
+    return &opal_plugin_descriptor;
 }

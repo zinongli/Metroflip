@@ -1,4 +1,4 @@
-#include "../metroflip_i.h"
+#include "../../metroflip_i.h"
 
 #include <bit_lib.h>
 #include <flipper_application.h>
@@ -13,6 +13,8 @@
 #include <nfc/nfc_device.h>
 #include <nfc/nfc_listener.h>
 #include <storage/storage.h>
+#include "../../api/metroflip/metroflip_api.h"
+#include "../../metroflip_plugins.h"
 
 #define MAX_TRIPS           10
 #define TAG                 "Metroflip:Scene:Smartrider"
@@ -143,12 +145,6 @@ static bool smartrider_parse(const NfcDevice* device, FuriString* parsed_data) {
         return false;
     }
 
-    const MfClassicSectorTrailer* sec_tr = mf_classic_get_sector_trailer_by_sector(data, 0);
-    if(!sec_tr || memcmp(sec_tr->key_a.data, SMARTRIDER_STANDARD_KEYS[0], 6) != 0) {
-        FURI_LOG_E(TAG, "Key verification failed for sector 0");
-        return false;
-    }
-
     static const uint8_t required_blocks[] = {14, 4, 5, 1, 52, 50, 0};
     for(size_t i = 0; i < COUNT_OF(required_blocks); i++) {
         if(required_blocks[i] >= MAX_BLOCKS ||
@@ -243,8 +239,7 @@ static bool smartrider_parse(const NfcDevice* device, FuriString* parsed_data) {
 
 // made with love by jay candel <3
 
-static NfcCommand
-    metroflip_scene_smartrider_poller_callback(NfcGenericEvent event, void* context) {
+static NfcCommand smartrider_poller_callback(NfcGenericEvent event, void* context) {
     furi_assert(context);
     furi_assert(event.event_data);
     furi_assert(event.protocol == NfcProtocolMfClassic);
@@ -337,8 +332,8 @@ static NfcCommand
     return command;
 }
 
-void metroflip_scene_smartrider_on_enter(void* context) {
-    Metroflip* app = context;
+static void smartrider_on_enter(Metroflip* app) {
+    FURI_LOG_I(TAG, "entered smartrider");
     dolphin_deed(DolphinDeedNfcRead);
 
     mf_classic_key_cache_reset(app->mfc_key_cache);
@@ -352,13 +347,12 @@ void metroflip_scene_smartrider_on_enter(void* context) {
     view_dispatcher_switch_to_view(app->view_dispatcher, MetroflipViewPopup);
     nfc_scanner_alloc(app->nfc);
     app->poller = nfc_poller_alloc(app->nfc, NfcProtocolMfClassic);
-    nfc_poller_start(app->poller, metroflip_scene_smartrider_poller_callback, app);
+    nfc_poller_start(app->poller, smartrider_poller_callback, app);
 
     metroflip_app_blink_start(app);
 }
 
-bool metroflip_scene_smartrider_on_event(void* context, SceneManagerEvent event) {
-    Metroflip* app = context;
+static bool smartrider_on_event(Metroflip* app, SceneManagerEvent event) {
     bool consumed = false;
 
     if(event.type == SceneManagerEventTypeCustom) {
@@ -378,9 +372,6 @@ bool metroflip_scene_smartrider_on_event(void* context, SceneManagerEvent event)
             Popup* popup = app->popup;
             popup_set_header(popup, "Failed", 68, 30, AlignLeft, AlignTop);
             consumed = true;
-        } else if(event.event == MetroflipCustomEventPollerSuccess) {
-            scene_manager_next_scene(app->scene_manager, MetroflipSceneReadSuccess);
-            consumed = true;
         }
     } else if(event.type == SceneManagerEventTypeBack) {
         scene_manager_search_and_switch_to_previous_scene(app->scene_manager, MetroflipSceneStart);
@@ -390,8 +381,7 @@ bool metroflip_scene_smartrider_on_event(void* context, SceneManagerEvent event)
     return consumed;
 }
 
-void metroflip_scene_smartrider_on_exit(void* context) {
-    Metroflip* app = context;
+static void smartrider_on_exit(Metroflip* app) {
     widget_reset(app->widget);
 
     if(app->poller) {
@@ -403,4 +393,25 @@ void metroflip_scene_smartrider_on_exit(void* context) {
     popup_reset(app->popup);
 
     metroflip_app_blink_stop(app);
+}
+
+/* Actual implementation of app<>plugin interface */
+static const MetroflipPlugin smartrider_plugin = {
+    .card_name = "SmartRider",
+    .plugin_on_enter = smartrider_on_enter,
+    .plugin_on_event = smartrider_on_event,
+    .plugin_on_exit = smartrider_on_exit,
+
+};
+
+/* Plugin descriptor to comply with basic plugin specification */
+static const FlipperAppPluginDescriptor smartrider_plugin_descriptor = {
+    .appid = METROFLIP_SUPPORTED_CARD_PLUGIN_APP_ID,
+    .ep_api_version = METROFLIP_SUPPORTED_CARD_PLUGIN_API_VERSION,
+    .entry_point = &smartrider_plugin,
+};
+
+/* Plugin entry point - must return a pointer to const descriptor  */
+const FlipperAppPluginDescriptor* smartrider_plugin_ep(void) {
+    return &smartrider_plugin_descriptor;
 }

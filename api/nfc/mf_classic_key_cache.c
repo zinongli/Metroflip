@@ -2,6 +2,7 @@
 
 #include <furi/furi.h>
 #include <storage/storage.h>
+#include "../metroflip/metroflip_api.h"
 
 #define NFC_APP_KEYS_EXTENSION   ".keys"
 #define NFC_APP_KEY_CACHE_FOLDER "/ext/nfc/.cache"

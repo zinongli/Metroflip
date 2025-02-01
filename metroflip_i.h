@@ -14,7 +14,11 @@
 #else
 extern const Icon I_RFIDDolphinReceive_97x61;
 #endif
-
+#include <flipper_application/plugins/composite_resolver.h>
+#include <loader/firmware_api/firmware_api.h>
+#include <flipper_application/plugins/plugin_manager.h>
+#include <loader/firmware_api/firmware_api.h>
+#include <flipper_application/flipper_application.h>
 #include <gui/modules/submenu.h>
 #include <gui/modules/popup.h>
 #include <gui/modules/loading.h>
@@ -72,6 +76,12 @@ typedef struct {
     MfClassicKeyCache* mfc_key_cache;
     NfcDetectedProtocols* detected_protocols;
     DesfireCardType desfire_card_type;
+
+    //plugin manager
+    PluginManager* plugin_manager;
+
+    //api
+    CompositeApiResolver* resolver;
 
     // card details:
     uint32_t balance_lari;
@@ -135,17 +145,6 @@ typedef enum {
     MISSING_KEYFILE
 } KeyfileManager;
 
-KeyfileManager manage_keyfiles(
-    char uid_str[],
-    const uint8_t* uid,
-    size_t uid_len,
-    MfClassicKeyCache* instance,
-    uint64_t key_mask_a_required,
-    uint64_t key_mask_b_required);
-
-void metroflip_app_blink_start(Metroflip* metroflip);
-void metroflip_app_blink_stop(Metroflip* metroflip);
-
 CardType determine_card_type(Nfc* nfc);
 
 #ifdef FW_ORIGIN_Official
@@ -154,18 +153,9 @@ CardType determine_card_type(Nfc* nfc);
     if(!(locked)) submenu_add_item(submenu, label, index, callback, callback_context)
 #endif
 
-void metroflip_exit_widget_callback(GuiButtonType result, InputType type, void* context);
-
-void uid_to_string(const uint8_t* uid, size_t uid_len, char* uid_str, size_t max_len);
-
-void handle_keyfile_case(
-    Metroflip* app,
-    const char* message_title,
-    const char* log_message,
-    FuriString* parsed_data,
-    char card_type[]);
-
 char* bit_slice(const char* bit_representation, int start, int end);
+
+void metroflip_plugin_manager_alloc(Metroflip* app);
 
 ///////////////////////////////// Calypso / EN1545 /////////////////////////////////
 
@@ -175,14 +165,4 @@ char* bit_slice(const char* bit_representation, int start, int end);
 
 void locale_format_datetime_cat(FuriString* out, const DateTime* dt, bool time);
 
-extern uint8_t read_file[5];
-extern uint8_t apdu_success[2];
-extern uint8_t select_app[8];
-
-void byte_to_binary(uint8_t byte, char* bits);
-
 int binary_to_decimal(const char binary[]);
-
-int bit_slice_to_dec(const char* bit_representation, int start, int end);
-
-void dec_to_bits(char dec_representation, char* bit_representation);

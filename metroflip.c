@@ -1,6 +1,10 @@
 
 #include "metroflip_i.h"
 
+#define TAG "Metroflip"
+#include "api/metroflip/metroflip_api.h"
+#include "api/metroflip/metroflip_api_interface.h"
+#include "metroflip_plugins.h"
 struct MfClassicKeyCache {
     MfClassicDeviceKeys keys;
     MfClassicKeyType current_key_type;
@@ -213,19 +217,24 @@ int bit_slice_to_dec(const char* bit_representation, int start, int end) {
 
 extern int32_t metroflip(void* p) {
     UNUSED(p);
+
+    /*
+    plugin_manager_load_single(PluginManager * manager, const char* path)
+        uint32_t plugin_count = plugin_manager_get_count(manager);
+    FURI_LOG_I(TAG, "Loaded %lu plugin(s)", plugin_count);
+
+    for(uint32_t i = 0; i < plugin_count; i++) {
+        const MetroflipPlugin* plugin = plugin_manager_get_ep(manager, i);
+        FURI_LOG_I(TAG, "plugin name: %s", plugin->name);
+    }
+    */
+
     Metroflip* app = metroflip_alloc();
-    scene_manager_set_scene_state(app->scene_manager, MetroflipSceneStart, MetroflipSceneCalypso);
+    scene_manager_set_scene_state(app->scene_manager, MetroflipSceneStart, MetroflipSceneAuto);
     scene_manager_next_scene(app->scene_manager, MetroflipSceneStart);
     view_dispatcher_run(app->view_dispatcher);
     metroflip_free(app);
     return 0;
-}
-
-void dec_to_bits(char dec_representation, char* bit_representation) {
-    int decimal = dec_representation - '0';
-    for(int i = 7; i >= 0; --i) {
-        bit_representation[i] = (decimal & (1 << i)) ? '1' : '0';
-    }
 }
 
 KeyfileManager manage_keyfiles(
@@ -362,4 +371,14 @@ void handle_keyfile_case(
 
     view_dispatcher_switch_to_view(app->view_dispatcher, MetroflipViewWidget);
     metroflip_app_blink_stop(app);
+}
+
+void metroflip_plugin_manager_alloc(Metroflip* app) {
+    app->resolver = composite_api_resolver_alloc();
+    composite_api_resolver_add(app->resolver, firmware_api_interface);
+    composite_api_resolver_add(app->resolver, metroflip_api_interface);
+    app->plugin_manager = plugin_manager_alloc(
+        METROFLIP_SUPPORTED_CARD_PLUGIN_APP_ID,
+        METROFLIP_SUPPORTED_CARD_PLUGIN_API_VERSION,
+        composite_api_resolver_get(app->resolver));
 }

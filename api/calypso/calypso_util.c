@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "calypso_util.h"
+#include "../metroflip/metroflip_api.h"
 
 CalypsoElement make_calypso_final_element(
     const char* key,

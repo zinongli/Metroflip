@@ -1,5 +1,5 @@
 #include <stdlib.h>
-#include "opus.h"
+#include "../../metroflip/metroflip_api.h"
 
 CalypsoApp* get_opus_contract_structure() {
     CalypsoApp* OpusContractStructure = malloc(sizeof(CalypsoApp));

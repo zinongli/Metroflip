@@ -1,5 +1,6 @@
 #include <stdlib.h>
 #include "intercode.h"
+#include "../../metroflip/metroflip_api.h"
 
 CalypsoApp* get_intercode_structure_env_holder() {
     CalypsoApp* IntercodeEnvHolderStructure = malloc(sizeof(CalypsoApp));

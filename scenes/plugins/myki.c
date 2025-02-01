@@ -1,32 +1,42 @@
-/* itso.c - Parser for ITSO cards (United Kingdom). */
-#include "../metroflip_i.h"
 #include <flipper_application.h>
 
 #include <lib/nfc/protocols/mf_desfire/mf_desfire.h>
-#include <lib/nfc/protocols/mf_desfire/mf_desfire_poller.h>
-#include <lib/toolbox/strint.h>
+#include <stdio.h>
 
-#include <applications/services/locale/locale.h>
-#include <datetime.h>
+#include "../../metroflip_i.h"
+#include <nfc/protocols/mf_desfire/mf_desfire_poller.h>
+#include "../../api/metroflip/metroflip_api.h"
+#include "../../metroflip_plugins.h"
 
-#define TAG "Metroflip:Scene:ITSO"
+#define TAG "Metroflip:Scene:myki"
 
-static const MfDesfireApplicationId itso_app_id = {.data = {0x16, 0x02, 0xa0}};
-static const MfDesfireFileId itso_file_id = 0x0f;
+static const MfDesfireApplicationId myki_app_id = {.data = {0x00, 0x11, 0xf2}};
+static const MfDesfireFileId myki_file_id = 0x0f;
 
-int64_t swap_int64(int64_t val) {
-    val = ((val << 8) & 0xFF00FF00FF00FF00ULL) | ((val >> 8) & 0x00FF00FF00FF00FFULL);
-    val = ((val << 16) & 0xFFFF0000FFFF0000ULL) | ((val >> 16) & 0x0000FFFF0000FFFFULL);
-    return (val << 32) | ((val >> 32) & 0xFFFFFFFFULL);
+static uint8_t myki_calculate_luhn(uint64_t number) {
+    // https://en.wikipedia.org/wiki/Luhn_algorithm
+    // Drop existing check digit to form payload
+    uint64_t payload = number / 10;
+    int sum = 0;
+    int position = 0;
+
+    while(payload > 0) {
+        int digit = payload % 10;
+        if(position % 2 == 0) {
+            digit *= 2;
+        }
+        if(digit > 9) {
+            digit = (digit / 10) + (digit % 10);
+        }
+        sum += digit;
+        payload /= 10;
+        position++;
+    }
+
+    return (10 - (sum % 10)) % 10;
 }
 
-uint64_t swap_uint64(uint64_t val) {
-    val = ((val << 8) & 0xFF00FF00FF00FF00ULL) | ((val >> 8) & 0x00FF00FF00FF00FFULL);
-    val = ((val << 16) & 0xFFFF0000FFFF0000ULL) | ((val >> 16) & 0x0000FFFF0000FFFFULL);
-    return (val << 32) | (val >> 32);
-}
-
-bool itso_parse(const NfcDevice* device, FuriString* parsed_data) {
+bool myki_parse(const NfcDevice* device, FuriString* parsed_data) {
     furi_assert(device);
     furi_assert(parsed_data);
 
@@ -35,75 +45,50 @@ bool itso_parse(const NfcDevice* device, FuriString* parsed_data) {
     do {
         const MfDesfireData* data = nfc_device_get_data(device, NfcProtocolMfDesfire);
 
-        const MfDesfireApplication* app = mf_desfire_get_application(data, &itso_app_id);
+        const MfDesfireApplication* app = mf_desfire_get_application(data, &myki_app_id);
         if(app == NULL) break;
 
         typedef struct {
-            uint64_t part1;
-            uint64_t part2;
-            uint64_t part3;
-            uint64_t part4;
-        } ItsoFile;
+            uint32_t top;
+            uint32_t bottom;
+        } mykiFile;
 
         const MfDesfireFileSettings* file_settings =
-            mf_desfire_get_file_settings(app, &itso_file_id);
+            mf_desfire_get_file_settings(app, &myki_file_id);
 
         if(file_settings == NULL || file_settings->type != MfDesfireFileTypeStandard ||
-           file_settings->data.size < sizeof(ItsoFile))
+           file_settings->data.size < sizeof(mykiFile))
             break;
 
-        const MfDesfireFileData* file_data = mf_desfire_get_file_data(app, &itso_file_id);
+        const MfDesfireFileData* file_data = mf_desfire_get_file_data(app, &myki_file_id);
         if(file_data == NULL) break;
 
-        const ItsoFile* itso_file = simple_array_cget_data(file_data->data);
+        const mykiFile* myki_file = simple_array_cget_data(file_data->data);
 
-        uint64_t x1 = swap_uint64(itso_file->part1);
-        uint64_t x2 = swap_uint64(itso_file->part2);
+        // All myki card numbers are prefixed with "308425"
+        if(myki_file->top != 308425UL) break;
+        // Card numbers are always 15 digits in length
+        if(myki_file->bottom < 10000000UL || myki_file->bottom >= 100000000UL) break;
 
-        char cardBuff[32];
-        char dateBuff[18];
+        uint64_t card_number = myki_file->top * 1000000000ULL + myki_file->bottom * 10UL;
+        // Stored card number doesn't include check digit
+        card_number += myki_calculate_luhn(card_number);
 
-        snprintf(cardBuff, sizeof(cardBuff), "%llx%llx", x1, x2);
-        snprintf(dateBuff, sizeof(dateBuff), "%llx", x2);
+        furi_string_set(parsed_data, "\e#myki\nNo.: ");
 
-        char* cardp = cardBuff + 4;
-        cardp[18] = '\0';
-
-        // All itso card numbers are prefixed with "633597"
-        if(strncmp(cardp, "633597", 6) != 0) break;
-
-        char* datep = dateBuff + 12;
-        dateBuff[17] = '\0';
-
-        // DateStamp is defined in BS EN 1545 - Days passed since 01/01/1997
-        uint32_t dateStamp;
-        if(strint_to_uint32(datep, NULL, &dateStamp, 16) != StrintParseNoError) {
-            return false;
-        }
-        uint32_t unixTimestamp = dateStamp * 24 * 60 * 60 + 852076800U;
-
-        furi_string_set(parsed_data, "\e#ITSO Card\n");
+        // Stylise card number according to the physical card
+        char card_string[20];
+        snprintf(card_string, sizeof(card_string), "%llu", card_number);
 
         // Digit count in each space-separated group
-        static const uint8_t digit_count[] = {6, 4, 4, 4};
+        static const uint8_t digit_count[] = {1, 5, 4, 4, 1};
 
         for(uint32_t i = 0, k = 0; i < COUNT_OF(digit_count); k += digit_count[i++]) {
             for(uint32_t j = 0; j < digit_count[i]; ++j) {
-                furi_string_push_back(parsed_data, cardp[j + k]);
+                furi_string_push_back(parsed_data, card_string[j + k]);
             }
             furi_string_push_back(parsed_data, ' ');
         }
-
-        DateTime timestamp = {0};
-        datetime_timestamp_to_datetime(unixTimestamp, &timestamp);
-
-        FuriString* timestamp_str = furi_string_alloc();
-        locale_format_date(timestamp_str, &timestamp, locale_get_date_format(), "-");
-
-        furi_string_cat(parsed_data, "\nExpiry: ");
-        furi_string_cat(parsed_data, timestamp_str);
-
-        furi_string_free(timestamp_str);
 
         parsed = true;
     } while(false);
@@ -111,7 +96,7 @@ bool itso_parse(const NfcDevice* device, FuriString* parsed_data) {
     return parsed;
 }
 
-static NfcCommand metroflip_scene_itso_poller_callback(NfcGenericEvent event, void* context) {
+static NfcCommand myki_poller_callback(NfcGenericEvent event, void* context) {
     furi_assert(event.protocol == NfcProtocolMfDesfire);
 
     Metroflip* app = context;
@@ -124,7 +109,7 @@ static NfcCommand metroflip_scene_itso_poller_callback(NfcGenericEvent event, vo
     if(mf_desfire_event->type == MfDesfirePollerEventTypeReadSuccess) {
         nfc_device_set_data(
             app->nfc_device, NfcProtocolMfDesfire, nfc_poller_get_data(app->poller));
-        if(!itso_parse(app->nfc_device, parsed_data)) {
+        if(!myki_parse(app->nfc_device, parsed_data)) {
             furi_string_reset(app->text_box_store);
             FURI_LOG_I(TAG, "Unknown card type");
             furi_string_printf(parsed_data, "\e#Unknown card\n");
@@ -146,8 +131,7 @@ static NfcCommand metroflip_scene_itso_poller_callback(NfcGenericEvent event, vo
     return command;
 }
 
-void metroflip_scene_itso_on_enter(void* context) {
-    Metroflip* app = context;
+static void myki_on_enter(Metroflip* app) {
     dolphin_deed(DolphinDeedNfcRead);
 
     // Setup view
@@ -159,13 +143,12 @@ void metroflip_scene_itso_on_enter(void* context) {
     view_dispatcher_switch_to_view(app->view_dispatcher, MetroflipViewPopup);
     nfc_scanner_alloc(app->nfc);
     app->poller = nfc_poller_alloc(app->nfc, NfcProtocolMfDesfire);
-    nfc_poller_start(app->poller, metroflip_scene_itso_poller_callback, app);
+    nfc_poller_start(app->poller, myki_poller_callback, app);
 
     metroflip_app_blink_start(app);
 }
 
-bool metroflip_scene_itso_on_event(void* context, SceneManagerEvent event) {
-    Metroflip* app = context;
+static bool myki_on_event(Metroflip* app, SceneManagerEvent event) {
     bool consumed = false;
 
     if(event.type == SceneManagerEventTypeCustom) {
@@ -194,12 +177,32 @@ bool metroflip_scene_itso_on_event(void* context, SceneManagerEvent event) {
     return consumed;
 }
 
-void metroflip_scene_itso_on_exit(void* context) {
-    Metroflip* app = context;
+static void myki_on_exit(Metroflip* app) {
     widget_reset(app->widget);
     metroflip_app_blink_stop(app);
     if(app->poller) {
         nfc_poller_stop(app->poller);
         nfc_poller_free(app->poller);
     }
+}
+
+/* Actual implementation of app<>plugin interface */
+static const MetroflipPlugin myki_plugin = {
+    .card_name = "Myki",
+    .plugin_on_enter = myki_on_enter,
+    .plugin_on_event = myki_on_event,
+    .plugin_on_exit = myki_on_exit,
+
+};
+
+/* Plugin descriptor to comply with basic plugin specification */
+static const FlipperAppPluginDescriptor myki_plugin_descriptor = {
+    .appid = METROFLIP_SUPPORTED_CARD_PLUGIN_APP_ID,
+    .ep_api_version = METROFLIP_SUPPORTED_CARD_PLUGIN_API_VERSION,
+    .entry_point = &myki_plugin,
+};
+
+/* Plugin entry point - must return a pointer to const descriptor  */
+const FlipperAppPluginDescriptor* myki_plugin_ep(void) {
+    return &myki_plugin_descriptor;
 }

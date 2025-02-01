@@ -1,6 +1,8 @@
-#include "opus.h"
 #include "opus_lists.h"
 #include "../../../metroflip_i.h"
+#include "../../metroflip/metroflip_api.h"
+#include "../calypso_util.h"
+#include "opus_i.h"
 
 const char* get_opus_service_provider(int provider) {
     switch(provider) {

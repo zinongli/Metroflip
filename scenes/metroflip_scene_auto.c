@@ -10,7 +10,7 @@
 #include "desfire.h"
 #include <nfc/protocols/mf_desfire/mf_desfire_poller.h>
 #include <lib/nfc/protocols/mf_desfire/mf_desfire.h>
-
+#include "../api/metroflip/metroflip_api.h"
 #define TAG "Metroflip:Scene:Auto"
 
 static NfcCommand
@@ -124,20 +124,23 @@ bool metroflip_scene_auto_on_event(void* context, SceneManagerEvent event) {
             nfc_poller_stop(app->poller);
             nfc_poller_free(app->poller);
             if(app->desfire_card_type == CARD_TYPE_CLIPPER) {
-                scene_manager_next_scene(app->scene_manager, MetroflipSceneClipper);
+                strncpy(app->card_type, "clipper", sizeof(app->card_type) - 1);
             } else if(app->desfire_card_type == CARD_TYPE_OPAL) {
-                scene_manager_next_scene(app->scene_manager, MetroflipSceneOpal);
+                strncpy(app->card_type, "opal", sizeof(app->card_type) - 1);
             } else if(app->desfire_card_type == CARD_TYPE_MYKI) {
-                scene_manager_next_scene(app->scene_manager, MetroflipSceneClipper);
+                strncpy(app->card_type, "myki", sizeof(app->card_type) - 1);
             } else if(app->desfire_card_type == CARD_TYPE_ITSO) {
-                scene_manager_next_scene(app->scene_manager, MetroflipSceneItso);
+                strncpy(app->card_type, "itso", sizeof(app->card_type) - 1);
             } else if(app->desfire_card_type == CARD_TYPE_DESFIRE_UNKNOWN) {
+                strncpy(app->card_type, "unknown", sizeof(app->card_type) - 1);
                 Popup* popup = app->popup;
                 popup_set_header(popup, "Unsupported\n card", 58, 31, AlignLeft, AlignTop);
             } else {
+                strncpy(app->card_type, "unknown", sizeof(app->card_type) - 1);
                 Popup* popup = app->popup;
                 popup_set_header(popup, "Unsupported\n card", 58, 31, AlignLeft, AlignTop);
             }
+            scene_manager_next_scene(app->scene_manager, MetroflipSceneParse);
             consumed = true;
         } else if(event.event == MetroflipCustomEventCardLost) {
             Popup* popup = app->popup;
@@ -163,34 +166,38 @@ bool metroflip_scene_auto_on_event(void* context, SceneManagerEvent event) {
                 UNUSED(popup);
                 switch(card_type) {
                 case CARD_TYPE_METROMONEY:
+                    strncpy(app->card_type, "metromoney", sizeof(app->card_type) - 1);
                     FURI_LOG_I(TAG, "Detected: Metromoney\n");
-                    scene_manager_next_scene(app->scene_manager, MetroflipSceneMetromoney);
                     break;
                 case CARD_TYPE_CHARLIECARD:
+                    strncpy(app->card_type, "charliecard", sizeof(app->card_type) - 1);
                     FURI_LOG_I(TAG, "Detected: CharlieCard\n");
-                    scene_manager_next_scene(app->scene_manager, MetroflipSceneCharlieCard);
                     break;
                 case CARD_TYPE_SMARTRIDER:
+                    strncpy(app->card_type, "smartrider", sizeof(app->card_type) - 1);
                     FURI_LOG_I(TAG, "Detected: SmartRider\n");
-                    scene_manager_next_scene(app->scene_manager, MetroflipSceneSmartrider);
                     break;
                 case CARD_TYPE_TROIKA:
+                    strncpy(app->card_type, "troika", sizeof(app->card_type) - 1);
                     FURI_LOG_I(TAG, "Detected: Troika\n");
-                    scene_manager_next_scene(app->scene_manager, MetroflipSceneTroika);
                     break;
                 case CARD_TYPE_UNKNOWN:
+                    strncpy(app->card_type, "unknown", sizeof(app->card_type) - 1);
                     popup_set_header(popup, "Unsupported\n card", 58, 31, AlignLeft, AlignTop);
                     break;
                 default:
+                    strncpy(app->card_type, "unknown", sizeof(app->card_type) - 1);
                     FURI_LOG_I(TAG, "Detected: Unknown card type\n");
                     popup_set_header(popup, "Unsupported\n card", 58, 31, AlignLeft, AlignTop);
                     break;
                 }
+                scene_manager_next_scene(app->scene_manager, MetroflipSceneParse);
                 consumed = true;
             } else if(
                 nfc_detected_protocols_get_protocol(app->detected_protocols, 0) ==
                 NfcProtocolIso14443_4b) {
-                scene_manager_next_scene(app->scene_manager, MetroflipSceneCalypso);
+                strncpy(app->card_type, "calypso", sizeof(app->card_type) - 1);
+                scene_manager_next_scene(app->scene_manager, MetroflipSceneParse);
                 consumed = true;
             } else if(
                 nfc_detected_protocols_get_protocol(app->detected_protocols, 0) ==
@@ -201,6 +208,7 @@ bool metroflip_scene_auto_on_event(void* context, SceneManagerEvent event) {
             } else if(
                 nfc_detected_protocols_get_protocol(app->detected_protocols, 0) ==
                 NfcProtocolInvalid) {
+                strncpy(app->card_type, "unknown", sizeof(app->card_type) - 1);
                 Popup* popup = app->popup;
                 popup_set_header(
                     popup, "protocol\n currently\n unsupported", 58, 31, AlignLeft, AlignTop);
