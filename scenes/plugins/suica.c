@@ -21,14 +21,11 @@
 #include "../../api/metroflip/metroflip_api.h"
 #include "../../api/suica/suica_assets.h"
 
-
-
 #include <lib/nfc/protocols/felica/felica.h>
 #include <lib/nfc/protocols/felica/felica_poller.h>
 #include <lib/nfc/protocols/felica/felica_poller_i.h>
 #include <lib/nfc/helpers/felica_crc.h>
 #include <lib/bit_lib/bit_lib.h>
-
 
 #include <applications/services/locale/locale.h>
 #include <datetime.h>
@@ -36,7 +33,7 @@
 // Probably not needed after upstream include this in their suica_i.h
 #include <toolbox/stream/stream.h>
 #include <toolbox/stream/file_stream.h>
-#define TAG                             "Suica:Scene:Suica"
+#define TAG "Suica:Scene:Suica"
 
 #define SUICA_STATION_LIST_PATH         APP_ASSETS_PATH("suica/line_")
 #define SUICA_IC_TYPE_CODE              0x31
@@ -1142,7 +1139,7 @@ static NfcCommand suica_poller_callback(NfcGenericEvent event, void* context) {
     NfcCommand command = NfcCommandContinue;
     MetroflipPollerEventType stage = MetroflipPollerEventTypeStart;
 
-    Metroflip* app = (Metroflip*)context;
+    Metroflip* app = context;
     FuriString* parsed_data = furi_string_alloc();
     SuicaHistoryViewModel* model = view_get_model(app->suica_context->view_history);
 
@@ -1156,11 +1153,8 @@ static NfcCommand suica_poller_callback(NfcGenericEvent event, void* context) {
     uint8_t blocks[1] = {0x00};
     FelicaPoller* felica_poller = event.instance;
     FURI_LOG_I(TAG, "Poller set");
-    if(felica_event->type == FelicaPollerEventTypeError) {
-        view_dispatcher_send_custom_event(app->view_dispatcher, MetroflipCustomEventPollerFail);
-        command = NfcCommandStop;
-    }
-    if(felica_event->type == FelicaPollerEventTypeRequestAuthContext && felica_poller->data->pmm.data[0] == SUICA_IC_TYPE_CODE) {
+    if(felica_event->type == FelicaPollerEventTypeRequestAuthContext &&
+       felica_poller->data->pmm.data[0] == SUICA_IC_TYPE_CODE) {
         view_dispatcher_send_custom_event(app->view_dispatcher, MetroflipCustomEventCardDetected);
         command = NfcCommandContinue;
 
@@ -1360,14 +1354,17 @@ static void suica_on_enter(Metroflip* app) {
     view_dispatcher_add_view(
         app->view_dispatcher, MetroflipViewCanvas, app->suica_context->view_history);
 
+    popup_set_header(app->popup, "Apply\n card to\nthe back", 68, 30, AlignLeft, AlignTop);
+    popup_set_icon(app->popup, 0, 3, &I_RFIDDolphinReceive_97x61);
+    view_dispatcher_switch_to_view(app->view_dispatcher, MetroflipViewPopup);
+
     nfc_scanner_alloc(app->nfc);
     app->poller = nfc_poller_alloc(app->nfc, NfcProtocolFelica);
     nfc_poller_start(app->poller, suica_poller_callback, app);
+    FURI_LOG_I(TAG, "Poller started");
 
     metroflip_app_blink_start(app);
 
-    view_dispatcher_send_custom_event(
-                            app->view_dispatcher, MetroflipCustomEventPollerSuccess);
 }
 
 static bool suica_on_event(Metroflip* app, SceneManagerEvent event) {
@@ -1383,22 +1380,20 @@ static bool suica_on_event(Metroflip* app, SceneManagerEvent event) {
             // popup_enable_timeout(popup);
             // view_dispatcher_switch_to_view(app->view_dispatcher, SuicaViewPopup);
             // popup_disable_timeout(popup);
-            scene_manager_search_and_switch_to_previous_scene(app->scene_manager, MetroflipSceneStart);
+            scene_manager_search_and_switch_to_previous_scene(
+                app->scene_manager, MetroflipSceneStart);
             consumed = true;
         } else if(event.event == MetroflipCustomEventWrongCard) {
             popup_set_header(popup, "WRONG \n CARD", 68, 30, AlignLeft, AlignTop);
-            scene_manager_search_and_switch_to_previous_scene(app->scene_manager, MetroflipSceneStart);
+            scene_manager_search_and_switch_to_previous_scene(
+                app->scene_manager, MetroflipSceneStart);
             consumed = true;
         } else if(event.event == MetroflipCustomEventPollerFail) {
             popup_set_header(popup, "Failed", 68, 30, AlignLeft, AlignTop);
-            scene_manager_search_and_switch_to_previous_scene(app->scene_manager, MetroflipSceneStart);
+            scene_manager_search_and_switch_to_previous_scene(
+                app->scene_manager, MetroflipSceneStart);
             consumed = true;
-        } else {
-            popup_set_header(popup, "Apply\n card to\nthe back", 68, 30, AlignLeft, AlignTop);
-            popup_set_icon(popup, 0, 3, &I_RFIDDolphinReceive_97x61);
-            view_dispatcher_switch_to_view(app->view_dispatcher, MetroflipViewPopup);
         }
-
     } else if(event.type == SceneManagerEventTypeBack) {
         UNUSED(popup);
         scene_manager_search_and_switch_to_previous_scene(app->scene_manager, MetroflipSceneStart);

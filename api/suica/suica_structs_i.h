@@ -1,7 +1,7 @@
 #include <datetime.h>
 #include <stdbool.h>
 #include <furi.h>
-#include "suica_plugin_icons.h"
+//#include "suica_plugin_icons.h"
 
 typedef enum {
     SuicaKeikyu,
@@ -54,7 +54,6 @@ typedef struct {
     SuicaBalanceChangeSign balance_sign;
     uint8_t* shop_code;
 } SuicaHistory;
-
 
 typedef struct {
     uint8_t entry; // Which entry we are currently viewing
