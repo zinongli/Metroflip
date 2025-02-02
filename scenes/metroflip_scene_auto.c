@@ -84,6 +84,11 @@ void metroflip_scene_detect_scan_callback(NfcScannerEvent event, void* context) 
                 app->detected_protocols, event.data.protocols, event.data.protocol_num);
             view_dispatcher_send_custom_event(
                 app->view_dispatcher, MetroflipCustomEventPollerDetect);
+        } else if(event.data.protocols && *event.data.protocols == NfcProtocolFelica) {
+            nfc_detected_protocols_set(
+                app->detected_protocols, event.data.protocols, event.data.protocol_num);
+            view_dispatcher_send_custom_event(
+                app->view_dispatcher, MetroflipCustomEventPollerDetect);
         } else {
             const NfcProtocol* invalid_protocol = (const NfcProtocol*)NfcProtocolInvalid;
             nfc_detected_protocols_set(
@@ -204,6 +209,12 @@ bool metroflip_scene_auto_on_event(void* context, SceneManagerEvent event) {
                 NfcProtocolMfDesfire) {
                 app->poller = nfc_poller_alloc(app->nfc, NfcProtocolMfDesfire);
                 nfc_poller_start(app->poller, metroflip_scene_detect_desfire_poller_callback, app);
+                consumed = true;
+            } else if(
+                nfc_detected_protocols_get_protocol(app->detected_protocols, 0) ==
+                NfcProtocolFelica) {
+                strncpy(app->card_type, "suica", sizeof(app->card_type) - 1);
+                scene_manager_next_scene(app->scene_manager, MetroflipSceneParse);
                 consumed = true;
             } else if(
                 nfc_detected_protocols_get_protocol(app->detected_protocols, 0) ==

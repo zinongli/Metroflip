@@ -111,4 +111,5 @@ App(
     requires=["metroflip"],
     sources=["scenes/plugins/suica.c"],
     fal_embedded=True,
+    fap_icon_assets="images",
 )
