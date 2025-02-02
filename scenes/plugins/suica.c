@@ -101,7 +101,6 @@ static void suica_add_entry(SuicaHistoryViewModel* model, const uint8_t* entry) 
     }
 
     model->size++;
-    FURI_LOG_I(TAG, "Added entry %d", model->size);
 }
 
 void suica_parse_train_code(
@@ -1154,7 +1153,7 @@ static NfcCommand suica_poller_callback(NfcGenericEvent event, void* context) {
     FelicaPoller* felica_poller = event.instance;
     FURI_LOG_I(TAG, "Poller set");
     if(felica_event->type == FelicaPollerEventTypeRequestAuthContext &&
-       felica_poller->data->pmm.data[0] == SUICA_IC_TYPE_CODE) {
+       felica_poller->data->pmm.data[1] == SUICA_IC_TYPE_CODE) {
         view_dispatcher_send_custom_event(app->view_dispatcher, MetroflipCustomEventCardDetected);
         command = NfcCommandContinue;
 
@@ -1179,7 +1178,6 @@ static NfcCommand suica_poller_callback(NfcGenericEvent event, void* context) {
                     uint8_t block_data[16] = {0};
                     error = felica_poller_read_blocks(
                         felica_poller, 1, blocks, service_code[service_code_index], &rx_resp);
-                    FURI_LOG_I(TAG, "Erorr = %d", error);
                     if(error != FelicaErrorNone) {
                         view_dispatcher_send_custom_event(
                             app->view_dispatcher, MetroflipCustomEventCardLost);
@@ -1194,7 +1192,7 @@ static NfcCommand suica_poller_callback(NfcGenericEvent event, void* context) {
                     }
                     furi_string_cat_printf(parsed_data, "\n");
                     if(service_code_index == 0) {
-                        FURI_LOG_I(TAG, "Service code %d, adding entry", service_code_index);
+                        FURI_LOG_I(TAG, "Service code %d, adding entry %x", service_code_index, model->size);
                         suica_add_entry(model, block_data);
                     }
                 }
