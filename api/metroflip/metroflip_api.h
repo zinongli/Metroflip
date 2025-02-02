@@ -206,6 +206,7 @@ extern const Icon I_Suica_YenKanji;
 extern const Icon I_Suica_YenSign;
 extern const Icon I_Suica_YurakuchoY;
 extern const Icon I_RFIDDolphinReceive_97x61;
+extern const Icon I_icon;
 #ifdef __cplusplus
 }
 #endif

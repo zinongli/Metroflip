@@ -43,6 +43,8 @@
 #include <strings.h>
 #include <flipper_application/flipper_application.h>
 #include <loader/firmware_api/firmware_api.h>
+#include <applications/services/storage/storage.h>
+#include <applications/services/dialogs/dialogs.h>
 
 #include "scenes/metroflip_scene.h"
 
@@ -50,7 +52,7 @@
 #include "api/suica/suica_structs.h"
 
 #define KEY_MASK_BIT_CHECK(key_mask_1, key_mask_2) (((key_mask_1) & (key_mask_2)) == (key_mask_1))
-
+#define METROFLIP_FILE_EXTENSION                   ".metro"
 typedef struct {
     Gui* gui;
     SceneManager* scene_manager;
@@ -96,6 +98,9 @@ typedef struct {
 
     // Suica specific context
     SuicaContext* suica_context;
+
+    DialogsApp* dialogs;
+
 } Metroflip;
 
 enum MetroflipCustomEvent {
