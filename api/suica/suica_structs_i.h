@@ -1,6 +1,7 @@
 #include <datetime.h>
 #include <stdbool.h>
 #include <furi.h>
+#include "metroflip_icons.h"
 
 typedef enum {
     SuicaKeikyu,
