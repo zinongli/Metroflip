@@ -90,7 +90,7 @@ typedef struct {
     size_t sec_num;
     float value;
     char currency[4];
-    char card_type[32];
+    const char* card_type;
     bool auto_mode;
     CardType mfc_card_type;
     NfcProtocol protocol;

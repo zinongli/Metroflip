@@ -22,6 +22,13 @@ void metroflip_scene_start_on_enter(void* context) {
         app);
 
     submenu_add_item(
+        submenu,
+        "Supported Cards",
+        MetroflipSceneSupported,
+        metroflip_scene_start_submenu_callback,
+        app);
+
+    submenu_add_item(
         submenu, "About", MetroflipSceneAbout, metroflip_scene_start_submenu_callback, app);
 
     submenu_add_item(

@@ -124,19 +124,19 @@ bool metroflip_scene_auto_on_event(void* context, SceneManagerEvent event) {
             nfc_poller_stop(app->poller);
             nfc_poller_free(app->poller);
             if(app->desfire_card_type == CARD_TYPE_CLIPPER) {
-                strncpy(app->card_type, "clipper", sizeof(app->card_type) - 1);
+                app->card_type = "clipper";
             } else if(app->desfire_card_type == CARD_TYPE_OPAL) {
-                strncpy(app->card_type, "opal", sizeof(app->card_type) - 1);
+                app->card_type = "opal";
             } else if(app->desfire_card_type == CARD_TYPE_MYKI) {
-                strncpy(app->card_type, "myki", sizeof(app->card_type) - 1);
+                app->card_type = "myki";
             } else if(app->desfire_card_type == CARD_TYPE_ITSO) {
-                strncpy(app->card_type, "itso", sizeof(app->card_type) - 1);
+                app->card_type = "itso";
             } else if(app->desfire_card_type == CARD_TYPE_DESFIRE_UNKNOWN) {
-                strncpy(app->card_type, "unknown", sizeof(app->card_type) - 1);
+                app->card_type = "unknown";
                 Popup* popup = app->popup;
                 popup_set_header(popup, "Unsupported\n card", 58, 31, AlignLeft, AlignTop);
             } else {
-                strncpy(app->card_type, "unknown", sizeof(app->card_type) - 1);
+                app->card_type = "unknown";
                 Popup* popup = app->popup;
                 popup_set_header(popup, "Unsupported\n card", 58, 31, AlignLeft, AlignTop);
             }
@@ -166,27 +166,27 @@ bool metroflip_scene_auto_on_event(void* context, SceneManagerEvent event) {
                 UNUSED(popup);
                 switch(card_type) {
                 case CARD_TYPE_METROMONEY:
-                    strncpy(app->card_type, "metromoney", sizeof(app->card_type) - 1);
+                    app->card_type = "metromoney";
                     FURI_LOG_I(TAG, "Detected: Metromoney\n");
                     break;
                 case CARD_TYPE_CHARLIECARD:
-                    strncpy(app->card_type, "charliecard", sizeof(app->card_type) - 1);
+                    app->card_type = "charliecard";
                     FURI_LOG_I(TAG, "Detected: CharlieCard\n");
                     break;
                 case CARD_TYPE_SMARTRIDER:
-                    strncpy(app->card_type, "smartrider", sizeof(app->card_type) - 1);
+                    app->card_type = "smartrider";
                     FURI_LOG_I(TAG, "Detected: SmartRider\n");
                     break;
                 case CARD_TYPE_TROIKA:
-                    strncpy(app->card_type, "troika", sizeof(app->card_type) - 1);
+                    app->card_type = "troika";
                     FURI_LOG_I(TAG, "Detected: Troika\n");
                     break;
                 case CARD_TYPE_UNKNOWN:
-                    strncpy(app->card_type, "unknown", sizeof(app->card_type) - 1);
+                    app->card_type = "unknown";
                     popup_set_header(popup, "Unsupported\n card", 58, 31, AlignLeft, AlignTop);
                     break;
                 default:
-                    strncpy(app->card_type, "unknown", sizeof(app->card_type) - 1);
+                    app->card_type = "unknown";
                     FURI_LOG_I(TAG, "Detected: Unknown card type\n");
                     popup_set_header(popup, "Unsupported\n card", 58, 31, AlignLeft, AlignTop);
                     break;
@@ -196,7 +196,7 @@ bool metroflip_scene_auto_on_event(void* context, SceneManagerEvent event) {
             } else if(
                 nfc_detected_protocols_get_protocol(app->detected_protocols, 0) ==
                 NfcProtocolIso14443_4b) {
-                strncpy(app->card_type, "calypso", sizeof(app->card_type) - 1);
+                app->card_type = "calypso";
                 scene_manager_next_scene(app->scene_manager, MetroflipSceneParse);
                 consumed = true;
             } else if(
@@ -208,7 +208,7 @@ bool metroflip_scene_auto_on_event(void* context, SceneManagerEvent event) {
             } else if(
                 nfc_detected_protocols_get_protocol(app->detected_protocols, 0) ==
                 NfcProtocolInvalid) {
-                strncpy(app->card_type, "unknown", sizeof(app->card_type) - 1);
+                app->card_type = "unkown";
                 Popup* popup = app->popup;
                 popup_set_header(
                     popup, "protocol\n currently\n unsupported", 58, 31, AlignLeft, AlignTop);

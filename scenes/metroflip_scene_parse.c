@@ -9,17 +9,14 @@ void metroflip_scene_parse_on_enter(void* context) {
     metroflip_plugin_manager_alloc(app);
 
     // Check if card_type is empty or unknown
-    if(app->card_type[0] == '\0') {
-        view_dispatcher_send_custom_event(app->view_dispatcher, MetroflipCustomEventWrongCard);
-    } else if(strcmp(app->card_type, "unknown") == 0) {
+    if((app->card_type[0] == '\0') || (strcmp(app->card_type, "unknown") == 0) ||
+       (!app->card_type)) {
         view_dispatcher_send_custom_event(app->view_dispatcher, MetroflipCustomEventWrongCard);
     } else {
-        char plugin_name[64]; // Adjust size as needed
-        snprintf(plugin_name, sizeof(plugin_name), "%s_plugin.fal", app->card_type);
+        char path[128]; // Adjust size as needed
+        snprintf(
+            path, sizeof(path), "/ext/apps_assets/metroflip/plugins/%s_plugin.fal", app->card_type);
 
-        // Construct the final path
-        char path[128]; // Adjust for path length
-        snprintf(path, sizeof(path), "/ext/apps_assets/metroflip/plugins/%s", plugin_name);
         FURI_LOG_I(TAG, "path %s", path);
 
         // Try loading the plugin
@@ -56,7 +53,8 @@ bool metroflip_scene_parse_on_event(void* context, SceneManagerEvent event) {
 void metroflip_scene_parse_on_exit(void* context) {
     Metroflip* app = context;
 
-    if(!((app->card_type[0] == '\0') || (strcmp(app->card_type, "unknown") == 0))) {
+    if(!((app->card_type[0] == '\0') || (strcmp(app->card_type, "unknown") == 0) ||
+         (!app->card_type))) {
         // Get and run the plugin's on_exit function
         const MetroflipPlugin* plugin = plugin_manager_get_ep(app->plugin_manager, 0);
         plugin->plugin_on_exit(app);
@@ -64,5 +62,5 @@ void metroflip_scene_parse_on_exit(void* context) {
         plugin_manager_free(app->plugin_manager);
         composite_api_resolver_free(app->resolver);
     }
-    memset(app->card_type, 0, sizeof(app->card_type));
+    app->card_type = "unknown";
 }
