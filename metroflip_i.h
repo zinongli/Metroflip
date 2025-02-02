@@ -52,6 +52,7 @@ extern const Icon I_RFIDDolphinReceive_97x61;
 #include "scenes/metroflip_scene.h"
 
 #include "api/calypso/calypso_i.h"
+#include "api/suica/suica_structs.h"
 
 #define KEY_MASK_BIT_CHECK(key_mask_1, key_mask_2) (((key_mask_1) & (key_mask_2)) == (key_mask_1))
 
@@ -97,6 +98,9 @@ typedef struct {
 
     // Calypso specific context
     CalypsoContext* calypso_context;
+
+    // Suica specific context
+    SuicaContext* suica_context;
 } Metroflip;
 
 enum MetroflipCustomEvent {
@@ -137,6 +141,7 @@ typedef enum {
     MetroflipViewTextBox,
     MetroflipViewWidget,
     MetroflipViewUart,
+    MetroflipViewCanvas,
 } MetroflipView;
 
 typedef enum {
