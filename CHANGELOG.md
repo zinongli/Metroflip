@@ -25,3 +25,15 @@
   - Now doesnt crash when you click the back button while reading
 - Fix Charliecard parser
 
+## v0.5
+
+Big update!
+
+- Custom API Added: A custom API for Metroflip has been introduced for smoother operation and better scalability.
+- Parsers Moved to Plugins: All parsers have been moved to individual plugins, which means all parser-related code is now loaded from the SD card as .fal files, freeing up RAM until a parser is needed.
+- Scene Optimization: All separate scenes have been merged into one unified scene (metroflip_scene_parse.c), simplifying the codebase.
+- RAM Usage Reduced: We’ve reduced RAM usage by over 45%, eliminating those frustrating "out of memory" errors.
+- Navigo Station List: The Navigo station list has been relocated to apps_assets, improving organization and performance.
+- Unified Calypso Parser: A new unified Calypso parser has been introduced (thanks to DocSystem), streamlining Calypso card support.
+- RavKav Moved to Calypso Parser: RavKav has been moved to the new unified Calypso parser (credit to luu176).
+
