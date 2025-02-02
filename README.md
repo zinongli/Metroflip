@@ -9,7 +9,7 @@ Metroflip is a multi-protocol metro card reader app for the Flipper Zero, inspir
 Please join the server https://discord.gg/NR5hhbAXqS if you have any questions for me.
 ---
 
-![image](screenshots/Menu-Top.png)
+![Menu-Top-Screenshot](screenshots/Menu-Top.png)
 
 # Setup Instructions
 
