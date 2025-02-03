@@ -130,23 +130,17 @@ bool metroflip_scene_auto_on_event(void* context, SceneManagerEvent event) {
             nfc_poller_free(app->poller);
             if(app->desfire_card_type == CARD_TYPE_CLIPPER) {
                 app->card_type = "clipper";
-                app->card_type = "clipper";
             } else if(app->desfire_card_type == CARD_TYPE_OPAL) {
-                app->card_type = "opal";
                 app->card_type = "opal";
             } else if(app->desfire_card_type == CARD_TYPE_MYKI) {
                 app->card_type = "myki";
-                app->card_type = "myki";
             } else if(app->desfire_card_type == CARD_TYPE_ITSO) {
                 app->card_type = "itso";
-                app->card_type = "itso";
             } else if(app->desfire_card_type == CARD_TYPE_DESFIRE_UNKNOWN) {
-                app->card_type = "unknown";
                 app->card_type = "unknown";
                 Popup* popup = app->popup;
                 popup_set_header(popup, "Unsupported\n card", 58, 31, AlignLeft, AlignTop);
             } else {
-                app->card_type = "unknown";
                 app->card_type = "unknown";
                 Popup* popup = app->popup;
                 popup_set_header(popup, "Unsupported\n card", 58, 31, AlignLeft, AlignTop);
@@ -178,31 +172,25 @@ bool metroflip_scene_auto_on_event(void* context, SceneManagerEvent event) {
                 switch(card_type) {
                 case CARD_TYPE_METROMONEY:
                     app->card_type = "metromoney";
-                    app->card_type = "metromoney";
                     FURI_LOG_I(TAG, "Detected: Metromoney\n");
                     break;
                 case CARD_TYPE_CHARLIECARD:
-                    app->card_type = "charliecard";
                     app->card_type = "charliecard";
                     FURI_LOG_I(TAG, "Detected: CharlieCard\n");
                     break;
                 case CARD_TYPE_SMARTRIDER:
                     app->card_type = "smartrider";
-                    app->card_type = "smartrider";
                     FURI_LOG_I(TAG, "Detected: SmartRider\n");
                     break;
                 case CARD_TYPE_TROIKA:
-                    app->card_type = "troika";
                     app->card_type = "troika";
                     FURI_LOG_I(TAG, "Detected: Troika\n");
                     break;
                 case CARD_TYPE_UNKNOWN:
                     app->card_type = "unknown";
-                    app->card_type = "unknown";
                     popup_set_header(popup, "Unsupported\n card", 58, 31, AlignLeft, AlignTop);
                     break;
                 default:
-                    app->card_type = "unknown";
                     app->card_type = "unknown";
                     FURI_LOG_I(TAG, "Detected: Unknown card type\n");
                     popup_set_header(popup, "Unsupported\n card", 58, 31, AlignLeft, AlignTop);
@@ -213,7 +201,6 @@ bool metroflip_scene_auto_on_event(void* context, SceneManagerEvent event) {
             } else if(
                 nfc_detected_protocols_get_protocol(app->detected_protocols, 0) ==
                 NfcProtocolIso14443_4b) {
-                app->card_type = "calypso";
                 app->card_type = "calypso";
                 scene_manager_next_scene(app->scene_manager, MetroflipSceneParse);
                 consumed = true;
@@ -232,7 +219,6 @@ bool metroflip_scene_auto_on_event(void* context, SceneManagerEvent event) {
             } else if(
                 nfc_detected_protocols_get_protocol(app->detected_protocols, 0) ==
                 NfcProtocolInvalid) {
-                app->card_type = "unkown";
                 app->card_type = "unkown";
                 Popup* popup = app->popup;
                 popup_set_header(
