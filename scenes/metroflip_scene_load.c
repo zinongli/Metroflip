@@ -39,6 +39,7 @@ void metroflip_scene_load_on_enter(void* context) {
     if(app->data_loaded) {
         // Direct to the parsing screen just like the auto scene does
         app->card_type = furi_string_get_cstr(card_type);
+        FURI_LOG_I(TAG, "Card type: %s", app->card_type);
         scene_manager_next_scene(app->scene_manager, MetroflipSceneParse);
     } else {
         scene_manager_search_and_switch_to_previous_scene(app->scene_manager, MetroflipSceneStart);
