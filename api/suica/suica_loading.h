@@ -52,7 +52,6 @@ void load_suica_data(void* context, FlipperFormat* format) {
         }
         suica_add_entry(model, block_data);
     }
-    app->data_loaded = true;
     furi_string_free(entry_preamble);
     free(byte_array_buffer);
 }

@@ -9,16 +9,20 @@
 
 void metroflip_scene_load_on_enter(void* context) {
     Metroflip* app = (Metroflip*)context;
+    // We initialized this to be false every time we enter
     app->data_loaded = false;
+    // The same string we will use to direct parse scene which plugin to call
+    // Extracted from the file
+    FuriString* card_type = furi_string_alloc();
+
+    // All the app_data browser stuff. Don't worry about this
     DialogsFileBrowserOptions browser_options;
     Storage* storage = furi_record_open(RECORD_STORAGE);
     storage_simply_mkdir(storage, STORAGE_APP_DATA_PATH_PREFIX);
     dialog_file_browser_set_basic_options(&browser_options, METROFLIP_FILE_EXTENSION, &I_icon);
     browser_options.base_path = STORAGE_APP_DATA_PATH_PREFIX;
     FuriString* file_path = furi_string_alloc_set(browser_options.base_path);
-    FuriString* card_type = furi_string_alloc();
 
-    // FuriString* buffer = furi_string_alloc();
     if(dialog_file_browser_show(app->dialogs, file_path, file_path, &browser_options)) {
         FlipperFormat* format = flipper_format_file_alloc(storage);
         do {
@@ -27,14 +31,15 @@ void metroflip_scene_load_on_enter(void* context) {
             if(furi_string_equal_str(card_type, "suica")) {
                 load_suica_data(app, format);
             }
+            app->data_loaded = true;
         } while(0);
         flipper_format_free(format);
     }
+
     if(app->data_loaded) {
-        if(furi_string_equal_str(card_type, "suica")) {
-            strncpy(app->card_type, "suica", sizeof(app->card_type) - 1);
-            scene_manager_next_scene(app->scene_manager, MetroflipSceneParse);
-        }
+        // Direct to the parsing screen just like the auto scene does
+        strncpy(app->card_type, furi_string_get_cstr(card_type), sizeof(app->card_type) - 1);
+        scene_manager_next_scene(app->scene_manager, MetroflipSceneParse);
     } else {
         scene_manager_next_scene(app->scene_manager, MetroflipSceneStart);
     }
@@ -47,6 +52,8 @@ bool metroflip_scene_load_on_event(void* context, SceneManagerEvent event) {
     Metroflip* app = context;
     UNUSED(event);
     bool consumed = false;
+    // If they don't select any file in the brwoser and press back button,
+    // the data is not loaded
     if(!app->data_loaded) {
         scene_manager_search_and_switch_to_previous_scene(app->scene_manager, MetroflipSceneStart);
     }
