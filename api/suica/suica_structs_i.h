@@ -1,7 +1,6 @@
 #include <datetime.h>
 #include <stdbool.h>
 #include <furi.h>
-//#include "suica_plugin_icons.h"
 
 typedef enum {
     SuicaKeikyu,
