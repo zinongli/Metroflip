@@ -40,6 +40,8 @@ void load_suica_data(void* context, FlipperFormat* format) {
     // Read the travel history entries
     for(uint8_t i = 0; i < SUICA_MAX_HISTORY_ENTRIES; i++) {
         furi_string_printf(entry_preamble, "Travel %02X", i);
+        // For every line in the flipper format file
+        // We read the entire line's hex and store it in the byte_array_buffer
         if(!flipper_format_read_hex(
                format,
                furi_string_get_cstr(entry_preamble),
