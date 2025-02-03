@@ -3,7 +3,6 @@
 #include <furi.h>
 #include <bit_lib.h>
 #include <lib/nfc/protocols/nfc_protocol.h>
-#include <lib/nfc/protocols/felica/felica.h>
 #include "../api/metroflip/metroflip_api.h"
 #include "../api/suica/suica_loading.h"
 #define TAG "Metroflip:Scene:Load"
@@ -17,32 +16,31 @@ void metroflip_scene_load_on_enter(void* context) {
     dialog_file_browser_set_basic_options(&browser_options, METROFLIP_FILE_EXTENSION, &I_icon);
     browser_options.base_path = STORAGE_APP_DATA_PATH_PREFIX;
     FuriString* file_path = furi_string_alloc_set(browser_options.base_path);
+    FuriString* card_type = furi_string_alloc();
+
     // FuriString* buffer = furi_string_alloc();
-    FURI_LOG_I(TAG, "Opening file path %s", furi_string_get_cstr(file_path));
     if(dialog_file_browser_show(app->dialogs, file_path, file_path, &browser_options)) {
         FlipperFormat* format = flipper_format_file_alloc(storage);
         do {
             if(!flipper_format_file_open_existing(format, furi_string_get_cstr(file_path))) break;
-            FuriString* card_type = furi_string_alloc();
             if(!flipper_format_read_string(format, "Card Type", card_type)) break;
             if(furi_string_equal_str(card_type, "suica")) {
                 load_suica_data(app, format);
             }
-            furi_string_free(card_type);
         } while(0);
         flipper_format_free(format);
     }
-    furi_string_free(file_path);
-    furi_record_close(RECORD_STORAGE);
-
     if(app->data_loaded) {
-        if(strcmp(app->card_type, "suica")) {
+        if(furi_string_equal_str(card_type, "suica")) {
             strncpy(app->card_type, "suica", sizeof(app->card_type) - 1);
             scene_manager_next_scene(app->scene_manager, MetroflipSceneParse);
         }
     } else {
         scene_manager_next_scene(app->scene_manager, MetroflipSceneStart);
     }
+    furi_string_free(file_path);
+    furi_string_free(card_type);
+    furi_record_close(RECORD_STORAGE);
 }
 
 bool metroflip_scene_load_on_event(void* context, SceneManagerEvent event) {
