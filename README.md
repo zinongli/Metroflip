@@ -9,7 +9,7 @@ Metroflip is a multi-protocol metro card reader app for the Flipper Zero, inspir
 Please join the server https://discord.gg/NR5hhbAXqS if you have any questions for me.
 ---
 
-![image](screenshots/Menu-Top.png)
+![Menu-Top-Screenshot](screenshots/Menu-Top.png)
 
 # Setup Instructions
 
@@ -69,19 +69,18 @@ This is a list of metro cards and transit systems that need support or have part
 
 | **Card / Agency**  | **Country / City**                          | **Card Type**     |
 |--------------------|---------------------------------------------|-------------------|
-| **Bip!**           | 🇨🇱 Santiago de Chile, Chile                  | Mifare Classic    |
-| **Charliecard**    | 🇺🇸 Boston, MA, USA                           | Mifare Classic    |
-| **Clipper**        | 🇺🇸 San Francisco, CA, USA                    | Mifare DESFire    |
-| **ITSO**           | 🇬🇧 United Kingdom                            | Mifare DESFire    |
-| **Metromoney**     | 🇬🇪 Tbilisi, Georgia                          | Mifare Classic    |
+| **Bip!**           | 🇨🇱 Santiago de Chile, Chile                | Mifare Classic    |
+| **Charliecard**    | 🇺🇸 Boston, MA, USA                        | Mifare Classic    |
+| **Clipper**        | 🇺🇸 San Francisco, CA, USA                  | Mifare DESFire    |
+| **ITSO**           | 🇬🇧 United Kingdom                          | Mifare DESFire    |
+| **Metromoney**     | 🇬🇪 Tbilisi, Georgia                        | Mifare Classic    |
 | **myki**           | 🇦🇺 Melbourne (and surrounds), VIC, Australia | Mifare DESFire    |
-| **Navigo**         | 🇫🇷 Paris, France                             | Calypso           |
-| **Opus**           | 🇨🇦 Montreal, QC, Canada                      | Calypso           |
-| **Opal**           | 🇦🇺 Sydney (and surrounds), NSW, Australia    | Mifare DESFire    |
-| **Rav-Kav**        | 🇮🇱 Israel                                    | Calypso           |
-| **Troika**         | 🇷🇺 Moscow, Russia                            | Mifare Classic    |
-| **SmartRider**	   | :australia: Western Australia, Australia     | Mifare Classic    |
-
+| **Navigo**         | 🇫🇷 Paris, France                           | Calypso           |
+| **Opal**           | 🇦🇺 Sydney (and surrounds), NSW, Australia  | Mifare DESFire    |
+| **Opus**           | 🇨🇦 Montreal, QC, Canada                    | Calypso           |
+| **Rav-Kav**        | 🇮🇱 Israel                                  | Calypso           |
+| **SmartRider**     | :australia: Western Australia, Australia   | Mifare Classic    |
+| **Troika**         | 🇷🇺 Moscow, Russia                          | Mifare Classic    |
 
 
 ---
