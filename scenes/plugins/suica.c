@@ -82,6 +82,18 @@ static void suica_model_initialize(SuicaHistoryViewModel* model, size_t initial_
     model->history.exit_line = RailwaysList[SUICA_RAILWAY_NUM];
 }
 
+static void suica_model_initialize_after_load(SuicaHistoryViewModel* model) {
+    model->entry = 1;
+    model->page = 0;
+    model->animator_tick = 0;
+    model->history.entry_station.name = furi_string_alloc_set("Unknown");
+    model->history.entry_station.jr_header = furi_string_alloc_set("0");
+    model->history.exit_station.name = furi_string_alloc_set("Unknown");
+    model->history.exit_station.jr_header = furi_string_alloc_set("0");
+    model->history.entry_line = RailwaysList[SUICA_RAILWAY_NUM];
+    model->history.exit_line = RailwaysList[SUICA_RAILWAY_NUM];
+}
+
 static void suica_add_entry(SuicaHistoryViewModel* model, const uint8_t* entry) {
     if(model->size <= 0) {
         suica_model_initialize(model, 3);
@@ -1143,6 +1155,7 @@ static NfcCommand suica_poller_callback(NfcGenericEvent event, void* context) {
     SuicaHistoryViewModel* model = view_get_model(app->suica_context->view_history);
 
     Widget* widget = app->widget;
+
     const uint16_t service_code[2] = {SERVICE_CODE_HISTORY_IN_LE, SERVICE_CODE_TAPS_LOG_IN_LE};
 
     const FelicaPollerEvent* felica_event = event.event_data;
@@ -1172,9 +1185,8 @@ static NfcCommand suica_poller_callback(NfcGenericEvent event, void* context) {
                 rx_resp->SF1 = 0;
                 rx_resp->SF2 = 0;
                 blocks[0] = 0; // firmware api requires this to be a list
-                uint8_t max_blocks = 25; // Arbitrary limit to prevent infinite loops
-                while((rx_resp->SF1 + rx_resp->SF2) == 0 && blocks[0] < max_blocks &&
-                      error == FelicaErrorNone) {
+                while((rx_resp->SF1 + rx_resp->SF2) == 0 &&
+                      blocks[0] < SUICA_MAX_HISTORY_ENTRIES && error == FelicaErrorNone) {
                     uint8_t block_data[16] = {0};
                     error = felica_poller_read_blocks(
                         felica_poller, 1, blocks, service_code[service_code_index], &rx_resp);
@@ -1192,7 +1204,11 @@ static NfcCommand suica_poller_callback(NfcGenericEvent event, void* context) {
                     }
                     furi_string_cat_printf(parsed_data, "\n");
                     if(service_code_index == 0) {
-                        FURI_LOG_I(TAG, "Service code %d, adding entry %x", service_code_index, model->size);
+                        FURI_LOG_I(
+                            TAG,
+                            "Service code %d, adding entry %x",
+                            service_code_index,
+                            model->size);
                         suica_add_entry(model, block_data);
                     }
                 }
@@ -1336,9 +1352,15 @@ static void suica_on_enter(Metroflip* app) {
     // Gui* gui = furi_record_open(RECORD_GUI);
     dolphin_deed(DolphinDeedNfcRead);
 
-    app->suica_context = (SuicaContext*)malloc(sizeof(SuicaContext));
-    app->suica_context->view_history = view_alloc();
-    view_set_context(app->suica_context->view_history, app);
+    if(app->data_loaded == false) {
+        app->suica_context = malloc(sizeof(SuicaContext));
+        app->suica_context->view_history = view_alloc();
+        view_set_context(app->suica_context->view_history, app);
+        view_allocate_model(
+            app->suica_context->view_history,
+            ViewModelTypeLockFree,
+            sizeof(SuicaHistoryViewModel));
+    }
     view_set_input_callback(app->suica_context->view_history, suica_history_input_callback);
     view_set_previous_callback(app->suica_context->view_history, suica_navigation_raw_callback);
     view_set_enter_callback(app->suica_context->view_history, suica_view_history_enter_callback);
@@ -1346,23 +1368,46 @@ static void suica_on_enter(Metroflip* app) {
     view_set_custom_callback(
         app->suica_context->view_history, suica_view_history_custom_event_callback);
     view_set_draw_callback(app->suica_context->view_history, suica_history_draw_callback);
-    view_allocate_model(
-        app->suica_context->view_history, ViewModelTypeLockFree, sizeof(SuicaHistoryViewModel));
 
     view_dispatcher_add_view(
         app->view_dispatcher, MetroflipViewCanvas, app->suica_context->view_history);
 
-    popup_set_header(app->popup, "Apply\n card to\nthe back", 68, 30, AlignLeft, AlignTop);
-    popup_set_icon(app->popup, 0, 3, &I_RFIDDolphinReceive_97x61);
-    view_dispatcher_switch_to_view(app->view_dispatcher, MetroflipViewPopup);
+    if(app->data_loaded == false) {
+        popup_set_header(app->popup, "Apply\n card to\nthe back", 68, 30, AlignLeft, AlignTop);
+        popup_set_icon(app->popup, 0, 3, &I_RFIDDolphinReceive_97x61);
+        view_dispatcher_switch_to_view(app->view_dispatcher, MetroflipViewPopup);
 
-    nfc_scanner_alloc(app->nfc);
-    app->poller = nfc_poller_alloc(app->nfc, NfcProtocolFelica);
-    nfc_poller_start(app->poller, suica_poller_callback, app);
-    FURI_LOG_I(TAG, "Poller started");
+        nfc_scanner_alloc(app->nfc);
+        app->poller = nfc_poller_alloc(app->nfc, NfcProtocolFelica);
+        nfc_poller_start(app->poller, suica_poller_callback, app);
+        FURI_LOG_I(TAG, "Poller started");
 
-    metroflip_app_blink_start(app);
+        metroflip_app_blink_start(app);
+    } else {
+        SuicaHistoryViewModel* model = view_get_model(app->suica_context->view_history);
+        suica_model_initialize_after_load(model);
+        Widget* widget = app->widget;
+        FuriString* parsed_data = furi_string_alloc();
+        furi_string_printf(parsed_data, "\e#Suica\n");
 
+        for(uint8_t i = 0; i < model->size; i++) {
+            furi_string_cat_printf(parsed_data, "Block %02X\n", i);
+            for(size_t j = 0; j < FELICA_DATA_BLOCK_SIZE; j++) {
+                furi_string_cat_printf(parsed_data, "%02X ", model->travel_history[i * 16 + j]);
+            }
+            furi_string_cat_printf(parsed_data, "\n");
+        }
+        widget_add_text_scroll_element(widget, 0, 0, 128, 64, furi_string_get_cstr(parsed_data));
+
+        widget_add_button_element(
+            widget, GuiButtonTypeRight, "Exit", metroflip_exit_widget_callback, app);
+
+        if(model->size > 1) {
+            widget_add_button_element(
+                widget, GuiButtonTypeCenter, "Parse", suica_parse_detail_callback, app);
+        }
+        view_dispatcher_switch_to_view(app->view_dispatcher, MetroflipViewWidget);
+    }
 }
 
 static bool suica_on_event(Metroflip* app, SceneManagerEvent event) {

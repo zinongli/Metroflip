@@ -80,6 +80,8 @@ Metroflip* metroflip_alloc() {
 
     // Dialog for loading
     app->dialogs = furi_record_open(RECORD_DIALOGS);
+
+    app->data_loaded = false;
     return app;
 }
 

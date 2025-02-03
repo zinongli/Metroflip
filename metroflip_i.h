@@ -101,6 +101,8 @@ typedef struct {
 
     DialogsApp* dialogs;
 
+    bool data_loaded;
+
 } Metroflip;
 
 enum MetroflipCustomEvent {
