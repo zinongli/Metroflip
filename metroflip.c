@@ -78,6 +78,10 @@ Metroflip* metroflip_alloc() {
         app->view_dispatcher, MetroflipViewTextBox, text_box_get_view(app->text_box));
     app->text_box_store = furi_string_alloc();
 
+    // Dialog for loading
+    app->dialogs = furi_record_open(RECORD_DIALOGS);
+
+    app->data_loaded = false;
     return app;
 }
 
@@ -121,6 +125,10 @@ void metroflip_free(Metroflip* app) {
 
     // Records
     furi_record_close(RECORD_GUI);
+
+    // Dialogs
+    furi_record_close(RECORD_DIALOGS);
+
     free(app);
 }
 
