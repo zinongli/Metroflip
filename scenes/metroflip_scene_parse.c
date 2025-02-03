@@ -1,6 +1,7 @@
 #include "../metroflip_i.h"
 #include <furi.h>
 #include "../metroflip_plugins.h"
+#include "../api/metroflip/metroflip_api.h"
 #define TAG "Metroflip:Scene:Parse"
 #include <stdio.h>
 
