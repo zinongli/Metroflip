@@ -18,7 +18,7 @@ void metroflip_scene_load_on_enter(void* context) {
     DialogsFileBrowserOptions browser_options;
     Storage* storage = furi_record_open(RECORD_STORAGE);
     storage_simply_mkdir(storage, STORAGE_APP_DATA_PATH_PREFIX);
-    dialog_file_browser_set_basic_options(&browser_options, METROFLIP_FILE_EXTENSION, NULL);
+    dialog_file_browser_set_basic_options(&browser_options, METROFLIP_FILE_EXTENSION, &I_icon);
     browser_options.base_path = STORAGE_APP_DATA_PATH_PREFIX;
     FuriString* file_path = furi_string_alloc_set(browser_options.base_path);
 

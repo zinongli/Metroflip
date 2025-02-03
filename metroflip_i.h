@@ -9,11 +9,6 @@
 #include <gui/view_dispatcher.h>
 #include <gui/scene_manager.h>
 #include "api/nfc/mf_classic_key_cache.h"
-#if __has_include(<assets_icons.h>)
-#include <assets_icons.h>
-#else
-extern const Icon I_RFIDDolphinReceive_97x61;
-#endif
 #include <flipper_application/plugins/composite_resolver.h>
 #include <loader/firmware_api/firmware_api.h>
 #include <flipper_application/plugins/plugin_manager.h>
