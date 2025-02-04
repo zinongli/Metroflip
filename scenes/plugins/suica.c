@@ -465,51 +465,6 @@ static bool suica_history_input_callback(InputEvent* event, void* context) {
     return false;
 }
 
-static void suica_view_history_timer_callback(void* context) {
-    Metroflip* app = (Metroflip*)context;
-    view_dispatcher_send_custom_event(app->view_dispatcher, 0);
-}
-
-static void suica_view_history_enter_callback(void* context) {
-    uint32_t period = furi_ms_to_ticks(ARROW_ANIMATION_FRAME_MS);
-    Metroflip* app = (Metroflip*)context;
-    furi_assert(app->suica_context->timer == NULL);
-    app->suica_context->timer =
-        furi_timer_alloc(suica_view_history_timer_callback, FuriTimerTypePeriodic, context);
-    furi_timer_start(app->suica_context->timer, period);
-}
-
-static void suica_view_history_exit_callback(void* context) {
-    Metroflip* app = (Metroflip*)context;
-    furi_timer_stop(app->suica_context->timer);
-    furi_timer_free(app->suica_context->timer);
-    app->suica_context->timer = NULL;
-}
-
-static bool suica_view_history_custom_event_callback(uint32_t event, void* context) {
-    Metroflip* app = (Metroflip*)context;
-    switch(event) {
-    case 0:
-        // Redraw screen by passing true to last parameter of with_view_model.
-        {
-            bool redraw = true;
-            with_view_model(
-                app->suica_context->view_history,
-                SuicaHistoryViewModel * model,
-                { model->animator_tick++; },
-                redraw);
-            return true;
-        }
-    default:
-        return false;
-    }
-}
-
-static uint32_t suica_navigation_raw_callback(void* _context) {
-    UNUSED(_context);
-    return MetroflipViewWidget;
-}
-
 static void suica_on_enter(Metroflip* app) {
     // Gui* gui = furi_record_open(RECORD_GUI);
     dolphin_deed(DolphinDeedNfcRead);
@@ -604,7 +559,6 @@ static bool suica_on_event(Metroflip* app, SceneManagerEvent event) {
         scene_manager_search_and_switch_to_previous_scene(app->scene_manager, MetroflipSceneStart);
         consumed = true;
     }
-
     return consumed;
 }
 

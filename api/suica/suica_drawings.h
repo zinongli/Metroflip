@@ -862,3 +862,49 @@ static void suica_history_draw_callback(Canvas* canvas, void* model) {
     }
     furi_string_free(buffer);
 }
+
+
+static void suica_view_history_timer_callback(void* context) {
+    Metroflip* app = (Metroflip*)context;
+    view_dispatcher_send_custom_event(app->view_dispatcher, 0);
+}
+
+static void suica_view_history_enter_callback(void* context) {
+    uint32_t period = furi_ms_to_ticks(ARROW_ANIMATION_FRAME_MS);
+    Metroflip* app = (Metroflip*)context;
+    furi_assert(app->suica_context->timer == NULL);
+    app->suica_context->timer =
+        furi_timer_alloc(suica_view_history_timer_callback, FuriTimerTypePeriodic, context);
+    furi_timer_start(app->suica_context->timer, period);
+}
+
+static void suica_view_history_exit_callback(void* context) {
+    Metroflip* app = (Metroflip*)context;
+    furi_timer_stop(app->suica_context->timer);
+    furi_timer_free(app->suica_context->timer);
+    app->suica_context->timer = NULL;
+}
+
+static bool suica_view_history_custom_event_callback(uint32_t event, void* context) {
+    Metroflip* app = (Metroflip*)context;
+    switch(event) {
+    case 0:
+        // Redraw screen by passing true to last parameter of with_view_model.
+        {
+            bool redraw = true;
+            with_view_model(
+                app->suica_context->view_history,
+                SuicaHistoryViewModel * model,
+                { model->animator_tick++; },
+                redraw);
+            return true;
+        }
+    default:
+        return false;
+    }
+}
+
+static uint32_t suica_navigation_raw_callback(void* _context) {
+    UNUSED(_context);
+    return MetroflipViewWidget;
+}
