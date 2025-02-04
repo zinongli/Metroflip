@@ -5,7 +5,6 @@
 #include "../metroflip/metroflip_api.h"
 #include "suica_assets.h"
 
-
 #include <lib/nfc/protocols/felica/felica.h>
 #include <lib/nfc/protocols/felica/felica_poller.h>
 #include <lib/nfc/protocols/felica/felica_poller_i.h>
@@ -167,7 +166,7 @@ static void
         canvas_draw_icon(canvas, 16, 24, history.entry_line.logo_icon);
         canvas_set_font(canvas, FontBigNumbers);
         furi_string_printf(buffer, "%02d", history.entry_station.station_number);
-        canvas_draw_str(canvas, 13, 51, furi_string_get_cstr(buffer));
+        canvas_draw_str(canvas, 13, 54, furi_string_get_cstr(buffer));
         break;
     case SuicaTokyoMonorail:
         canvas_draw_rbox(canvas, 9, 23, 32, 32, 5);
@@ -176,8 +175,7 @@ static void
         canvas_set_color(canvas, ColorBlack);
         canvas_set_font(canvas, FontPrimary);
         canvas_draw_str_aligned(
-            canvas, 25, 38, AlignCenter, AlignBottom, history.entry_line.short_name);
-        canvas_draw_str(canvas, 17, 36, history.entry_line.short_name);
+            canvas, 25, 35, AlignCenter, AlignBottom, history.entry_line.short_name);
         canvas_set_font(canvas, FontBigNumbers);
         furi_string_printf(buffer, "%02d", history.entry_station.station_number);
         canvas_draw_str(canvas, 14, 51, furi_string_get_cstr(buffer));
@@ -233,6 +231,13 @@ static void
         canvas_draw_circle(canvas, 24, 38, 24);
         canvas_draw_circle(canvas, 24, 38, 20);
         canvas_draw_disc(canvas, 24, 38, 18);
+
+        // supplement the circle
+        canvas_draw_line(canvas, 39, 49, 35, 53);
+        canvas_draw_line(canvas, 13, 23, 9, 27);
+        canvas_draw_line(canvas, 39, 27, 35, 23);
+        canvas_draw_line(canvas, 13, 53, 9, 49);
+
         canvas_set_color(canvas, ColorWhite);
         canvas_draw_icon(canvas, 20, 23, history.entry_line.logo_icon);
         canvas_set_font(canvas, FontBigNumbers);
@@ -259,7 +264,7 @@ static void
         canvas_draw_icon(canvas, 95, 24, history.exit_line.logo_icon);
         canvas_set_font(canvas, FontBigNumbers);
         furi_string_printf(buffer, "%02d", history.exit_station.station_number);
-        canvas_draw_str(canvas, 92, 52, furi_string_get_cstr(buffer));
+        canvas_draw_str(canvas, 92, 54, furi_string_get_cstr(buffer));
         break;
     case SuicaTokyoMonorail:
         canvas_draw_rbox(canvas, 86, 23, 32, 32, 5);
@@ -268,7 +273,7 @@ static void
         canvas_set_color(canvas, ColorBlack);
         canvas_set_font(canvas, FontPrimary);
         canvas_draw_str_aligned(
-            canvas, 101, 35, AlignCenter, AlignBottom, history.exit_line.short_name);
+            canvas, 102, 35, AlignCenter, AlignBottom, history.exit_line.short_name);
         canvas_set_font(canvas, FontBigNumbers);
         furi_string_printf(buffer, "%02d", history.exit_station.station_number);
         canvas_draw_str(canvas, 91, 51, furi_string_get_cstr(buffer));
@@ -324,6 +329,13 @@ static void
         canvas_draw_circle(canvas, 103, 38, 24);
         canvas_draw_circle(canvas, 103, 38, 20);
         canvas_draw_disc(canvas, 103, 38, 18);
+
+        // supplement the circle
+        canvas_draw_line(canvas, 118, 49, 114, 53);
+        canvas_draw_line(canvas, 118, 27, 114, 23);
+        canvas_draw_line(canvas, 92, 23, 88, 27);
+        canvas_draw_line(canvas, 92, 53, 88, 49);
+
         canvas_set_color(canvas, ColorWhite);
         canvas_draw_icon(canvas, 99, 23, history.exit_line.logo_icon);
         canvas_set_font(canvas, FontBigNumbers);
@@ -406,8 +418,7 @@ static void suica_draw_vending_machine_page_1(
     canvas_draw_icon(canvas, 0, 10, &I_Suica_VendingPage2Full);
     furi_string_printf(buffer, "%d", history.balance_change);
     canvas_set_font(canvas, FontPrimary);
-    canvas_draw_str_aligned(
-        canvas, 98, 39, AlignRight, AlignBottom, furi_string_get_cstr(buffer));
+    canvas_draw_str_aligned(canvas, 98, 39, AlignRight, AlignBottom, furi_string_get_cstr(buffer));
 
     // Animate Bubbles and LCD Refresh
     if(model->animator_tick > 14) {
@@ -740,7 +751,6 @@ static void
     }
 }
 
-
 static void suica_history_draw_callback(Canvas* canvas, void* model) {
     canvas_set_bitmap_mode(canvas, true);
     SuicaHistoryViewModel* my_model = (SuicaHistoryViewModel*)model;
@@ -852,4 +862,3 @@ static void suica_history_draw_callback(Canvas* canvas, void* model) {
     }
     furi_string_free(buffer);
 }
-
