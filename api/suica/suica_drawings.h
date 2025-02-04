@@ -407,7 +407,7 @@ static void suica_draw_vending_machine_page_1(
     furi_string_printf(buffer, "%d", history.balance_change);
     canvas_set_font(canvas, FontPrimary);
     canvas_draw_str_aligned(
-        canvas, 100, 39, AlignRight, AlignBottom, furi_string_get_cstr(buffer));
+        canvas, 98, 39, AlignRight, AlignBottom, furi_string_get_cstr(buffer));
 
     // Animate Bubbles and LCD Refresh
     if(model->animator_tick > 14) {
@@ -415,7 +415,7 @@ static void suica_draw_vending_machine_page_1(
         model->animator_tick = 0;
     }
     canvas_set_color(canvas, ColorWhite);
-    canvas_draw_line(canvas, 87, 50 + model->animator_tick, 128, 50 + model->animator_tick);
+    canvas_draw_line(canvas, 88, 51 + model->animator_tick, 128, 51 + model->animator_tick);
     switch(model->animator_tick % 7) {
     case 0:
         canvas_draw_circle(canvas, 12, 48, 1);
@@ -543,7 +543,7 @@ static void
     furi_string_printf(buffer, "%d", history.balance_change);
     canvas_draw_icon(canvas, 0, 15, &I_Suica_StoreP1Counter);
     canvas_set_font(canvas, FontPrimary);
-    canvas_draw_str_aligned(canvas, 99, 39, AlignRight, AlignBottom, furi_string_get_cstr(buffer));
+    canvas_draw_str_aligned(canvas, 98, 39, AlignRight, AlignBottom, furi_string_get_cstr(buffer));
     canvas_draw_icon(canvas, 59, 27, &I_Suica_StoreReceiptDashLine);
     // Animate Taxi and LCD Refresh
     if(model->animator_tick > 11) {
