@@ -36,7 +36,6 @@ const char* suica_service_names[] = {
     "Taps Log",
 };
 
-
 static void suica_model_initialize(SuicaHistoryViewModel* model, size_t initial_capacity) {
     model->travel_history =
         (uint8_t*)malloc(initial_capacity * FELICA_DATA_BLOCK_SIZE); // Each entry is 16 bytes
@@ -159,6 +158,9 @@ static void suica_parse_train_code(
 
     switch(ride_type) {
     case SuicaTrainRideEntry:
+        model->history.entry_station.name = furi_string_alloc_set("Unknown");
+        model->history.entry_station.jr_header = furi_string_alloc_set("0");
+        model->history.entry_line = RailwaysList[SUICA_RAILWAY_NUM];
         for(size_t i = 0; i < SUICA_RAILWAY_NUM; i++) {
             if(furi_string_equal_str(line_candidate, RailwaysList[i].long_name)) {
                 model->history.entry_line = RailwaysList[i];
@@ -172,6 +174,9 @@ static void suica_parse_train_code(
         }
         break;
     case SuicaTrainRideExit:
+        model->history.exit_station.name = furi_string_alloc_set("Unknown");
+        model->history.exit_station.jr_header = furi_string_alloc_set("0");
+        model->history.exit_line = RailwaysList[SUICA_RAILWAY_NUM];
         for(size_t i = 0; i < SUICA_RAILWAY_NUM; i++) {
             if(furi_string_equal_str(line_candidate, RailwaysList[i].long_name)) {
                 model->history.exit_line = RailwaysList[i];
