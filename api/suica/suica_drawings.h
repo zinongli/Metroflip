@@ -169,7 +169,7 @@ static void
         canvas_draw_str(canvas, 13, 54, furi_string_get_cstr(buffer));
         break;
     case SuicaTokyoMonorail:
-        canvas_draw_rbox(canvas, 9, 23, 32, 32, 5);
+        canvas_draw_rbox(canvas, 8, 22, 34, 34, 7);
         canvas_set_color(canvas, ColorWhite);
         canvas_draw_box(canvas, 12, 26, 26, 26);
         canvas_set_color(canvas, ColorBlack);
@@ -182,7 +182,7 @@ static void
         break;
     case SuicaJR:
         if(!furi_string_equal_str(history.entry_station.jr_header, "0")) {
-            canvas_draw_rbox(canvas, 6, 14, 38, 48, 7);
+            canvas_draw_rbox(canvas, 4, 13, 42, 51, 10);
             canvas_set_color(canvas, ColorWhite);
             canvas_set_font(canvas, FontPrimary);
             canvas_draw_str_aligned(
@@ -192,17 +192,17 @@ static void
                 AlignCenter,
                 AlignBottom,
                 furi_string_get_cstr(history.entry_station.jr_header));
-            canvas_draw_rbox(canvas, 9, 26, 32, 32, 5);
+            canvas_draw_rbox(canvas, 8, 26, 34, 34, 7);
             canvas_set_color(canvas, ColorBlack);
-            canvas_draw_frame(canvas, 12, 29, 26, 26);
+            canvas_draw_frame(canvas, 12, 30, 26, 26);
             canvas_set_font(canvas, FontKeyboard);
             canvas_draw_str_aligned(
-                canvas, 25, 38, AlignCenter, AlignBottom, history.entry_line.short_name);
+                canvas, 25, 39, AlignCenter, AlignBottom, history.entry_line.short_name);
             canvas_set_font(canvas, FontBigNumbers);
             furi_string_printf(buffer, "%02d", history.entry_station.station_number);
-            canvas_draw_str(canvas, 14, 53, furi_string_get_cstr(buffer));
+            canvas_draw_str(canvas, 14, 54, furi_string_get_cstr(buffer));
         } else {
-            canvas_draw_rframe(canvas, 9, 23, 32, 32, 5);
+            canvas_draw_rframe(canvas, 8, 22, 34, 34, 7);
             canvas_draw_frame(canvas, 12, 26, 26, 26);
             canvas_set_font(canvas, FontKeyboard);
             canvas_draw_str_aligned(
@@ -267,7 +267,7 @@ static void
         canvas_draw_str(canvas, 92, 54, furi_string_get_cstr(buffer));
         break;
     case SuicaTokyoMonorail:
-        canvas_draw_rbox(canvas, 86, 23, 32, 32, 5);
+        canvas_draw_rbox(canvas, 85, 22, 34, 34, 7);
         canvas_set_color(canvas, ColorWhite);
         canvas_draw_box(canvas, 89, 26, 26, 26);
         canvas_set_color(canvas, ColorBlack);
@@ -280,7 +280,7 @@ static void
         break;
     case SuicaJR:
         if(!furi_string_equal_str(history.exit_station.jr_header, "0")) {
-            canvas_draw_rbox(canvas, 83, 14, 38, 48, 7);
+            canvas_draw_rbox(canvas, 81, 13, 42, 51, 10);
             canvas_set_color(canvas, ColorWhite);
             canvas_set_font(canvas, FontPrimary);
             canvas_draw_str_aligned(
@@ -290,17 +290,17 @@ static void
                 AlignCenter,
                 AlignBottom,
                 furi_string_get_cstr(history.exit_station.jr_header));
-            canvas_draw_rbox(canvas, 86, 26, 32, 32, 5);
+            canvas_draw_rbox(canvas, 85, 26, 34, 34, 7);
             canvas_set_color(canvas, ColorBlack);
-            canvas_draw_frame(canvas, 89, 29, 26, 26);
+            canvas_draw_frame(canvas, 89, 30, 26, 26);
             canvas_set_font(canvas, FontKeyboard);
             canvas_draw_str_aligned(
-                canvas, 102, 38, AlignCenter, AlignBottom, history.exit_line.short_name);
+                canvas, 102, 39, AlignCenter, AlignBottom, history.exit_line.short_name);
             canvas_set_font(canvas, FontBigNumbers);
             furi_string_printf(buffer, "%02d", history.exit_station.station_number);
-            canvas_draw_str(canvas, 91, 53, furi_string_get_cstr(buffer));
+            canvas_draw_str(canvas, 91, 54, furi_string_get_cstr(buffer));
         } else {
-            canvas_draw_rframe(canvas, 86, 23, 32, 32, 5);
+            canvas_draw_rframe(canvas, 85, 22, 34, 34, 7);
             canvas_draw_frame(canvas, 89, 26, 26, 26);
             canvas_set_font(canvas, FontKeyboard);
             canvas_draw_str_aligned(
