@@ -1,5 +1,9 @@
-#include "mosgortrans_util.h"
-
+#include "../metroflip/metroflip_api.h"
+#include <bit_lib.h>
+#include <datetime.h>
+#include <furi/core/string.h>
+#include <nfc/protocols/mf_classic/mf_classic.h>
+#include <furi_hal_rtc.h>
 #define TAG "Metroflip:Scene:Mosgortrans"
 
 void render_section_header(
