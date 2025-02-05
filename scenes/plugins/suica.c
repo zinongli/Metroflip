@@ -322,8 +322,7 @@ static NfcCommand suica_poller_callback(NfcGenericEvent event, void* context) {
     uint8_t blocks[1] = {0x00};
     FelicaPoller* felica_poller = event.instance;
     FURI_LOG_I(TAG, "Poller set");
-    if(felica_event->type == FelicaPollerEventTypeRequestAuthContext &&
-       felica_poller->data->pmm.data[1] == SUICA_IC_TYPE_CODE) {
+    if(felica_event->type == FelicaPollerEventTypeRequestAuthContext) {
         view_dispatcher_send_custom_event(app->view_dispatcher, MetroflipCustomEventCardDetected);
         command = NfcCommandContinue;
 
@@ -377,6 +376,12 @@ static NfcCommand suica_poller_callback(NfcGenericEvent event, void* context) {
                 furi_string_printf(
                     parsed_data,
                     "\e#Suica\nSorry, no data found.\nPlease let the developers know and we will add support.");
+            }
+
+            if(model->size == 1 && felica_poller->data->pmm.data[1] != SUICA_IC_TYPE_CODE) {
+                furi_string_printf(
+                    parsed_data,
+                    "\e#Suica\nSorry, not a Suica.\n");
             }
             widget_add_text_scroll_element(
                 widget, 0, 0, 128, 64, furi_string_get_cstr(parsed_data));
