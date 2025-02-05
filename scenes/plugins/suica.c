@@ -527,6 +527,7 @@ static void suica_on_enter(Metroflip* app) {
                 widget, GuiButtonTypeCenter, "Parse", suica_parse_detail_callback, app);
         }
         view_dispatcher_switch_to_view(app->view_dispatcher, MetroflipViewWidget);
+        furi_string_free(parsed_data);
     }
 }
 
