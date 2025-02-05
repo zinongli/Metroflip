@@ -57,7 +57,6 @@ void metroflip_scene_parse_on_exit(void* context) {
         // Get and run the plugin's on_exit function
         const MetroflipPlugin* plugin = plugin_manager_get_ep(app->plugin_manager, 0);
         plugin->plugin_on_exit(app);
-        FURI_LOG_I(TAG, "Parse scene exit");
 
         plugin_manager_free(app->plugin_manager);
         composite_api_resolver_free(app->resolver);
