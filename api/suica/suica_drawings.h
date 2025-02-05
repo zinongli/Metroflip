@@ -483,7 +483,7 @@ static void suica_draw_vending_machine_page_2(
     }
 
     // Draw Thank You Banner
-    canvas_draw_icon(canvas, 49 - model->animator_tick, -8 + model->animator_tick, &I_Suica_VendingThankYou);
+    canvas_draw_icon(canvas, 49 - model->animator_tick, -9 + model->animator_tick, &I_Suica_VendingThankYou);
     canvas_set_color(canvas, ColorWhite);
     canvas_draw_box(canvas, 50, 0, 128, 64);
     canvas_draw_box(canvas, 0, 0, 42, 64);
