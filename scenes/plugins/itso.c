@@ -197,7 +197,7 @@ static bool itso_on_event(Metroflip* app, SceneManagerEvent event) {
 static void itso_on_exit(Metroflip* app) {
     widget_reset(app->widget);
     metroflip_app_blink_stop(app);
-    if(app->poller) {
+    if(app->poller && !app->data_loaded) {
         nfc_poller_stop(app->poller);
         nfc_poller_free(app->poller);
     }

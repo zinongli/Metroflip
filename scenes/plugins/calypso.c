@@ -2484,7 +2484,7 @@ static bool calypso_on_event(Metroflip* app, SceneManagerEvent event) {
 }
 
 static void calypso_on_exit(Metroflip* app) {
-    if(app->poller) {
+    if(app->poller && !app->data_loaded) {
         nfc_poller_stop(app->poller);
         nfc_poller_free(app->poller);
     }
