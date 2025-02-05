@@ -20,6 +20,8 @@ void metroflip_scene_start_on_enter(void* context) {
         MetroflipSceneOVC,
         metroflip_scene_start_submenu_callback,
         app);
+        
+    submenu_add_item(submenu, "Load (not working)", MetroflipSceneLoad, metroflip_scene_start_submenu_callback, app);
 
     submenu_add_item(
         submenu,

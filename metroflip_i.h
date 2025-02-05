@@ -9,11 +9,6 @@
 #include <gui/view_dispatcher.h>
 #include <gui/scene_manager.h>
 #include "api/nfc/mf_classic_key_cache.h"
-#if __has_include(<assets_icons.h>)
-#include <assets_icons.h>
-#else
-extern const Icon I_RFIDDolphinReceive_97x61;
-#endif
 #include <flipper_application/plugins/composite_resolver.h>
 #include <loader/firmware_api/firmware_api.h>
 #include <flipper_application/plugins/plugin_manager.h>
@@ -48,13 +43,15 @@ extern const Icon I_RFIDDolphinReceive_97x61;
 #include <strings.h>
 #include <flipper_application/flipper_application.h>
 #include <loader/firmware_api/firmware_api.h>
+#include <applications/services/storage/storage.h>
+#include <applications/services/dialogs/dialogs.h>
 
 #include "scenes/metroflip_scene.h"
 
 #include "api/calypso/calypso_i.h"
 
 #define KEY_MASK_BIT_CHECK(key_mask_1, key_mask_2) (((key_mask_1) & (key_mask_2)) == (key_mask_1))
-
+#define METROFLIP_FILE_EXTENSION                   ".metro"
 typedef struct {
     Gui* gui;
     SceneManager* scene_manager;
@@ -97,6 +94,12 @@ typedef struct {
 
     // Calypso specific context
     CalypsoContext* calypso_context;
+
+
+    DialogsApp* dialogs;
+
+    bool data_loaded;
+
 } Metroflip;
 
 enum MetroflipCustomEvent {
@@ -137,6 +140,7 @@ typedef enum {
     MetroflipViewTextBox,
     MetroflipViewWidget,
     MetroflipViewUart,
+    MetroflipViewCanvas,
 } MetroflipView;
 
 typedef enum {
