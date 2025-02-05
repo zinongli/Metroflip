@@ -379,9 +379,7 @@ static NfcCommand suica_poller_callback(NfcGenericEvent event, void* context) {
             }
 
             if(model->size == 1 && felica_poller->data->pmm.data[1] != SUICA_IC_TYPE_CODE) {
-                furi_string_printf(
-                    parsed_data,
-                    "\e#Suica\nSorry, not a Suica.\n");
+                furi_string_printf(parsed_data, "\e#Suica\nSorry, not a Suica.\n");
             }
             widget_add_text_scroll_element(
                 widget, 0, 0, 128, 64, furi_string_get_cstr(parsed_data));
@@ -569,6 +567,7 @@ static bool suica_on_event(Metroflip* app, SceneManagerEvent event) {
 
 static void suica_on_exit(Metroflip* app) {
     widget_reset(app->widget);
+    view_free_model(app->suica_context->view_history);
     view_free(app->suica_context->view_history);
     view_dispatcher_remove_view(app->view_dispatcher, MetroflipViewCanvas);
     free(app->suica_context);
@@ -577,6 +576,7 @@ static void suica_on_exit(Metroflip* app) {
         nfc_poller_stop(app->poller);
         nfc_poller_free(app->poller);
     }
+    FURI_LOG_I(TAG, "Suica scene exit");
 }
 
 /* Actual implementation of app<>plugin interface */
