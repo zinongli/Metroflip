@@ -476,6 +476,17 @@ static void suica_draw_vending_machine_page_2(
     SuicaHistory history,
     SuicaHistoryViewModel* model) {
     FuriString* buffer = furi_string_alloc();
+    
+    if(model->animator_tick > 42) {
+        // 6 steps of animation
+        model->animator_tick = 0;
+    }
+
+    // Draw Thank You Banner
+    canvas_draw_icon(canvas, 49 - model->animator_tick, -8 + model->animator_tick, &I_Suica_VendingThankYou);
+    canvas_set_color(canvas, ColorWhite);
+    canvas_draw_box(canvas, 50, 0, 128, 64);
+    canvas_draw_box(canvas, 0, 0, 42, 64);
 
     // Clock Component
     canvas_set_color(canvas, ColorWhite); // Erase part of old frame to allow for new frame
@@ -493,7 +504,7 @@ static void suica_draw_vending_machine_page_2(
     canvas_draw_line(canvas, 60, 12, 57, 9);
 
     // Vending Machine
-    canvas_draw_icon(canvas, 5, 12, &I_Suica_VendingMachine);
+    canvas_draw_icon(canvas, 4, 12, &I_Suica_VendingMachine);
 
     // Machine Code
     canvas_set_font(canvas, FontPrimary);
@@ -505,11 +516,8 @@ static void suica_draw_vending_machine_page_2(
     canvas_draw_str(canvas, 75, 45, furi_string_get_cstr(buffer));
 
     // Animate Vending Machine Flap
-    if(model->animator_tick > 6) {
-        // 6 steps of animation
-        model->animator_tick = 0;
-    }
-    switch(model->animator_tick) {
+    
+    switch(model->animator_tick % 7) {
     case 0:
         canvas_draw_icon(canvas, 44, 40, &I_Suica_VendingFlapHollow);
         canvas_draw_icon(canvas, 44, 40, &I_Suica_VendingFlap1);
@@ -783,40 +791,6 @@ static void suica_history_draw_callback(Canvas* canvas, void* model) {
         my_model->history.balance_sign = SuicaBalanceEqual;
     }
 
-    // Main title
-    canvas_set_font(canvas, FontPrimary);
-    canvas_draw_str(canvas, 0, 8, "Suica");
-
-    // Date
-    furi_string_printf(
-        buffer,
-        "20%02d-%02d-%02d",
-        my_model->history.year,
-        my_model->history.month,
-        my_model->history.day);
-    canvas_set_font(canvas, FontPrimary);
-    canvas_draw_str(canvas, 34, 8, furi_string_get_cstr(buffer));
-
-    // Entry Num
-    furi_string_printf(buffer, "%02d/%02d", my_model->entry, my_model->size);
-    canvas_set_font(canvas, FontPrimary);
-    canvas_draw_str(canvas, 99, 8, furi_string_get_cstr(buffer));
-
-    // Frame
-    canvas_draw_line(canvas, 0, 9, 26, 9);
-    canvas_draw_line(canvas, 27, 9, 29, 7);
-    canvas_draw_line(canvas, 29, 0, 29, 6);
-
-    canvas_draw_line(canvas, 31, 0, 31, 7);
-    canvas_draw_line(canvas, 33, 9, 31, 7);
-    canvas_draw_line(canvas, 90, 9, 34, 9);
-    canvas_draw_line(canvas, 91, 9, 94, 6);
-    canvas_draw_line(canvas, 94, 0, 94, 6);
-
-    canvas_draw_line(canvas, 96, 0, 96, 6);
-    canvas_draw_line(canvas, 99, 9, 96, 6);
-    canvas_draw_line(canvas, 100, 9, 128, 9);
-
     switch((uint8_t)my_model->page) {
     case 0:
         switch(my_model->history.history_type) {
@@ -860,6 +834,42 @@ static void suica_history_draw_callback(Canvas* canvas, void* model) {
     default:
         break;
     }
+
+    // The the banner last so it is on top
+    // Main title
+    canvas_set_font(canvas, FontPrimary);
+    canvas_draw_str(canvas, 0, 8, "Suica");
+
+    // Date
+    furi_string_printf(
+        buffer,
+        "20%02d-%02d-%02d",
+        my_model->history.year,
+        my_model->history.month,
+        my_model->history.day);
+    canvas_set_font(canvas, FontPrimary);
+    canvas_draw_str(canvas, 34, 8, furi_string_get_cstr(buffer));
+
+    // Entry Num
+    furi_string_printf(buffer, "%02d/%02d", my_model->entry, my_model->size);
+    canvas_set_font(canvas, FontPrimary);
+    canvas_draw_str(canvas, 99, 8, furi_string_get_cstr(buffer));
+
+    // Frame
+    canvas_draw_line(canvas, 0, 9, 26, 9);
+    canvas_draw_line(canvas, 27, 9, 29, 7);
+    canvas_draw_line(canvas, 29, 0, 29, 6);
+
+    canvas_draw_line(canvas, 31, 0, 31, 7);
+    canvas_draw_line(canvas, 33, 9, 31, 7);
+    canvas_draw_line(canvas, 90, 9, 34, 9);
+    canvas_draw_line(canvas, 91, 9, 94, 6);
+    canvas_draw_line(canvas, 94, 0, 94, 6);
+
+    canvas_draw_line(canvas, 96, 0, 96, 6);
+    canvas_draw_line(canvas, 99, 9, 96, 6);
+    canvas_draw_line(canvas, 100, 9, 128, 9);
+
     furi_string_free(buffer);
 }
 

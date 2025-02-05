@@ -204,6 +204,7 @@ extern const Icon I_Suica_VendingFlap3;
 extern const Icon I_Suica_VendingFlapHollow;
 extern const Icon I_Suica_VendingMachine;
 extern const Icon I_Suica_VendingPage2Full;
+extern const Icon I_Suica_VendingThankYou;
 extern const Icon I_Suica_YenKanji;
 extern const Icon I_Suica_YenSign;
 extern const Icon I_Suica_YurakuchoY;
