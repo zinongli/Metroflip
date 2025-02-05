@@ -225,7 +225,6 @@ static void suica_parse(SuicaHistoryViewModel* my_model) {
         my_model->history.day = 0;
     }
     my_model->history.balance = ((uint16_t)current_block[11] << 8) | (uint16_t)current_block[10];
-    // FURI_LOG_I(TAG,"%02X", (uint8_t)current_block[0]);
     my_model->history.area_code = current_block[15];
     if((uint8_t)current_block[0] >= TERMINAL_TICKET_VENDING_MACHINE &&
        (uint8_t)current_block[0] <= TERMINAL_IN_CAR_SUPP_MACHINE) {
@@ -481,6 +480,7 @@ static void suica_on_enter(Metroflip* app) {
             ViewModelTypeLockFree,
             sizeof(SuicaHistoryViewModel));
     }
+
     view_set_input_callback(app->suica_context->view_history, suica_history_input_callback);
     view_set_previous_callback(app->suica_context->view_history, suica_navigation_raw_callback);
     view_set_enter_callback(app->suica_context->view_history, suica_view_history_enter_callback);
@@ -568,16 +568,24 @@ static bool suica_on_event(Metroflip* app, SceneManagerEvent event) {
 
 static void suica_on_exit(Metroflip* app) {
     widget_reset(app->widget);
+    with_view_model(
+        app->suica_context->view_history,
+        SuicaHistoryViewModel * model,
+        {
+            if(model->travel_history) { // Check if memory was allocated
+                free(model->travel_history);
+                model->travel_history = NULL; // Set pointer to NULL to prevent dangling references
+            }
+        },
+        false);
     view_free_model(app->suica_context->view_history);
-    view_free(app->suica_context->view_history);
     view_dispatcher_remove_view(app->view_dispatcher, MetroflipViewCanvas);
+    view_free(app->suica_context->view_history);
     free(app->suica_context);
-    metroflip_app_blink_stop(app);
-    if(app->poller) {
+    if(app->poller && !app->data_loaded) {
         nfc_poller_stop(app->poller);
         nfc_poller_free(app->poller);
     }
-    FURI_LOG_I(TAG, "Suica scene exit");
 }
 
 /* Actual implementation of app<>plugin interface */
