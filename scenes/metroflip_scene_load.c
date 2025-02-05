@@ -42,7 +42,6 @@ void metroflip_scene_load_on_enter(void* context) {
         scene_manager_next_scene(app->scene_manager, MetroflipSceneStart);
     }
     furi_string_free(file_path);
-    furi_string_free(card_type);
     furi_record_close(RECORD_STORAGE);
 }
 
