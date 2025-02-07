@@ -853,7 +853,7 @@ static void suica_history_draw_callback(Canvas* canvas, void* model) {
         canvas_draw_icon(canvas, 20, 0, &I_Suica_TrainIcon);
         break;
     case SuicaHistoryHappyBirthday:
-        canvas_draw_icon(canvas, 20, 0, &I_Suica_TrainIcon);
+        canvas_draw_icon(canvas, 20, 0, &I_Suica_BdayCakeIcon);
         break;
     case SuicaHistoryVendingMachine:
         canvas_draw_icon(canvas, 21, 0, &I_Suica_VendingIcon);

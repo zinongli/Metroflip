@@ -222,6 +222,7 @@ extern const Icon I_Suica_CardIcon;
 extern const Icon I_Suica_ShopIcon;
 extern const Icon I_Suica_VendingIcon;
 extern const Icon I_Suica_TrainIcon;
+extern const Icon I_Suica_BdayCakeIcon;
 extern const Icon I_Suica_UnknownIcon;
 
 /*******************/
