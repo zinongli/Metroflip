@@ -944,7 +944,7 @@ static void suica_history_draw_callback(Canvas* canvas, void* model) {
     furi_string_free(buffer);
 }
 
-static void suica_view_history_timer_callback(void* context) {
+static void suica_view_history_timer_callback(void* context) { 
     Metroflip* app = (Metroflip*)context;
     view_dispatcher_send_custom_event(app->view_dispatcher, 0);
 }

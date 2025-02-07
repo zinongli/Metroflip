@@ -475,7 +475,7 @@ static void suica_on_enter(Metroflip* app) {
             sizeof(SuicaHistoryViewModel));
     }
 
-    view_set_input_callback(app->suica_context->view_history, suica_history_input_callback);
+    view_set_input_callback(app->suica_context->view_history, suica_history_input_callback); 
     view_set_previous_callback(app->suica_context->view_history, suica_navigation_raw_callback);
     view_set_enter_callback(app->suica_context->view_history, suica_view_history_enter_callback);
     view_set_exit_callback(app->suica_context->view_history, suica_view_history_exit_callback);
