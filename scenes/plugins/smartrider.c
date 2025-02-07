@@ -134,7 +134,7 @@ static void calculate_date(uint32_t timestamp, char* date_str, size_t date_str_s
     }
 }
 
-static bool smartrider_parse(FuriString* parsed_data, MfClassicData* data) {
+static bool smartrider_parse(FuriString* parsed_data, const MfClassicData* data) {
     furi_assert(parsed_data);
     SmartRiderData sr_data = {0};
 
@@ -305,10 +305,10 @@ static NfcCommand smartrider_poller_callback(NfcGenericEvent event, void* contex
     } else if(mfc_event->type == MfClassicPollerEventTypeSuccess) {
         nfc_device_set_data(
             app->nfc_device, NfcProtocolMfClassic, nfc_poller_get_data(app->poller));
-
+        const MfClassicData* mfc_data = nfc_device_get_data(app->nfc_device, NfcProtocolMfClassic);
         dolphin_deed(DolphinDeedNfcReadSuccess);
         furi_string_reset(app->text_box_store);
-        if(!smartrider_parse(app->nfc_device, parsed_data)) {
+        if(!smartrider_parse(parsed_data, mfc_data)) {
             FURI_LOG_I(TAG, "Unknown card type");
             furi_string_printf(parsed_data, "\e#Unknown card\n");
         }
