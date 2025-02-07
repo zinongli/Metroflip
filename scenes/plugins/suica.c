@@ -236,10 +236,9 @@ static void suica_parse(SuicaHistoryViewModel* my_model) {
         uint8_t exit_line = current_block[8];
         uint8_t exit_station = current_block[9];
 
-        if((uint8_t)current_block[0] != TERMINAL_MOBILE_PHONE) {
-            suica_parse_train_code(entry_line, entry_station, SuicaTrainRideEntry, my_model);
-        }
-        if((uint8_t)current_block[1] != PROCESSING_CODE_NEW_ISSUE) {
+        suica_parse_train_code(entry_line, entry_station, SuicaTrainRideEntry, my_model);
+
+        if((uint8_t)current_block[14] != 0x01) {
             suica_parse_train_code(exit_line, exit_station, SuicaTrainRideExit, my_model);
         }
 
@@ -270,11 +269,6 @@ static void suica_parse(SuicaHistoryViewModel* my_model) {
         my_model->history.shop_code[1] = current_block[9];
         break;
     case TERMINAL_MOBILE_PHONE:
-        if((uint8_t)current_block[1] == PROCESSING_CODE_NEW_ISSUE) {
-            my_model->history.hour = ((uint8_t)current_block[6] & 0xF8) >> 3;
-            my_model->history.minute = (((uint8_t)current_block[6] & 0x07) << 3) |
-                                       (((uint8_t)current_block[7] & 0xE0) >> 5);
-        }
         break;
     case TERMINAL_TICKET_VENDING_MACHINE:
         my_model->history.history_type = SuicaHistoryHappyBirthday;
@@ -285,7 +279,7 @@ static void suica_parse(SuicaHistoryViewModel* my_model) {
         }
         break;
     }
-    if((uint8_t)current_block[1] == PROCESSING_CODE_NEW_ISSUE) {
+    if((uint8_t)current_block[14] == 0x01) {
         my_model->history.history_type = SuicaHistoryHappyBirthday;
     }
 }

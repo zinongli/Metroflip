@@ -25,7 +25,7 @@
 #define TERMINAL_IN_CAR_SUPP_MACHINE    0x24
 #define TERMINAL_POS_AND_TAXI           0xC7
 #define TERMINAL_VENDING_MACHINE        0xC8
-#define PROCESSING_CODE_NEW_ISSUE       0x02
+#define PROCESSING_CODE_RECHARGE       0x02
 #define ARROW_ANIMATION_FRAME_MS        350
 
 typedef enum {
@@ -491,18 +491,19 @@ static void suica_draw_vending_machine_page_2(
 
     // Clock Component
     canvas_set_color(canvas, ColorWhite); // Erase part of old frame to allow for new frame
-    canvas_draw_line(canvas, 91, 9, 94, 6);
-    canvas_draw_line(canvas, 57, 9, 93, 9);
+    canvas_draw_line(canvas, 93, 9, 96, 6);
+    canvas_draw_line(canvas, 59, 9, 95, 9);
     canvas_set_color(canvas, ColorBlack);
     furi_string_printf(buffer, "%02d:%02d", history.hour, history.minute);
-    canvas_draw_line(canvas, 63, 21, 60, 18);
+    canvas_draw_line(canvas, 65, 21, 62, 18);
     canvas_set_font(canvas, FontKeyboard);
-    canvas_draw_str(canvas, 63, 19, furi_string_get_cstr(buffer));
-    canvas_draw_line(canvas, 91, 21, 94, 18);
-    canvas_draw_line(canvas, 64, 21, 91, 21);
-    canvas_draw_line(canvas, 94, 6, 94, 17);
-    canvas_draw_line(canvas, 60, 12, 60, 17);
-    canvas_draw_line(canvas, 60, 12, 57, 9);
+    canvas_draw_str(canvas, 66, 19, furi_string_get_cstr(buffer));
+    canvas_draw_line(canvas, 93, 21, 96, 18);
+    canvas_draw_line(canvas, 66, 21, 93, 21);
+    canvas_draw_line(canvas, 96, 6, 96, 17);
+    canvas_draw_line(canvas, 62, 12, 62, 17);
+    canvas_draw_line(canvas, 62, 12, 59, 9);
+
 
     // Vending Machine
     canvas_draw_icon(canvas, 4, 12, &I_Suica_VendingMachine);
@@ -611,18 +612,18 @@ static void
     FuriString* buffer = furi_string_alloc();
     // Clock Component
     canvas_set_color(canvas, ColorWhite); // Erase part of old frame to allow for new frame
-    canvas_draw_line(canvas, 91, 9, 94, 6);
-    canvas_draw_line(canvas, 57, 9, 93, 9);
+    canvas_draw_line(canvas, 93, 9, 96, 6);
+    canvas_draw_line(canvas, 59, 9, 95, 9);
     canvas_set_color(canvas, ColorBlack);
     furi_string_printf(buffer, "%02d:%02d", history.hour, history.minute);
-    canvas_draw_line(canvas, 63, 21, 60, 18);
+    canvas_draw_line(canvas, 65, 21, 62, 18);
     canvas_set_font(canvas, FontKeyboard);
-    canvas_draw_str(canvas, 63, 19, furi_string_get_cstr(buffer));
-    canvas_draw_line(canvas, 91, 21, 94, 18);
-    canvas_draw_line(canvas, 64, 21, 91, 21);
-    canvas_draw_line(canvas, 94, 6, 94, 17);
-    canvas_draw_line(canvas, 60, 12, 60, 17);
-    canvas_draw_line(canvas, 60, 12, 57, 9);
+    canvas_draw_str(canvas, 66, 19, furi_string_get_cstr(buffer));
+    canvas_draw_line(canvas, 93, 21, 96, 18);
+    canvas_draw_line(canvas, 66, 21, 93, 21);
+    canvas_draw_line(canvas, 96, 6, 96, 17);
+    canvas_draw_line(canvas, 62, 12, 62, 17);
+    canvas_draw_line(canvas, 62, 12, 59, 9);
 
     // Machine Code
     canvas_set_font(canvas, FontPrimary);
@@ -849,7 +850,7 @@ static void suica_history_draw_callback(Canvas* canvas, void* model) {
         my_model->history.month,
         my_model->history.day);
     canvas_set_font(canvas, FontPrimary);
-    canvas_draw_str(canvas, 36, 8, furi_string_get_cstr(buffer));
+    canvas_draw_str(canvas, 37, 8, furi_string_get_cstr(buffer));
 
     // Entry Num
     canvas_draw_box(canvas, 106, 0, 13, 9);
@@ -873,23 +874,51 @@ static void suica_history_draw_callback(Canvas* canvas, void* model) {
     default:
         break;
     }
-    
-    canvas_set_color(canvas, ColorWhite);
-    if (my_model->entry == 1) {
-        canvas_draw_box(canvas, 99, 0, 6, 9);
-    } else if (my_model->entry == my_model->size) {
-        canvas_draw_box(canvas, 120, 0, 6, 9);
-    }
-    canvas_set_color(canvas, ColorBlack);
 
+    canvas_set_color(canvas, ColorWhite);
+    if(my_model->entry == 1) {
+        canvas_draw_box(canvas, 99, 0, 6, 9);
+        canvas_set_color(canvas, ColorBlack);
+        switch(my_model->page) {
+        case 0:
+            canvas_draw_icon(canvas, 101, 0, &I_Suica_EntryStopL1);
+            break;
+        case 1:
+            canvas_draw_icon(canvas, 101, 0, &I_Suica_EntryStopL2);
+            break;
+        case 2:
+            canvas_draw_icon(canvas, 101, 0, &I_Suica_EntryStopL3);
+            break;
+        default:
+            break;
+        }
+    } else if(my_model->entry == my_model->size) {
+        canvas_draw_box(canvas, 120, 0, 6, 9);
+        canvas_set_color(canvas, ColorBlack);
+        switch(my_model->page) {
+        case 0:
+            canvas_draw_icon(canvas, 120, 0, &I_Suica_EntryStopR1);
+            break;
+        case 1:
+            canvas_draw_icon(canvas, 120, 0, &I_Suica_EntryStopR2);
+            break;
+        case 2:
+            canvas_draw_icon(canvas, 120, 0, &I_Suica_EntryStopR3);
+            break;
+        default:
+            break;
+        }
+    }
+
+    canvas_set_color(canvas, ColorBlack);
 
     // Frame
     canvas_draw_line(canvas, 0, 9, 26, 9);
     canvas_draw_line(canvas, 27, 9, 29, 7);
     canvas_draw_line(canvas, 29, 0, 29, 6);
 
-    canvas_draw_line(canvas, 33, 0, 31, 7);
-    canvas_draw_line(canvas, 35, 9, 33, 7);
+    canvas_draw_line(canvas, 33, 0, 33, 6);
+    canvas_draw_line(canvas, 36, 9, 33, 6);
     canvas_draw_line(canvas, 92, 9, 36, 9);
     canvas_draw_line(canvas, 93, 9, 96, 6);
     canvas_draw_line(canvas, 96, 0, 96, 6);
