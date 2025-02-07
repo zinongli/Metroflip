@@ -160,7 +160,10 @@ bool metroflip_scene_auto_on_event(void* context, SceneManagerEvent event) {
             app->auto_mode = true;
             if(nfc_detected_protocols_get_protocol(app->detected_protocols, 0) ==
                NfcProtocolMfClassic) {
-                CardType card_type = determine_card_type(app->nfc);
+                MfClassicData* mfc_data = mf_classic_alloc();
+                app->data_loaded = false;
+                CardType card_type = determine_card_type(app->nfc, mfc_data, app->data_loaded);
+                mf_classic_free(mfc_data);
                 app->mfc_card_type = card_type;
                 Popup* popup = app->popup;
                 UNUSED(popup);

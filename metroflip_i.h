@@ -149,7 +149,7 @@ typedef enum {
     MISSING_KEYFILE
 } KeyfileManager;
 
-CardType determine_card_type(Nfc* nfc);
+CardType determine_card_type(Nfc* nfc, MfClassicData* mfc_data, bool data_loaded);
 
 #ifdef FW_ORIGIN_Official
 #define submenu_add_lockable_item(                                             \
