@@ -218,6 +218,11 @@ extern const Icon I_Suica_VendingThankYou;
 extern const Icon I_Suica_YenKanji;
 extern const Icon I_Suica_YenSign;
 extern const Icon I_Suica_YurakuchoY;
+extern const Icon I_Suica_CardIcon;
+extern const Icon I_Suica_ShopIcon;
+extern const Icon I_Suica_VendingIcon;
+extern const Icon I_Suica_TrainIcon;
+extern const Icon I_Suica_UnknownIcon;
 
 /*******************/
 #ifdef __cplusplus

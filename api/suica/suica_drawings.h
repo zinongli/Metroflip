@@ -73,17 +73,16 @@ static void suica_draw_train_page_1(
     }
 
     // Entry Text
-    if (history.entry_line.type == SuicaMobile) {
+    if(history.entry_line.type == SuicaMobile) {
         canvas_set_font(canvas, FontPrimary);
         canvas_draw_str(canvas, 28, 28, "Mobile Suica");
     } else {
         canvas_set_font(canvas, FontPrimary);
         canvas_draw_str(canvas, 26, 23, history.entry_line.long_name);
-    
+
         canvas_set_font(canvas, FontSecondary);
         canvas_draw_str(canvas, 2, 34, furi_string_get_cstr(history.entry_station.name));
     }
-
 
     if(!is_birthday) {
         // Exit logo
@@ -846,9 +845,26 @@ static void suica_history_draw_callback(Canvas* canvas, void* model) {
     }
 
     // The the banner last so it is on top
-    // Main title
-    canvas_set_font(canvas, FontPrimary);
-    canvas_draw_str(canvas, 0, 8, "Suica");
+
+    // Draw Top Left Icons
+    canvas_draw_icon(canvas, 0, 0, &I_Suica_CardIcon);
+    switch(my_model->history.history_type) {
+    case SuicaHistoryTrain:
+        canvas_draw_icon(canvas, 20, 0, &I_Suica_TrainIcon);
+        break;
+    case SuicaHistoryHappyBirthday:
+        canvas_draw_icon(canvas, 20, 0, &I_Suica_TrainIcon);
+        break;
+    case SuicaHistoryVendingMachine:
+        canvas_draw_icon(canvas, 21, 0, &I_Suica_VendingIcon);
+        break;
+    case SuicaHistoryPosAndTaxi:
+        canvas_draw_icon(canvas, 19, 0, &I_Suica_ShopIcon);
+        break;
+    default:
+        canvas_draw_icon(canvas, 22, 0, &I_Suica_UnknownIcon);
+        break;
+    }
 
     // Date
     furi_string_printf(
@@ -859,10 +875,15 @@ static void suica_history_draw_callback(Canvas* canvas, void* model) {
         my_model->history.day);
     canvas_set_font(canvas, FontPrimary);
     canvas_draw_str(canvas, 37, 8, furi_string_get_cstr(buffer));
+    // Frame
+    canvas_draw_line(canvas, 33, 0, 33, 6);
+    canvas_draw_line(canvas, 36, 9, 33, 6);
+    canvas_draw_line(canvas, 92, 9, 36, 9);
+    canvas_draw_line(canvas, 93, 9, 96, 6);
+    canvas_draw_line(canvas, 96, 0, 96, 6);
 
     // Entry Num
     canvas_draw_box(canvas, 106, 0, 13, 9);
-
     furi_string_printf(buffer, "%02d", my_model->entry);
     canvas_set_font(canvas, FontKeyboard);
     canvas_set_color(canvas, ColorWhite);
@@ -919,17 +940,6 @@ static void suica_history_draw_callback(Canvas* canvas, void* model) {
     }
 
     canvas_set_color(canvas, ColorBlack);
-
-    // Frame
-    canvas_draw_line(canvas, 0, 9, 26, 9);
-    canvas_draw_line(canvas, 27, 9, 29, 7);
-    canvas_draw_line(canvas, 29, 0, 29, 6);
-
-    canvas_draw_line(canvas, 33, 0, 33, 6);
-    canvas_draw_line(canvas, 36, 9, 33, 6);
-    canvas_draw_line(canvas, 92, 9, 36, 9);
-    canvas_draw_line(canvas, 93, 9, 96, 6);
-    canvas_draw_line(canvas, 96, 0, 96, 6);
 
     furi_string_free(buffer);
 }
