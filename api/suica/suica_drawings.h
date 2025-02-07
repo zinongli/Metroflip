@@ -25,7 +25,7 @@
 #define TERMINAL_IN_CAR_SUPP_MACHINE    0x24
 #define TERMINAL_POS_AND_TAXI           0xC7
 #define TERMINAL_VENDING_MACHINE        0xC8
-#define PROCESSING_CODE_RECHARGE       0x02
+#define PROCESSING_CODE_RECHARGE        0x02
 #define ARROW_ANIMATION_FRAME_MS        350
 
 typedef enum {
@@ -50,6 +50,9 @@ static void suica_draw_train_page_1(
     case SuicaJR:
         canvas_draw_icon(canvas, 1, 12, &I_Suica_JRLogo);
         break;
+    case SuicaMobile:
+        canvas_draw_icon(canvas, 4, 15, &I_Suica_MobileLogo);
+        break;
     case SuicaTokyoMetro:
         canvas_draw_icon(canvas, 2, 12, &I_Suica_TokyoMetroLogo);
         break;
@@ -70,11 +73,17 @@ static void suica_draw_train_page_1(
     }
 
     // Entry Text
-    canvas_set_font(canvas, FontPrimary);
-    canvas_draw_str(canvas, 26, 23, history.entry_line.long_name);
+    if (history.entry_line.type == SuicaMobile) {
+        canvas_set_font(canvas, FontPrimary);
+        canvas_draw_str(canvas, 28, 28, "Mobile Suica");
+    } else {
+        canvas_set_font(canvas, FontPrimary);
+        canvas_draw_str(canvas, 26, 23, history.entry_line.long_name);
+    
+        canvas_set_font(canvas, FontSecondary);
+        canvas_draw_str(canvas, 2, 34, furi_string_get_cstr(history.entry_station.name));
+    }
 
-    canvas_set_font(canvas, FontSecondary);
-    canvas_draw_str(canvas, 2, 34, furi_string_get_cstr(history.entry_station.name));
 
     if(!is_birthday) {
         // Exit logo
@@ -503,7 +512,6 @@ static void suica_draw_vending_machine_page_2(
     canvas_draw_line(canvas, 96, 6, 96, 17);
     canvas_draw_line(canvas, 62, 12, 62, 17);
     canvas_draw_line(canvas, 62, 12, 59, 9);
-
 
     // Vending Machine
     canvas_draw_icon(canvas, 4, 12, &I_Suica_VendingMachine);

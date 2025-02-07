@@ -173,6 +173,7 @@ extern const Icon I_Suica_MinusSign7;
 extern const Icon I_Suica_MinusSign8;
 extern const Icon I_Suica_MinusSign9;
 extern const Icon I_Suica_MitaI;
+extern const Icon I_Suica_MobileLogo;
 extern const Icon I_Suica_NambokuN;
 extern const Icon I_Suica_Nothing;
 extern const Icon I_Suica_OedoE;

@@ -55,3 +55,4 @@
 0x02,0x3e,Utsunomiya,Nasushiobara,33,0
 0x02,0x3f,Utsunomiya,Kuroiso,34,0
 
+0x02,0xfd,Mobile Suica,MobileSuica,1,0
