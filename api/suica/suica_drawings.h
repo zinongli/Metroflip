@@ -476,14 +476,15 @@ static void suica_draw_vending_machine_page_2(
     SuicaHistory history,
     SuicaHistoryViewModel* model) {
     FuriString* buffer = furi_string_alloc();
-    
+
     if(model->animator_tick > 42) {
         // 6 steps of animation
         model->animator_tick = 0;
     }
 
     // Draw Thank You Banner
-    canvas_draw_icon(canvas, 49 - model->animator_tick, -9 + model->animator_tick, &I_Suica_VendingThankYou);
+    canvas_draw_icon(
+        canvas, 49 - model->animator_tick, -9 + model->animator_tick, &I_Suica_VendingThankYou);
     canvas_set_color(canvas, ColorWhite);
     canvas_draw_box(canvas, 50, 0, 128, 64);
     canvas_draw_box(canvas, 0, 0, 42, 64);
@@ -516,7 +517,7 @@ static void suica_draw_vending_machine_page_2(
     canvas_draw_str(canvas, 75, 45, furi_string_get_cstr(buffer));
 
     // Animate Vending Machine Flap
-    
+
     switch(model->animator_tick % 7) {
     case 0:
         canvas_draw_icon(canvas, 44, 40, &I_Suica_VendingFlapHollow);
@@ -848,31 +849,53 @@ static void suica_history_draw_callback(Canvas* canvas, void* model) {
         my_model->history.month,
         my_model->history.day);
     canvas_set_font(canvas, FontPrimary);
-    canvas_draw_str(canvas, 34, 8, furi_string_get_cstr(buffer));
+    canvas_draw_str(canvas, 36, 8, furi_string_get_cstr(buffer));
 
     // Entry Num
-    furi_string_printf(buffer, "%02d/%02d", my_model->entry, my_model->size);
-    canvas_set_font(canvas, FontPrimary);
-    canvas_draw_str(canvas, 99, 8, furi_string_get_cstr(buffer));
+    canvas_draw_box(canvas, 106, 0, 13, 9);
+
+    furi_string_printf(buffer, "%02d", my_model->entry);
+    canvas_set_font(canvas, FontKeyboard);
+    canvas_set_color(canvas, ColorWhite);
+    canvas_draw_str(canvas, 107, 8, furi_string_get_cstr(buffer));
+    canvas_set_color(canvas, ColorBlack);
+
+    switch(my_model->page) {
+    case 0:
+        canvas_draw_icon(canvas, 100, 0, &I_Suica_EntrySlider1);
+        break;
+    case 1:
+        canvas_draw_icon(canvas, 100, 0, &I_Suica_EntrySlider2);
+        break;
+    case 2:
+        canvas_draw_icon(canvas, 100, 0, &I_Suica_EntrySlider3);
+        break;
+    default:
+        break;
+    }
+    
+    canvas_set_color(canvas, ColorWhite);
+    if (my_model->entry == 1) {
+        canvas_draw_box(canvas, 99, 0, 6, 9);
+    } else if (my_model->entry == my_model->size) {
+        canvas_draw_box(canvas, 120, 0, 6, 9);
+    }
+    canvas_set_color(canvas, ColorBlack);
+
 
     // Frame
     canvas_draw_line(canvas, 0, 9, 26, 9);
     canvas_draw_line(canvas, 27, 9, 29, 7);
     canvas_draw_line(canvas, 29, 0, 29, 6);
 
-    canvas_draw_line(canvas, 31, 0, 31, 7);
-    canvas_draw_line(canvas, 33, 9, 31, 7);
-    canvas_draw_line(canvas, 90, 9, 34, 9);
-    canvas_draw_line(canvas, 91, 9, 94, 6);
-    canvas_draw_line(canvas, 94, 0, 94, 6);
-
+    canvas_draw_line(canvas, 33, 0, 31, 7);
+    canvas_draw_line(canvas, 35, 9, 33, 7);
+    canvas_draw_line(canvas, 92, 9, 36, 9);
+    canvas_draw_line(canvas, 93, 9, 96, 6);
     canvas_draw_line(canvas, 96, 0, 96, 6);
-    canvas_draw_line(canvas, 99, 9, 96, 6);
-    canvas_draw_line(canvas, 100, 9, 128, 9);
 
     furi_string_free(buffer);
 }
-
 
 static void suica_view_history_timer_callback(void* context) {
     Metroflip* app = (Metroflip*)context;
