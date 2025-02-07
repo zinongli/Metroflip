@@ -27,8 +27,7 @@ void metroflip_scene_load_on_enter(void* context) {
         do {
             if(!flipper_format_file_open_existing(format, furi_string_get_cstr(file_path))) break;
             if(!flipper_format_read_string(format, "Card Type", card_type)) break;
-            if(furi_string_equal_str(card_type, "suica")) {
-            }
+            app->file_path = furi_string_get_cstr(file_path);
             app->data_loaded = true;
         } while(0);
         flipper_format_free(format);

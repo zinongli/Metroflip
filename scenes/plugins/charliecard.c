@@ -1253,17 +1253,44 @@ static void charliecard_on_enter(Metroflip* app) {
 
     app->sec_num = 0;
 
-    // Setup view
-    Popup* popup = app->popup;
-    popup_set_header(popup, "Apply\n card to\nthe back", 68, 30, AlignLeft, AlignTop);
-    popup_set_icon(popup, 0, 3, &I_RFIDDolphinReceive_97x61);
+    if(app->data_loaded) {
+        Storage* storage = furi_record_open(RECORD_STORAGE);
+        FlipperFormat* ff = flipper_format_file_alloc(storage);
+        if(flipper_format_file_open_existing(ff, app->file_path)) {
+            MfClassicData* mfc_data = mf_classic_alloc();
+            mf_classic_load(mfc_data, ff, 2);
+            FuriString* parsed_data = furi_string_alloc();
+            Widget* widget = app->widget;
 
-    // Start worker
-    view_dispatcher_switch_to_view(app->view_dispatcher, MetroflipViewPopup);
-    app->poller = nfc_poller_alloc(app->nfc, NfcProtocolMfClassic);
-    nfc_poller_start(app->poller, metroflip_scene_charlicard_poller_callback, app);
+            furi_string_reset(app->text_box_store);
+            if(!charliecard_parse(parsed_data, mfc_data)) {
+                furi_string_reset(app->text_box_store);
+                FURI_LOG_I(TAG, "Unknown card type");
+                furi_string_printf(parsed_data, "\e#Unknown card\n");
+            }
+            widget_add_text_scroll_element(
+                widget, 0, 0, 128, 64, furi_string_get_cstr(parsed_data));
 
-    metroflip_app_blink_start(app);
+            widget_add_button_element(
+                widget, GuiButtonTypeRight, "Exit", metroflip_exit_widget_callback, app);
+            mf_classic_free(mfc_data);
+            furi_string_free(parsed_data);
+            view_dispatcher_switch_to_view(app->view_dispatcher, MetroflipViewWidget);
+        }
+        flipper_format_free(ff);
+    } else {
+        // Setup view
+        Popup* popup = app->popup;
+        popup_set_header(popup, "Apply\n card to\nthe back", 68, 30, AlignLeft, AlignTop);
+        popup_set_icon(popup, 0, 3, &I_RFIDDolphinReceive_97x61);
+
+        // Start worker
+        view_dispatcher_switch_to_view(app->view_dispatcher, MetroflipViewPopup);
+        app->poller = nfc_poller_alloc(app->nfc, NfcProtocolMfClassic);
+        nfc_poller_start(app->poller, metroflip_scene_charlicard_poller_callback, app);
+
+        metroflip_app_blink_start(app);
+    }
 }
 
 static bool charliecard_on_event(Metroflip* app, SceneManagerEvent event) {

@@ -91,10 +91,10 @@ typedef struct {
     bool auto_mode;
     CardType mfc_card_type;
     NfcProtocol protocol;
+    const char* file_path;
 
     // Calypso specific context
     CalypsoContext* calypso_context;
-
 
     DialogsApp* dialogs;
 
