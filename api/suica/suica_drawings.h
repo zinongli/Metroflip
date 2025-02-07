@@ -25,7 +25,7 @@
 #define TERMINAL_IN_CAR_SUPP_MACHINE    0x24
 #define TERMINAL_POS_AND_TAXI           0xC7
 #define TERMINAL_VENDING_MACHINE        0xC8
-#define PROCESSING_CODE_NEW_ISSUE       0x02
+#define PROCESSING_CODE_RECHARGE       0x02
 #define ARROW_ANIMATION_FRAME_MS        350
 
 typedef enum {
