@@ -2,6 +2,7 @@
 #define DESFIRE_H
 
 #include "../metroflip_i.h"
+#include <lib/nfc/protocols/mf_desfire/mf_desfire.h>
 
 typedef enum {
     CARD_TYPE_ITSO,
@@ -11,9 +12,9 @@ typedef enum {
     CARD_TYPE_DESFIRE_UNKNOWN
 } DesfireCardType;
 
-bool itso_parse(const NfcDevice* device, FuriString* parsed_data);
-bool opal_parse(const NfcDevice* device, FuriString* parsed_data);
-bool clipper_parse(const NfcDevice* device, FuriString* parsed_data);
-bool myki_parse(const NfcDevice* device, FuriString* parsed_data);
+bool itso_verify(const MfDesfireData* data);
+bool opal_verify(const MfDesfireData* data);
+bool clipper_verify(const MfDesfireData* data);
+bool myki_verify(const MfDesfireData* data);
 
 #endif // DESFIRE_H

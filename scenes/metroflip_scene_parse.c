@@ -63,6 +63,5 @@ void metroflip_scene_parse_on_exit(void* context) {
         plugin_manager_free(app->plugin_manager);
         composite_api_resolver_free(app->resolver);
     }
-    app->card_type = "unknown";
     app->data_loaded = false;
 }

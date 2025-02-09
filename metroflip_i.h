@@ -73,6 +73,11 @@ typedef struct {
     MfClassicKeyCache* mfc_key_cache;
     NfcDetectedProtocols* detected_protocols;
     DesfireCardType desfire_card_type;
+    MfDesfireData* mfdes_data;
+    MfClassicData* mfc_data;
+
+    // save stuff
+    char save_buf[248];
 
     //plugin manager
     PluginManager* plugin_manager;
