@@ -97,6 +97,7 @@ typedef struct {
     CardType mfc_card_type;
     NfcProtocol protocol;
     const char* file_path;
+    char delete_file_path[256];
 
     // Calypso specific context
     CalypsoContext* calypso_context;

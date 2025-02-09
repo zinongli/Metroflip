@@ -101,6 +101,12 @@ void metroflip_scene_load_on_enter(void* context) {
                 has_card_type = false;
             }
             app->file_path = furi_string_get_cstr(file_path);
+            strncpy(
+                app->delete_file_path,
+                furi_string_get_cstr(file_path),
+                sizeof(app->delete_file_path) - 1);
+            app->delete_file_path[sizeof(app->delete_file_path) - 1] = '\0';
+
             app->data_loaded = true;
         } while(0);
         flipper_format_free(format);
