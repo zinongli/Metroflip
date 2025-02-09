@@ -25,7 +25,7 @@ void metroflip_scene_save_on_enter(void* context) {
         true);
 
     ValidatorIsFile* validator_is_file =
-        validator_is_file_alloc_init(APP_DATA_PATH(), ".metro", NULL);
+        validator_is_file_alloc_init(APP_DATA_PATH(), METROFLIP_FILE_EXTENSION, NULL);
     text_input_set_validator(text_input, validator_is_file_callback, validator_is_file);
 
     view_dispatcher_switch_to_view(app->view_dispatcher, MetroflipViewTextInput);

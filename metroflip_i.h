@@ -51,7 +51,7 @@
 #include "api/calypso/calypso_i.h"
 
 #define KEY_MASK_BIT_CHECK(key_mask_1, key_mask_2) (((key_mask_1) & (key_mask_2)) == (key_mask_1))
-#define METROFLIP_FILE_EXTENSION                   ".metro"
+#define METROFLIP_FILE_EXTENSION                   ".nfc"
 typedef struct {
     Gui* gui;
     SceneManager* scene_manager;

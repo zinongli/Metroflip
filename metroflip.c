@@ -157,7 +157,7 @@ void metroflip_exit_widget_callback(GuiButtonType result, InputType type, void* 
     UNUSED(result);
 
     if(type == InputTypeShort) {
-        scene_manager_next_scene(app->scene_manager, MetroflipSceneSave);
+        scene_manager_next_scene(app->scene_manager, MetroflipSceneStart);
     }
 }
 

@@ -16,22 +16,15 @@ void metroflip_scene_save_result_on_enter(void* context) {
     Popup* popup = app->popup;
 
     char path[280];
-    snprintf(path, sizeof(path), "/ext/apps_data/metroflip/%s.metro", app->save_buf);
+    snprintf(path, sizeof(path), "/ext/apps_data/metroflip/%s.nfc", app->save_buf);
     FURI_LOG_I("path", "path: %s", path);
     bool success = nfc_device_save(app->nfc_device, path);
     Storage* storage = furi_record_open(RECORD_STORAGE);
     FlipperFormat* ff = flipper_format_file_alloc(storage);
-    //flipper_format_buffered_file_open_existing(ff, path);
     flipper_format_write_empty_line(ff);
-    if(flipper_format_file_open_existing(ff, path)) {
-        if(flipper_format_insert_or_update_string_cstr(ff, "Card Type", app->card_type)) {
-            flipper_format_file_close(ff);
-        } else {
-            FURI_LOG_I("ting", "cant write");
-        }
-    } else {
-        FURI_LOG_I("ting", "not found");
-    }
+    flipper_format_file_open_existing(ff, path);
+    flipper_format_insert_or_update_string_cstr(ff, "Card Type", app->card_type);
+    flipper_format_file_close(ff);
     flipper_format_free(ff);
     furi_record_close(RECORD_STORAGE);
 
