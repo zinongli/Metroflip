@@ -394,7 +394,7 @@ static NfcCommand suica_poller_callback(NfcGenericEvent event, void* context) {
 
 static bool suica_history_input_callback(InputEvent* event, void* context) {
     Metroflip* app = (Metroflip*)context;
-    if(event->type == InputTypeShort) {
+    if(event->type == InputTypeShort || event->type == InputTypeRepeat) {
         switch(event->key) {
         case InputKeyLeft: {
             bool redraw = true;
