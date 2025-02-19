@@ -60,6 +60,10 @@ void metroflip_scene_load_on_enter(void* context) {
                         app->card_type = "troika";
                         FURI_LOG_I(TAG, "Detected: Troika\n");
                         break;
+                    case CARD_TYPE_GOCARD:
+                        app->card_type = "gocard";
+                        FURI_LOG_I(TAG, "Detected: go card\n");
+                        break;
                     case CARD_TYPE_UNKNOWN:
                         app->card_type = "unknown";
                         //popup_set_header(popup, "Unsupported\n card", 58, 31, AlignLeft, AlignTop);
