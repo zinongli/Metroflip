@@ -122,9 +122,10 @@ void metroflip_scene_load_on_enter(void* context) {
             app->card_type = furi_string_get_cstr(card_type);
             has_card_type = false;
         }
+        scene_manager_search_and_switch_to_previous_scene(app->scene_manager, MetroflipSceneStart);
         scene_manager_next_scene(app->scene_manager, MetroflipSceneParse);
     } else {
-        scene_manager_next_scene(app->scene_manager, MetroflipSceneStart);
+        scene_manager_search_and_switch_to_previous_scene(app->scene_manager, MetroflipSceneStart);
     }
     furi_string_free(file_path);
     furi_record_close(RECORD_STORAGE);
@@ -137,7 +138,7 @@ bool metroflip_scene_load_on_event(void* context, SceneManagerEvent event) {
     // If they don't select any file in the brwoser and press back button,
     // the data is not loaded
     if(!app->data_loaded) {
-        scene_manager_next_scene(app->scene_manager, MetroflipSceneStart);
+        scene_manager_search_and_switch_to_previous_scene(app->scene_manager, MetroflipSceneStart);
     }
     consumed = true;
 

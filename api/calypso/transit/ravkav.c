@@ -20,6 +20,10 @@ const char* get_ravkav_issuer(int issuer) {
 
 void show_ravkav_contract_info(RavKavCardContract* contract, FuriString* parsed_data) {
     // Core contract validity period
+    if(contract->balance != 0.0f) {
+        furi_string_cat_printf(parsed_data, "Balance: %.2f ILS\n", (double)contract->balance);
+    }
+
     furi_string_cat_printf(parsed_data, "Valid from: ");
     locale_format_datetime_cat(parsed_data, &contract->start_date, false);
     if(contract->end_date_available) {
