@@ -37,6 +37,7 @@ App(
     entry_point="metromoney_plugin_ep",
     requires=["metroflip"],
     sources=["scenes/plugins/metromoney.c"],
+    fal_embedded=True,
 )
 
 App(
@@ -45,6 +46,7 @@ App(
     entry_point="bip_plugin_ep",
     requires=["metroflip"],
     sources=["scenes/plugins/bip.c"],
+    fal_embedded=True,
 )
 
 App(
