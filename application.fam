@@ -102,3 +102,12 @@ App(
     sources=["scenes/plugins/troika.c"],
     fal_embedded=True,
 )
+
+App(
+    appid="gocard_plugin",
+    apptype=FlipperAppType.PLUGIN,
+    entry_point="gocard_plugin_ep",
+    requires=["metroflip"],
+    sources=["scenes/plugins/gocard.c"],
+    fal_embedded=True,
+)
