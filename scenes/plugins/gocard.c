@@ -14,7 +14,6 @@
 #include <nfc/nfc_listener.h>
 #include "../../api/metroflip/metroflip_api.h"
 #include "../../metroflip_plugins.h"
-<<<<<<< HEAD
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
@@ -43,18 +42,12 @@ void printConcessionType(unsigned short concession_type, FuriString* parsed_data
     }
 }
 
-=======
-
-#define TAG "Metroflip:Scene:gocard"
-
->>>>>>> ac4922c34e448b30b3fe49a80f4d4ba236bf1bd9
 unsigned short byteArrayToIntReversed(unsigned int dec1, unsigned int dec2) {
     unsigned char byte1 = (unsigned char)dec1;
     unsigned char byte2 = (unsigned char)dec2;
     return ((unsigned short)byte2 << 8) | byte1;
 }
 
-<<<<<<< HEAD
 // Function to extract a substring and convert binary to decimal
 uint32_t extract_and_convert(const char* str, int start, int length) {
     uint32_t value = 0;
@@ -149,38 +142,10 @@ void parse_gocard_topup_info(FuriString* parsed_data, const MfClassicData* data)
     }
 }
 
-=======
->>>>>>> ac4922c34e448b30b3fe49a80f4d4ba236bf1bd9
 static bool gocard_parse(FuriString* parsed_data, const MfClassicData* data) {
     bool parsed = false;
 
     do {
-<<<<<<< HEAD
-=======
-        // Verify key
-        //const uint8_t ticket_sector_number = 1;
-        //const uint8_t ticket_block_number = 1;
-
-        //const MfClassicSectorTrailer* sec_tr =
-        //    mf_classic_get_sector_trailer_by_sector(data, ticket_sector_number);
-
-        //const uint64_t key =
-        //    bit_lib_bytes_to_num_be(sec_tr->key_a.data, COUNT_OF(sec_tr->key_a.data));
-        ///if(key != gocard_1k_keys[ticket_sector_number].a) break;
-        //FURI_LOG_D(TAG, "passed key check");
-        // Parse data
-        //const uint8_t start_block_num =
-        //    mf_classic_get_first_block_num_of_sector(ticket_sector_number);
-
-        //const uint8_t* block_start_ptr =
-        //    &data->block[start_block_num + ticket_block_number].data[0];
-
-        //uint32_t balance = bit_lib_bytes_to_num_le(block_start_ptr, 4) - 100;
-
-        //uint32_t balance_lari = balance / 100;
-        //uint8_t balance_tetri = balance % 100;
-
->>>>>>> ac4922c34e448b30b3fe49a80f4d4ba236bf1bd9
         int balance_slot = 4;
 
         if(data->block[balance_slot].data[13] <= data->block[balance_slot + 1].data[13])
@@ -201,7 +166,6 @@ static bool gocard_parse(FuriString* parsed_data, const MfClassicData* data) {
         }
 
         double balance = balancecents / 100.0;
-<<<<<<< HEAD
         furi_string_printf(parsed_data, "\e#go card\nValue: A$%.2f\n", balance); //show balance
 
         hasTravelPassAvailable = (data->block[balance_slot].data[7] != 0x00) ? true : false;
@@ -219,9 +183,6 @@ static bool gocard_parse(FuriString* parsed_data, const MfClassicData* data) {
         printConcessionType(concession_type, parsed_data);
 
         parse_gocard_topup_info(parsed_data, data);
-=======
-        furi_string_printf(parsed_data, "\e#Go card\nValue: A$%.2f\n", balance);
->>>>>>> ac4922c34e448b30b3fe49a80f4d4ba236bf1bd9
 
         parsed = true;
     } while(false);
