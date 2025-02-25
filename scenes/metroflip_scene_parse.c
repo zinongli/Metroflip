@@ -53,7 +53,8 @@ bool metroflip_scene_parse_on_event(void* context, SceneManagerEvent event) {
 
 void metroflip_scene_parse_on_exit(void* context) {
     Metroflip* app = context;
-    if(!((app->card_type[0] == '\0') || (strcmp(app->card_type, "unknown") == 0) || (!app->card_type))) {
+    if(!((app->card_type[0] == '\0') || (strcmp(app->card_type, "unknown") == 0) ||
+         (!app->card_type))) {
         // Get and run the plugin's on_exit function
         const MetroflipPlugin* plugin = plugin_manager_get_ep(app->plugin_manager, 0);
         plugin->plugin_on_exit(app);

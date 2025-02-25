@@ -33,7 +33,6 @@ const MfClassicKeyPair metromoney_1k_verify_key[] = {
     {.a = 0x9C616585E26D},
 };
 
-
 const uint8_t gocard_verify_data[1][14] = {
     {0x16, 0x18, 0x1A, 0x1B, 0x1C, 0x1D, 0x1E, 0x1F, 0x5A, 0x5B, 0x20, 0x21, 0x22, 0x23}};
 
@@ -277,7 +276,6 @@ static bool gocard_verify(MfClassicData* mfc_data, bool data_loaded) {
 
     return verified;
 }
-
 
 CardType determine_card_type(Nfc* nfc, MfClassicData* mfc_data, bool data_loaded) {
     FURI_LOG_I(TAG, "checking keys..");
