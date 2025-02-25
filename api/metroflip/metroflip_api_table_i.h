@@ -73,7 +73,6 @@ static constexpr auto metroflip_api_table = sort(create_array_t<sym_entry>(
     API_VARIABLE(I_RFIDDolphinReceive_97x61, Icon),
     API_VARIABLE(I_icon, Icon),
     // Suica
-
     API_VARIABLE(I_Suica_AsakusaA, Icon),
     API_VARIABLE(I_Suica_BigStar, Icon),
     API_VARIABLE(I_Suica_ChiyodaC, Icon),
@@ -161,4 +160,7 @@ static constexpr auto metroflip_api_table = sort(create_array_t<sym_entry>(
     API_VARIABLE(I_Suica_VendingIcon, Icon),
     API_VARIABLE(I_Suica_TrainIcon, Icon),
     API_VARIABLE(I_Suica_BdayCakeIcon, Icon),
-    API_VARIABLE(I_Suica_UnknownIcon, Icon))); 
+    API_VARIABLE(I_Suica_UnknownIcon, Icon),
+    
+    API_METHOD(render_section_header, void, (FuriString*, const char*, uint8_t, uint8_t)),
+    API_METHOD(mosgortrans_parse_transport_block, bool, (const MfClassicBlock*, FuriString*))));
