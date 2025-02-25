@@ -379,6 +379,8 @@ static NfcCommand suica_poller_callback(NfcGenericEvent event, void* context) {
 
             widget_add_button_element(
                 widget, GuiButtonTypeRight, "Exit", metroflip_exit_widget_callback, app);
+            widget_add_button_element(
+                widget, GuiButtonTypeLeft, "Del", metroflip_delete_widget_callback, app);
 
             if(model->size > 1) {
                 widget_add_button_element(
@@ -475,7 +477,7 @@ static void suica_on_enter(Metroflip* app) {
             sizeof(SuicaHistoryViewModel));
     }
 
-    view_set_input_callback(app->suica_context->view_history, suica_history_input_callback); 
+    view_set_input_callback(app->suica_context->view_history, suica_history_input_callback);
     view_set_previous_callback(app->suica_context->view_history, suica_navigation_raw_callback);
     view_set_enter_callback(app->suica_context->view_history, suica_view_history_enter_callback);
     view_set_exit_callback(app->suica_context->view_history, suica_view_history_exit_callback);
@@ -515,6 +517,8 @@ static void suica_on_enter(Metroflip* app) {
 
         widget_add_button_element(
             widget, GuiButtonTypeRight, "Exit", metroflip_exit_widget_callback, app);
+        widget_add_button_element(
+            widget, GuiButtonTypeLeft, "Del", metroflip_delete_widget_callback, app);
 
         if(model->size > 1) {
             widget_add_button_element(
