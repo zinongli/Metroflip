@@ -53,7 +53,7 @@
 
 
 #define KEY_MASK_BIT_CHECK(key_mask_1, key_mask_2) (((key_mask_1) & (key_mask_2)) == (key_mask_1))
-#define METROFLIP_FILE_EXTENSION                   ".metro"
+#define METROFLIP_FILE_EXTENSION                   ".nfc"
 typedef struct {
     Gui* gui;
     SceneManager* scene_manager;
@@ -75,6 +75,11 @@ typedef struct {
     MfClassicKeyCache* mfc_key_cache;
     NfcDetectedProtocols* detected_protocols;
     DesfireCardType desfire_card_type;
+    MfDesfireData* mfdes_data;
+    MfClassicData* mfc_data;
+
+    // save stuff
+    char save_buf[248];
 
     //plugin manager
     PluginManager* plugin_manager;
@@ -94,6 +99,7 @@ typedef struct {
     CardType mfc_card_type;
     NfcProtocol protocol;
     const char* file_path;
+    char delete_file_path[256];
 
     // Calypso specific context
     CalypsoContext* calypso_context;

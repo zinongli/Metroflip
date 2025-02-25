@@ -316,6 +316,8 @@ static NfcCommand smartrider_poller_callback(NfcGenericEvent event, void* contex
 
         widget_add_button_element(
             widget, GuiButtonTypeRight, "Exit", metroflip_exit_widget_callback, app);
+        widget_add_button_element(
+            widget, GuiButtonTypeCenter, "Save", metroflip_save_widget_callback, app);
 
         furi_string_free(parsed_data);
         view_dispatcher_switch_to_view(app->view_dispatcher, MetroflipViewWidget);
@@ -355,6 +357,8 @@ static void smartrider_on_enter(Metroflip* app) {
 
             widget_add_button_element(
                 widget, GuiButtonTypeRight, "Exit", metroflip_exit_widget_callback, app);
+            widget_add_button_element(
+                widget, GuiButtonTypeCenter, "Delete", metroflip_delete_widget_callback, app);
             mf_classic_free(mfc_data);
             furi_string_free(parsed_data);
             view_dispatcher_switch_to_view(app->view_dispatcher, MetroflipViewWidget);
@@ -398,6 +402,7 @@ static bool smartrider_on_event(Metroflip* app, SceneManagerEvent event) {
         }
     } else if(event.type == SceneManagerEventTypeBack) {
         scene_manager_search_and_switch_to_previous_scene(app->scene_manager, MetroflipSceneStart);
+        scene_manager_set_scene_state(app->scene_manager, MetroflipSceneStart, MetroflipSceneAuto);
         consumed = true;
     }
 

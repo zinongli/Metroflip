@@ -124,6 +124,8 @@ static NfcCommand metromoney_poller_callback(NfcGenericEvent event, void* contex
 
         widget_add_button_element(
             widget, GuiButtonTypeRight, "Exit", metroflip_exit_widget_callback, app);
+        widget_add_button_element(
+            widget, GuiButtonTypeCenter, "Save", metroflip_save_widget_callback, app);
 
         furi_string_free(parsed_data);
         view_dispatcher_switch_to_view(app->view_dispatcher, MetroflipViewWidget);
@@ -139,10 +141,11 @@ static NfcCommand metromoney_poller_callback(NfcGenericEvent event, void* contex
 
 static void metromoney_on_enter(Metroflip* app) {
     dolphin_deed(DolphinDeedNfcRead);
-
+    FURI_LOG_I(TAG, "open metromoney");
     app->sec_num = 0;
 
     if(app->data_loaded) {
+        FURI_LOG_I(TAG, "tbilisi loaded");
         Storage* storage = furi_record_open(RECORD_STORAGE);
         FlipperFormat* ff = flipper_format_file_alloc(storage);
         if(flipper_format_file_open_existing(ff, app->file_path)) {
@@ -162,12 +165,15 @@ static void metromoney_on_enter(Metroflip* app) {
 
             widget_add_button_element(
                 widget, GuiButtonTypeRight, "Exit", metroflip_exit_widget_callback, app);
+            widget_add_button_element(
+                widget, GuiButtonTypeCenter, "Delete", metroflip_delete_widget_callback, app);
             mf_classic_free(mfc_data);
             furi_string_free(parsed_data);
             view_dispatcher_switch_to_view(app->view_dispatcher, MetroflipViewWidget);
         }
         flipper_format_free(ff);
     } else {
+        FURI_LOG_I(TAG, "tbilisi not loaded");
         // Setup view
         Popup* popup = app->popup;
         popup_set_header(popup, "Apply\n card to\nthe back", 68, 30, AlignLeft, AlignTop);
@@ -205,6 +211,7 @@ static bool metromoney_on_event(Metroflip* app, SceneManagerEvent event) {
         }
     } else if(event.type == SceneManagerEventTypeBack) {
         scene_manager_search_and_switch_to_previous_scene(app->scene_manager, MetroflipSceneStart);
+        scene_manager_set_scene_state(app->scene_manager, MetroflipSceneStart, MetroflipSceneAuto);
         consumed = true;
     }
 

@@ -20,28 +20,24 @@ static NfcCommand
     Metroflip* app = context;
     NfcCommand command = NfcCommandContinue;
 
-    FuriString* parsed_data = furi_string_alloc();
-    furi_string_reset(app->text_box_store);
     const MfDesfirePollerEvent* mf_desfire_event = event.event_data;
     if(mf_desfire_event->type == MfDesfirePollerEventTypeReadSuccess) {
         nfc_device_set_data(
             app->nfc_device, NfcProtocolMfDesfire, nfc_poller_get_data(app->poller));
-        if(clipper_parse(app->nfc_device, parsed_data)) {
-            furi_string_reset(app->text_box_store);
+        const MfDesfireData* data = nfc_device_get_data(app->nfc_device, NfcProtocolMfDesfire);
+        if(clipper_verify(data)) {
             view_dispatcher_send_custom_event(
                 app->view_dispatcher, MetroflipCustomEventPollerSuccess);
             app->desfire_card_type = CARD_TYPE_CLIPPER;
-        } else if(itso_parse(app->nfc_device, parsed_data)) {
-            furi_string_reset(app->text_box_store);
+        } else if(itso_verify(data)) {
             view_dispatcher_send_custom_event(
                 app->view_dispatcher, MetroflipCustomEventPollerSuccess);
             app->desfire_card_type = CARD_TYPE_ITSO;
-        } else if(myki_parse(app->nfc_device, parsed_data)) {
-            furi_string_reset(app->text_box_store);
+        } else if(myki_verify(data)) {
             view_dispatcher_send_custom_event(
                 app->view_dispatcher, MetroflipCustomEventPollerSuccess);
             app->desfire_card_type = CARD_TYPE_MYKI;
-        } else if(opal_parse(app->nfc_device, parsed_data)) {
+        } else if(opal_verify(data)) {
             furi_string_reset(app->text_box_store);
             view_dispatcher_send_custom_event(
                 app->view_dispatcher, MetroflipCustomEventPollerSuccess);
@@ -52,7 +48,6 @@ static NfcCommand
                 app->view_dispatcher, MetroflipCustomEventPollerSuccess);
             app->desfire_card_type = CARD_TYPE_DESFIRE_UNKNOWN;
         }
-        furi_string_free(parsed_data);
         command = NfcCommandStop;
     } else if(mf_desfire_event->type == MfDesfirePollerEventTypeReadFailed) {
         view_dispatcher_send_custom_event(app->view_dispatcher, MetroflipCustomEventPollerSuccess);

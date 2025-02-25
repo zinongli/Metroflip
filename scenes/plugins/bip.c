@@ -319,6 +319,8 @@ static NfcCommand bip_poller_callback(NfcGenericEvent event, void* context) {
 
         widget_add_button_element(
             widget, GuiButtonTypeRight, "Exit", metroflip_exit_widget_callback, app);
+        widget_add_button_element(
+            widget, GuiButtonTypeCenter, "Save", metroflip_save_widget_callback, app);
 
         furi_string_free(parsed_data);
         view_dispatcher_switch_to_view(app->view_dispatcher, MetroflipViewWidget);
@@ -357,6 +359,8 @@ static void bip_on_enter(Metroflip* app) {
 
             widget_add_button_element(
                 widget, GuiButtonTypeRight, "Exit", metroflip_exit_widget_callback, app);
+            widget_add_button_element(
+                widget, GuiButtonTypeCenter, "Delete", metroflip_delete_widget_callback, app);
             mf_classic_free(mfc_data);
             furi_string_free(parsed_data);
             view_dispatcher_switch_to_view(app->view_dispatcher, MetroflipViewWidget);

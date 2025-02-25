@@ -23,6 +23,8 @@ extern "C" {
 // metroflip
 
 void metroflip_exit_widget_callback(GuiButtonType result, InputType type, void* context);
+void metroflip_save_widget_callback(GuiButtonType result, InputType type, void* context);
+void metroflip_delete_widget_callback(GuiButtonType result, InputType type, void* context);
 
 void metroflip_app_blink_start(Metroflip* metroflip);
 
@@ -135,6 +137,16 @@ void show_ravkav_environment_info(RavKavCardEnv* environment, FuriString* parsed
 
 extern const Icon I_RFIDDolphinReceive_97x61;
 extern const Icon I_icon;
+extern const Icon I_DolphinDone_80x58;
+extern const Icon I_WarningDolphinFlip_45x42;
+extern const Icon I_DolphinMafia_119x62;
+
+void render_section_header(
+    FuriString* str,
+    const char* name,
+    uint8_t prefix_separator_cnt,
+    uint8_t suffix_separator_cnt);
+bool mosgortrans_parse_transport_block(const MfClassicBlock* block, FuriString* result);
 
 extern const Icon I_Suica_AsakusaA;
 extern const Icon I_Suica_BigStar;
