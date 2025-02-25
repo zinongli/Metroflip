@@ -237,13 +237,6 @@ extern const Icon I_Suica_TrainIcon;
 extern const Icon I_Suica_BdayCakeIcon;
 extern const Icon I_Suica_UnknownIcon;
 
-void render_section_header(
-    FuriString* str,
-    const char* name,
-    uint8_t prefix_separator_cnt,
-    uint8_t suffix_separator_cnt);
-bool mosgortrans_parse_transport_block(const MfClassicBlock* block, FuriString* result);
-
 /*******************/
 #ifdef __cplusplus
 }
