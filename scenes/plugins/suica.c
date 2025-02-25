@@ -406,7 +406,7 @@ static bool suica_history_input_callback(InputEvent* event, void* context) {
                 {
                     if(model->entry > 1) {
                         model->entry--;
-                    }
+                    } 
                     suica_parse(model);
                     FURI_LOG_I(TAG, "Viewing entry %d", model->entry);
                 },
