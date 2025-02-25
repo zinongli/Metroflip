@@ -28,6 +28,7 @@ void metroflip_scene_credits_on_enter(void* context) {
     furi_string_cat_printf(str, "Opal Parser:\n gornekich\n\n");
     furi_string_cat_printf(str, "Opus Parser: DocSystem\n\n");
     furi_string_cat_printf(str, "Rav-Kav Parser: luu176\n\n");
+    furi_string_cat_printf(str, "Suica Parser: Torron\n\n");
     furi_string_cat_printf(str, "Troika Parser:\n gornekich\n\n");
     furi_string_cat_printf(str, "Info Slaves:\n Equip, TheDingo8MyBaby\n\n");
 
