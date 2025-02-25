@@ -28,13 +28,13 @@ jobs:
           pip install ufbt
 
       - name: Initialize UFBT Environment (Dev)
-        if: github.ref == 'refs/heads/dev'
+        if: github.ref == 'refs/heads/dev' || github.base_ref == 'dev'
         run: |
           ufbt update --index-url=https://update.flipperzero.one/firmware/directory.json --channel=dev
           ufbt vscode_dist
 
       - name: Initialize UFBT Environment (Main)
-        if: github.ref == 'refs/heads/main'
+        if: github.ref == 'refs/heads/main' || github.base_ref == 'main'
         run: |
           ufbt update --index-url=https://update.flipperzero.one/firmware/directory.json --channel=release
           ufbt vscode_dist
