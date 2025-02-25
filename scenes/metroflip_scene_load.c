@@ -99,15 +99,17 @@ void metroflip_scene_load_on_enter(void* context) {
                     mf_desfire_free(data);
                     has_card_type = true;
                 } else {
-                    if(furi_string_equal_str(card_type_str, "suica")) {
-                        FURI_LOG_I(TAG, "Detected: Suica");
-                        load_suica_data(app, format);
-                    }
                     has_card_type = true;
                 }
                 flipper_format_file_close(format);
             } else {
                 has_card_type = false;
+                if(furi_string_equal_str(card_type_str, "suica")) {
+                    FURI_LOG_I(TAG, "Detected: Suica");
+                    app->data_loaded = true;
+                    app->card_type = "suica";
+                    load_suica_data(app, format);
+                }
             }
             app->file_path = furi_string_get_cstr(file_path);
             strncpy(
@@ -115,7 +117,6 @@ void metroflip_scene_load_on_enter(void* context) {
                 furi_string_get_cstr(file_path),
                 sizeof(app->delete_file_path) - 1);
             app->delete_file_path[sizeof(app->delete_file_path) - 1] = '\0';
-
 
             app->data_loaded = true;
         } while(0);
