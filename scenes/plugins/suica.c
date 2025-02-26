@@ -20,8 +20,7 @@
 
 #include <lib/nfc/protocols/felica/felica.h>
 #include <lib/nfc/protocols/felica/felica_poller.h>
-#include <lib/nfc/protocols/felica/felica_poller_i.h>
-#include <lib/nfc/helpers/felica_crc.h>
+// #include <lib/nfc/protocols/felica/felica_poller_i.h>
 #include <lib/bit_lib/bit_lib.h>
 
 #include <applications/services/locale/locale.h>
@@ -371,9 +370,9 @@ static NfcCommand suica_poller_callback(NfcGenericEvent event, void* context) {
                     "\e#Suica\nSorry, no data found.\nPlease let the developers know and we will add support.");
             }
 
-            if(model->size == 1 && felica_poller->data->pmm.data[1] != SUICA_IC_TYPE_CODE) {
-                furi_string_printf(parsed_data, "\e#Suica\nSorry, not a Suica.\n");
-            }
+            // if(model->size == 1 && felica_poller->data->pmm.data[1] != SUICA_IC_TYPE_CODE) {
+            //     furi_string_printf(parsed_data, "\e#Suica\nSorry, not a Suica.\n");
+            // }
             widget_add_text_scroll_element(
                 widget, 0, 0, 128, 64, furi_string_get_cstr(parsed_data));
 
