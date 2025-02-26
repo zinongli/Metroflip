@@ -7,7 +7,6 @@
 
 #include <lib/nfc/protocols/felica/felica.h>
 #include <lib/nfc/protocols/felica/felica_poller.h>
-#include <lib/nfc/protocols/felica/felica_poller_i.h>
 #include <lib/nfc/helpers/felica_crc.h>
 #include <lib/bit_lib/bit_lib.h>
 
