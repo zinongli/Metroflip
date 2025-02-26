@@ -9,6 +9,7 @@ typedef enum {
     SuicaJR,
     SuicaMobile,
     SuicaTWR,
+    SuicaYurikamome,
     SuicaTokyoMonorail,
     SuicaRailwayTypeMax,
 } SuicaRailwayCompany;

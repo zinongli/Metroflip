@@ -230,6 +230,8 @@ extern const Icon I_Suica_VendingThankYou;
 extern const Icon I_Suica_YenKanji;
 extern const Icon I_Suica_YenSign;
 extern const Icon I_Suica_YurakuchoY;
+extern const Icon I_Suica_YurikamomeLogo;
+extern const Icon I_Suica_YurikamomeU;
 extern const Icon I_Suica_CardIcon;
 extern const Icon I_Suica_ShopIcon;
 extern const Icon I_Suica_VendingIcon;

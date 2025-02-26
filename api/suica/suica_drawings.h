@@ -62,6 +62,9 @@ static void suica_draw_train_page_1(
     case SuicaTWR:
         canvas_draw_icon(canvas, 0, 12, &I_Suica_TWRLogo);
         break;
+    case SuicaYurikamome:
+        canvas_draw_icon(canvas, 0, 12, &I_Suica_YurikamomeLogo);
+        break;
     case SuicaTokyoMonorail:
         canvas_draw_icon(canvas, 0, 11, &I_Suica_TokyoMonorailLogo);
         break;
@@ -101,6 +104,9 @@ static void suica_draw_train_page_1(
             break;
         case SuicaTWR:
             canvas_draw_icon(canvas, 0, 40, &I_Suica_TWRLogo);
+            break;
+        case SuicaYurikamome:
+            canvas_draw_icon(canvas, 0, 40, &I_Suica_YurikamomeLogo);
             break;
         case SuicaTokyoMonorail:
             canvas_draw_icon(canvas, 0, 39, &I_Suica_TokyoMonorailLogo);
@@ -253,6 +259,17 @@ static void
         canvas_draw_str(canvas, 13, 53, furi_string_get_cstr(buffer));
         canvas_set_color(canvas, ColorBlack);
         break;
+    case SuicaYurikamome:
+        canvas_draw_circle(canvas, 24, 38, 24);
+        canvas_draw_disc(canvas, 24, 38, 21);
+
+        canvas_set_color(canvas, ColorWhite);
+        canvas_draw_icon(canvas, 20, 22, history.entry_line.logo_icon);
+        canvas_set_font(canvas, FontBigNumbers);
+        furi_string_printf(buffer, "%02d", history.entry_station.station_number);
+        canvas_draw_str(canvas, 14, 53, furi_string_get_cstr(buffer));
+        canvas_set_color(canvas, ColorBlack);
+        break;
     case SuicaRailwayTypeMax:
         canvas_draw_circle(canvas, 24, 38, 24);
         canvas_draw_circle(canvas, 24, 38, 19);
@@ -349,6 +366,17 @@ static void
         canvas_set_font(canvas, FontBigNumbers);
         furi_string_printf(buffer, "%02d", history.exit_station.station_number);
         canvas_draw_str(canvas, 92, 53, furi_string_get_cstr(buffer));
+        canvas_set_color(canvas, ColorBlack);
+        break;
+    case SuicaYurikamome:
+        canvas_draw_circle(canvas, 103, 38, 24);
+        canvas_draw_disc(canvas, 103, 38, 21);
+
+        canvas_set_color(canvas, ColorWhite);
+        canvas_draw_icon(canvas, 99, 22, history.exit_line.logo_icon);
+        canvas_set_font(canvas, FontBigNumbers);
+        furi_string_printf(buffer, "%02d", history.exit_station.station_number);
+        canvas_draw_str(canvas, 93, 53, furi_string_get_cstr(buffer));
         canvas_set_color(canvas, ColorBlack);
         break;
     case SuicaRailwayTypeMax:
@@ -944,7 +972,7 @@ static void suica_history_draw_callback(Canvas* canvas, void* model) {
     furi_string_free(buffer);
 }
 
-static void suica_view_history_timer_callback(void* context) { 
+static void suica_view_history_timer_callback(void* context) {
     Metroflip* app = (Metroflip*)context;
     view_dispatcher_send_custom_event(app->view_dispatcher, 0);
 }
