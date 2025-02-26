@@ -20,8 +20,7 @@
 
 #include <lib/nfc/protocols/felica/felica.h>
 #include <lib/nfc/protocols/felica/felica_poller.h>
-#include <lib/nfc/protocols/felica/felica_poller_i.h>
-#include <lib/nfc/helpers/felica_crc.h>
+// #include <lib/nfc/protocols/felica/felica_poller_i.h>
 #include <lib/bit_lib/bit_lib.h>
 
 #include <applications/services/locale/locale.h>
@@ -314,6 +313,7 @@ static NfcCommand suica_poller_callback(NfcGenericEvent event, void* context) {
     rx_resp->SF2 = 0;
     uint8_t blocks[1] = {0x00};
     FelicaPoller* felica_poller = event.instance;
+    const FelicaData* felica_data = nfc_poller_get_data(app->poller);
     FURI_LOG_I(TAG, "Poller set");
     if(felica_event->type == FelicaPollerEventTypeRequestAuthContext) {
         view_dispatcher_send_custom_event(app->view_dispatcher, MetroflipCustomEventCardDetected);
@@ -371,7 +371,7 @@ static NfcCommand suica_poller_callback(NfcGenericEvent event, void* context) {
                     "\e#Suica\nSorry, no data found.\nPlease let the developers know and we will add support.");
             }
 
-            if(model->size == 1 && felica_poller->data->pmm.data[1] != SUICA_IC_TYPE_CODE) {
+            if(model->size == 1 && felica_data->pmm.data[1] != SUICA_IC_TYPE_CODE) {
                 furi_string_printf(parsed_data, "\e#Suica\nSorry, not a Suica.\n");
             }
             widget_add_text_scroll_element(
