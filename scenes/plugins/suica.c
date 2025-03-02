@@ -30,11 +30,6 @@
 
 #define TAG "Metroflip:Scene:Suica"
 
-const char* suica_service_names[] = {
-    "Travel History",
-    "Taps Log",
-};
-
 static void suica_model_initialize(SuicaHistoryViewModel* model, size_t initial_capacity) {
     model->travel_history =
         (uint8_t*)malloc(initial_capacity * FELICA_DATA_BLOCK_SIZE); // Each entry is 16 bytes
@@ -305,12 +300,8 @@ static NfcCommand suica_poller_callback(NfcGenericEvent event, void* context) {
 
     Widget* widget = app->widget;
 
-    const uint16_t service_code[2] = {SERVICE_CODE_HISTORY_IN_LE, SERVICE_CODE_TAPS_LOG_IN_LE};
-
     const FelicaPollerEvent* felica_event = event.event_data;
-    FelicaPollerReadCommandResponse* rx_resp;
-    rx_resp->SF1 = 0;
-    rx_resp->SF2 = 0;
+
     uint8_t blocks[1] = {0x00};
     FelicaPoller* felica_poller = event.instance;
     const FelicaData* felica_data = nfc_poller_get_data(app->poller);
@@ -325,44 +316,46 @@ static NfcCommand suica_poller_callback(NfcGenericEvent event, void* context) {
             furi_string_printf(parsed_data, "\e#Suica\n");
 
             FelicaError error = FelicaErrorNone;
-            int service_code_index = 0;
             // Authenticate with the card
             // Iterate through the two services
-            while(service_code_index < 2 && error == FelicaErrorNone) {
-                furi_string_cat_printf(
-                    parsed_data, "%s: \n", suica_service_names[service_code_index]);
+            FelicaPollerReadCommandResponse* rx_resp;
+            FURI_LOG_I(TAG, "Tic: %lu", furi_get_tick());
+            for(uint16_t service_code = 0x0000; service_code < 0xFFFF; service_code++) {
                 rx_resp->SF1 = 0;
                 rx_resp->SF2 = 0;
                 blocks[0] = 0; // firmware api requires this to be a list
-                while((rx_resp->SF1 + rx_resp->SF2) == 0 &&
-                      blocks[0] < SUICA_MAX_HISTORY_ENTRIES && error == FelicaErrorNone) {
-                    uint8_t block_data[16] = {0};
+                error = FelicaErrorNone;
+                while((rx_resp->SF1 + rx_resp->SF2) == 0) {
                     error = felica_poller_read_blocks(
-                        felica_poller, 1, blocks, service_code[service_code_index], &rx_resp);
+                        felica_poller, 1, blocks, service_code, &rx_resp);
                     if(error != FelicaErrorNone) {
-                        view_dispatcher_send_custom_event(
-                            app->view_dispatcher, MetroflipCustomEventCardLost);
-                        command = NfcCommandStop;
                         break;
                     }
+                    if((rx_resp->SF1 + rx_resp->SF2) == 0) {
+                        if(blocks[0] == 0) {
+                            furi_string_cat_printf(parsed_data, "Service %04X:\n", service_code);
+                        }
+                    } else {
+                        break;
+                    }
+
                     furi_string_cat_printf(parsed_data, "Block %02X\n", blocks[0]);
                     blocks[0]++;
                     for(size_t i = 0; i < FELICA_DATA_BLOCK_SIZE; i++) {
                         furi_string_cat_printf(parsed_data, "%02X ", rx_resp->data[i]);
-                        block_data[i] = rx_resp->data[i];
                     }
                     furi_string_cat_printf(parsed_data, "\n");
-                    if(service_code_index == 0) {
-                        FURI_LOG_I(
-                            TAG,
-                            "Service code %d, adding entry %x",
-                            service_code_index,
-                            model->size);
-                        suica_add_entry(model, block_data);
+                    if(service_code == 0x090F) {
+                        FURI_LOG_D(TAG, "Adding entry %x", model->size);
+                        suica_add_entry(model, rx_resp->data);
                     }
                 }
-                service_code_index++;
+
+                if ((service_code & 0x0FFF) == 0x0FFF) {
+                    FURI_LOG_I(TAG, "Serv %04X Toc: %lu", service_code, furi_get_tick());
+                }
             }
+            FURI_LOG_I(TAG, "Toc: %lu", furi_get_tick());
             metroflip_app_blink_stop(app);
 
             if(model->size == 1) { // Have to let the poller run once before knowing we failed
@@ -406,7 +399,7 @@ static bool suica_history_input_callback(InputEvent* event, void* context) {
                 {
                     if(model->entry > 1) {
                         model->entry--;
-                    } 
+                    }
                     suica_parse(model);
                     FURI_LOG_I(TAG, "Viewing entry %d", model->entry);
                 },
