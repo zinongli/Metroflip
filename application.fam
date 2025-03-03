@@ -120,3 +120,12 @@ App(
     sources=["scenes/plugins/gocard.c"],
     fal_embedded=True,
 )
+
+App(
+    appid="octopus_plugin",
+    apptype=FlipperAppType.PLUGIN,
+    entry_point="octopus_plugin_ep",
+    requires=["metroflip"],
+    sources=["scenes/plugins/octopus.c"],
+    fal_embedded=True,
+)

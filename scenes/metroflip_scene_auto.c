@@ -172,7 +172,7 @@ bool metroflip_scene_auto_on_event(void* context, SceneManagerEvent event) {
             } else if(app->felica_card_type == CARD_TYPE_SUICA) {
                 app->card_type = "suica";
             } else if(app->felica_card_type == CARD_TYPE_OCTOPUS) {
-                app->card_type = "suica";
+                app->card_type = "octopus";
             } else {
                 app->card_type = "unknown";
                 Popup* popup = app->popup;

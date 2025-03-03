@@ -6,7 +6,7 @@
 #include <lib/nfc/protocols/felica/felica_poller.h>
 
 #define SUICA_IC_TYPE_CODE        0x31
-#define OCTOPUS_SERVICE_CODE      0x090F
+#define OCTOPUS_SERVICE_CODE      0x0880U
 typedef enum {
     CARD_TYPE_SUICA,
     CARD_TYPE_OCTOPUS,
