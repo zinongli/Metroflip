@@ -7,7 +7,7 @@
 
 #define SUICA_IC_TYPE_CODE        0x31
 #define SUICA_SERVICE_CODE        0x090FU
-#define OCTOPUS_SERVICE_CODE      0x0880U
+#define OCTOPUS_SERVICE_CODE      0x8008U
 typedef enum {
     CARD_TYPE_SUICA,
     CARD_TYPE_OCTOPUS,
