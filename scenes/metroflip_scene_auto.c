@@ -69,10 +69,7 @@ static NfcCommand
     FelicaPoller* felica_poller = event.instance;
     if(felica_event->type == FelicaPollerEventTypeRequestAuthContext) {
 
-        
-        const FelicaData* felica_data = nfc_poller_get_data(app->poller);
-
-        if(suica_verify(felica_data)) {
+        if(suica_verify(felica_poller)) {
             view_dispatcher_send_custom_event(
                 app->view_dispatcher, MetroflipCustomEventPollerSuccess);
             app->felica_card_type = CARD_TYPE_SUICA;
