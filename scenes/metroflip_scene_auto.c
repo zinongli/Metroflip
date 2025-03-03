@@ -10,8 +10,6 @@
 #include "desfire.h"
 #include <nfc/protocols/mf_desfire/mf_desfire_poller.h>
 #include <lib/nfc/protocols/mf_desfire/mf_desfire.h>
-#include <lib/nfc/protocols/felica/felica.h>
-#include <lib/nfc/protocols/felica/felica_poller.h>
 #include "../api/metroflip/metroflip_api.h"
 #define TAG "Metroflip:Scene:Auto"
 
@@ -71,17 +69,14 @@ static NfcCommand
     FelicaPoller* felica_poller = event.instance;
     if(felica_event->type == FelicaPollerEventTypeRequestAuthContext) {
 
-        FelicaPollerReadCommandResponse* rx_resp;
-        uint8_t blocks[1] = {0x00};
-        FelicaError error = felica_poller_read_blocks(felica_poller, 1, blocks, OCTOPUS_SERVICE_CODE, &rx_resp);
-        UNUSED(error);
+        
         const FelicaData* felica_data = nfc_poller_get_data(app->poller);
 
-        if(felica_data->pmm.data[1] == SUICA_IC_TYPE_CODE) {
+        if(suica_verify(felica_data)) {
             view_dispatcher_send_custom_event(
                 app->view_dispatcher, MetroflipCustomEventPollerSuccess);
             app->felica_card_type = CARD_TYPE_SUICA;
-        } else if((rx_resp->SF1 + rx_resp->SF2) == 0) {
+        } else if(octopus_verify(felica_poller)) {
             view_dispatcher_send_custom_event(
                 app->view_dispatcher, MetroflipCustomEventPollerSuccess);
             app->felica_card_type = CARD_TYPE_OCTOPUS;
