@@ -10,6 +10,8 @@
 #include "desfire.h"
 #include <nfc/protocols/mf_desfire/mf_desfire_poller.h>
 #include <lib/nfc/protocols/mf_desfire/mf_desfire.h>
+#include <lib/nfc/protocols/felica/felica.h>
+#include <lib/nfc/protocols/felica/felica_poller.h>
 #include "../api/metroflip/metroflip_api.h"
 #define TAG "Metroflip:Scene:Auto"
 
@@ -52,6 +54,47 @@ static NfcCommand
     } else if(mf_desfire_event->type == MfDesfirePollerEventTypeReadFailed) {
         view_dispatcher_send_custom_event(app->view_dispatcher, MetroflipCustomEventPollerSuccess);
         app->desfire_card_type = CARD_TYPE_DESFIRE_UNKNOWN;
+        command = NfcCommandContinue;
+    }
+
+    return command;
+}
+
+static NfcCommand
+    metroflip_scene_detect_felica_poller_callback(NfcGenericEvent event, void* context) {
+    furi_assert(event.protocol == NfcProtocolFelica);
+
+    Metroflip* app = context;
+    NfcCommand command = NfcCommandContinue;
+
+    const FelicaPollerEvent* felica_event = event.event_data;
+    FelicaPoller* felica_poller = event.instance;
+    if(felica_event->type == FelicaPollerEventTypeRequestAuthContext) {
+
+        FelicaPollerReadCommandResponse* rx_resp;
+        uint8_t blocks[1] = {0x00};
+        FelicaError error = felica_poller_read_blocks(felica_poller, 1, blocks, OCTOPUS_SERVICE_CODE, &rx_resp);
+        UNUSED(error);
+        const FelicaData* felica_data = nfc_poller_get_data(app->poller);
+
+        if(felica_data->pmm.data[1] == SUICA_IC_TYPE_CODE) {
+            view_dispatcher_send_custom_event(
+                app->view_dispatcher, MetroflipCustomEventPollerSuccess);
+            app->felica_card_type = CARD_TYPE_SUICA;
+        } else if((rx_resp->SF1 + rx_resp->SF2) == 0) {
+            view_dispatcher_send_custom_event(
+                app->view_dispatcher, MetroflipCustomEventPollerSuccess);
+            app->felica_card_type = CARD_TYPE_OCTOPUS;
+        } else {
+            furi_string_reset(app->text_box_store);
+            view_dispatcher_send_custom_event(
+                app->view_dispatcher, MetroflipCustomEventPollerSuccess);
+            app->felica_card_type = CARD_TYPE_FELICA_UNKNOWN;
+        }
+        command = NfcCommandStop;
+    } else if(felica_event->type == FelicaPollerEventTypeError) {
+        view_dispatcher_send_custom_event(app->view_dispatcher, MetroflipCustomEventPollerSuccess);
+        app->felica_card_type = CARD_TYPE_FELICA_UNKNOWN;
         command = NfcCommandContinue;
     }
 
@@ -131,10 +174,10 @@ bool metroflip_scene_auto_on_event(void* context, SceneManagerEvent event) {
                 app->card_type = "myki";
             } else if(app->desfire_card_type == CARD_TYPE_ITSO) {
                 app->card_type = "itso";
-            } else if(app->desfire_card_type == CARD_TYPE_DESFIRE_UNKNOWN) {
-                app->card_type = "unknown";
-                Popup* popup = app->popup;
-                popup_set_header(popup, "Unsupported\n card", 58, 31, AlignLeft, AlignTop);
+            } else if(app->felica_card_type == CARD_TYPE_SUICA) {
+                app->card_type = "suica";
+            } else if(app->felica_card_type == CARD_TYPE_OCTOPUS) {
+                app->card_type = "suica";
             } else {
                 app->card_type = "unknown";
                 Popup* popup = app->popup;
@@ -205,8 +248,8 @@ bool metroflip_scene_auto_on_event(void* context, SceneManagerEvent event) {
             } else if(
                 nfc_detected_protocols_get_protocol(app->detected_protocols, 0) ==
                 NfcProtocolFelica) {
-                app->card_type = "suica";
-                scene_manager_next_scene(app->scene_manager, MetroflipSceneParse);
+                app->poller = nfc_poller_alloc(app->nfc, NfcProtocolFelica);
+                nfc_poller_start(app->poller, metroflip_scene_detect_felica_poller_callback, app);
                 consumed = true;
             } else if(
                 nfc_detected_protocols_get_protocol(app->detected_protocols, 0) ==

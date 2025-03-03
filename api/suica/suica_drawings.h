@@ -10,7 +10,6 @@
 #include <lib/bit_lib/bit_lib.h>
 
 #define SUICA_STATION_LIST_PATH         APP_ASSETS_PATH("suica/line_")
-#define SUICA_IC_TYPE_CODE              0x31
 #define SERVICE_CODE_HISTORY_IN_LE      (0x090FU)
 #define SERVICE_CODE_TAPS_LOG_IN_LE     (0x108FU)
 #define BLOCK_COUNT                     1

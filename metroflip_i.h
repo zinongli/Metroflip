@@ -31,6 +31,7 @@
 #include <notification/notification_messages.h>
 
 #include "scenes/desfire.h"
+#include "scenes/felica.h"
 #include "scenes/nfc_detected_protocols.h"
 #include "scenes/keys.h"
 #include <lib/nfc/nfc.h>
@@ -75,6 +76,7 @@ typedef struct {
     MfClassicKeyCache* mfc_key_cache;
     NfcDetectedProtocols* detected_protocols;
     DesfireCardType desfire_card_type;
+    FelicaCardType felica_card_type;
     MfDesfireData* mfdes_data;
     MfClassicData* mfc_data;
 

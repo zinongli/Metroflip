@@ -82,6 +82,10 @@ Metroflip* metroflip_alloc() {
     app->dialogs = furi_record_open(RECORD_DIALOGS);
 
     app->data_loaded = false;
+
+    app->card_type = "unknown";
+    app->desfire_card_type = CARD_TYPE_DESFIRE_UNKNOWN;
+    app->felica_card_type = CARD_TYPE_FELICA_UNKNOWN;
     return app;
 }
 
