@@ -28,7 +28,7 @@
 
 // Probably not needed after upstream include this in their suica_i.h
 
-#define TAG "Metroflip:Scene:Suica"
+#define TAG "Metroflip:Scene:Felica"
 
 static void suica_model_initialize(SuicaHistoryViewModel* model, size_t initial_capacity) {
     model->travel_history =
@@ -313,7 +313,7 @@ static NfcCommand suica_poller_callback(NfcGenericEvent event, void* context) {
         if(stage == MetroflipPollerEventTypeStart) {
             nfc_device_set_data(
                 app->nfc_device, NfcProtocolFelica, nfc_poller_get_data(app->poller));
-            furi_string_printf(parsed_data, "\e#Suica\n");
+            furi_string_printf(parsed_data, "\e#FelicaBrute\n");
 
             FelicaError error = FelicaErrorNone;
             // Authenticate with the card
@@ -339,6 +339,8 @@ static NfcCommand suica_poller_callback(NfcGenericEvent event, void* context) {
                         break;
                     }
 
+                    FURI_LOG_I(TAG, "Caught Service %04X", service_code);
+
                     furi_string_cat_printf(parsed_data, "Block %02X\n", blocks[0]);
                     blocks[0]++;
                     for(size_t i = 0; i < FELICA_DATA_BLOCK_SIZE; i++) {
@@ -351,21 +353,17 @@ static NfcCommand suica_poller_callback(NfcGenericEvent event, void* context) {
                     }
                 }
 
-                if ((service_code & 0x0FFF) == 0x0FFF) {
+                if ((service_code & 0x00FF) == 0x00FF) {
                     FURI_LOG_I(TAG, "Serv %04X Toc: %lu", service_code, furi_get_tick());
                 }
             }
             FURI_LOG_I(TAG, "Toc: %lu", furi_get_tick());
             metroflip_app_blink_stop(app);
 
-            if(model->size == 1) { // Have to let the poller run once before knowing we failed
-                furi_string_printf(
-                    parsed_data,
-                    "\e#Suica\nSorry, no data found.\nPlease let the developers know and we will add support.");
-            }
+            
 
             if(model->size == 1 && felica_data->pmm.data[1] != SUICA_IC_TYPE_CODE) {
-                furi_string_printf(parsed_data, "\e#Suica\nSorry, not a Suica.\n");
+                FURI_LOG_D(TAG, "Unknown card type");
             }
             widget_add_text_scroll_element(
                 widget, 0, 0, 128, 64, furi_string_get_cstr(parsed_data));
@@ -497,7 +495,7 @@ static void suica_on_enter(Metroflip* app) {
         suica_model_initialize_after_load(model);
         Widget* widget = app->widget;
         FuriString* parsed_data = furi_string_alloc();
-        furi_string_printf(parsed_data, "\e#Suica\n");
+        furi_string_printf(parsed_data, "\e#FelicaBrute\n");
 
         for(uint8_t i = 0; i < model->size; i++) {
             furi_string_cat_printf(parsed_data, "Block %02X\n", i);
