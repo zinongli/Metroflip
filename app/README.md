@@ -14,12 +14,13 @@ This is a list of metro cards and transit systems that are supported.
 - **Clipper**  
 - **ITSO**  
 - **Metromoney**  
-- **Myki**  
+- **myki**  
 - **Navigo**  
 - **Opal**  
 - **Opus**  
 - **Rav-Kav**  
-- **Troika**  
+- **Troika**
+- **Suica**
 
 More coming soon! 
 
@@ -32,8 +33,9 @@ More coming soon!
 - **Info Slaves**: equipter, TheDingo8MyBaby  
 - **ITSO Parser**: gsp8181, hedger, gornekich  
 - **Metromoney Parser**: Leptopt1los  
-- **Myki Parser**: gornekich  
+- **myki Parser**: gornekich  
 - **Navigo Parser**: luu176, DocSystem  
 - **Opal Parser**: gornekich  
 - **Rav-Kav Parser**: luu176  
-- **Troika Parser**: gornekich  
+- **Troika Parser**: gornekich
+- **Suica parser**: zinongli 

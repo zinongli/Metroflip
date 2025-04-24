@@ -78,6 +78,10 @@ Metroflip* metroflip_alloc() {
         app->view_dispatcher, MetroflipViewTextBox, text_box_get_view(app->text_box));
     app->text_box_store = furi_string_alloc();
 
+    // Dialog for loading
+    app->dialogs = furi_record_open(RECORD_DIALOGS);
+
+    app->data_loaded = false;
     return app;
 }
 
@@ -121,6 +125,10 @@ void metroflip_free(Metroflip* app) {
 
     // Records
     furi_record_close(RECORD_GUI);
+
+    // Dialogs
+    furi_record_close(RECORD_DIALOGS);
+
     free(app);
 }
 
@@ -150,6 +158,25 @@ void metroflip_exit_widget_callback(GuiButtonType result, InputType type, void* 
 
     if(type == InputTypeShort) {
         scene_manager_search_and_switch_to_previous_scene(app->scene_manager, MetroflipSceneStart);
+        scene_manager_set_scene_state(app->scene_manager, MetroflipSceneStart, MetroflipSceneAuto);
+    }
+}
+
+void metroflip_save_widget_callback(GuiButtonType result, InputType type, void* context) {
+    Metroflip* app = context;
+    UNUSED(result);
+
+    if(type == InputTypeShort) {
+        scene_manager_next_scene(app->scene_manager, MetroflipSceneSave);
+    }
+}
+
+void metroflip_delete_widget_callback(GuiButtonType result, InputType type, void* context) {
+    Metroflip* app = context;
+    UNUSED(result);
+
+    if(type == InputTypeShort) {
+        scene_manager_next_scene(app->scene_manager, MetroflipSceneDelete);
     }
 }
 
@@ -296,9 +323,7 @@ KeyfileManager manage_keyfiles(
             return SUCCESSFUL;
         }
     } else {
-        FURI_LOG_I("TAG", "testing 1");
         size_t source_file_length = storage_file_size(source);
-        FURI_LOG_I("TAG", "testing 2");
 
         storage_file_close(source);
         mf_classic_key_cache_load(instance, uid, uid_len);

@@ -9,11 +9,6 @@
 #include <gui/view_dispatcher.h>
 #include <gui/scene_manager.h>
 #include "api/nfc/mf_classic_key_cache.h"
-#if __has_include(<assets_icons.h>)
-#include <assets_icons.h>
-#else
-extern const Icon I_RFIDDolphinReceive_97x61;
-#endif
 #include <flipper_application/plugins/composite_resolver.h>
 #include <loader/firmware_api/firmware_api.h>
 #include <flipper_application/plugins/plugin_manager.h>
@@ -48,13 +43,17 @@ extern const Icon I_RFIDDolphinReceive_97x61;
 #include <strings.h>
 #include <flipper_application/flipper_application.h>
 #include <loader/firmware_api/firmware_api.h>
+#include <applications/services/storage/storage.h>
+#include <applications/services/dialogs/dialogs.h>
 
 #include "scenes/metroflip_scene.h"
 
 #include "api/calypso/calypso_i.h"
+#include "api/suica/suica_structs.h"
+
 
 #define KEY_MASK_BIT_CHECK(key_mask_1, key_mask_2) (((key_mask_1) & (key_mask_2)) == (key_mask_1))
-
+#define METROFLIP_FILE_EXTENSION                   ".nfc"
 typedef struct {
     Gui* gui;
     SceneManager* scene_manager;
@@ -76,6 +75,11 @@ typedef struct {
     MfClassicKeyCache* mfc_key_cache;
     NfcDetectedProtocols* detected_protocols;
     DesfireCardType desfire_card_type;
+    MfDesfireData* mfdes_data;
+    MfClassicData* mfc_data;
+
+    // save stuff
+    char save_buf[248];
 
     //plugin manager
     PluginManager* plugin_manager;
@@ -94,9 +98,19 @@ typedef struct {
     bool auto_mode;
     CardType mfc_card_type;
     NfcProtocol protocol;
+    const char* file_path;
+    char delete_file_path[256];
 
     // Calypso specific context
     CalypsoContext* calypso_context;
+
+    // Suica
+    SuicaContext* suica_context;
+
+    DialogsApp* dialogs;
+
+    bool data_loaded;
+
 } Metroflip;
 
 enum MetroflipCustomEvent {
@@ -137,6 +151,7 @@ typedef enum {
     MetroflipViewTextBox,
     MetroflipViewWidget,
     MetroflipViewUart,
+    MetroflipViewCanvas,
 } MetroflipView;
 
 typedef enum {
@@ -145,7 +160,7 @@ typedef enum {
     MISSING_KEYFILE
 } KeyfileManager;
 
-CardType determine_card_type(Nfc* nfc);
+CardType determine_card_type(Nfc* nfc, MfClassicData* mfc_data, bool data_loaded);
 
 #ifdef FW_ORIGIN_Official
 #define submenu_add_lockable_item(                                             \

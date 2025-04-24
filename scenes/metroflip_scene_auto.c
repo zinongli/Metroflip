@@ -20,28 +20,24 @@ static NfcCommand
     Metroflip* app = context;
     NfcCommand command = NfcCommandContinue;
 
-    FuriString* parsed_data = furi_string_alloc();
-    furi_string_reset(app->text_box_store);
     const MfDesfirePollerEvent* mf_desfire_event = event.event_data;
     if(mf_desfire_event->type == MfDesfirePollerEventTypeReadSuccess) {
         nfc_device_set_data(
             app->nfc_device, NfcProtocolMfDesfire, nfc_poller_get_data(app->poller));
-        if(clipper_parse(app->nfc_device, parsed_data)) {
-            furi_string_reset(app->text_box_store);
+        const MfDesfireData* data = nfc_device_get_data(app->nfc_device, NfcProtocolMfDesfire);
+        if(clipper_verify(data)) {
             view_dispatcher_send_custom_event(
                 app->view_dispatcher, MetroflipCustomEventPollerSuccess);
             app->desfire_card_type = CARD_TYPE_CLIPPER;
-        } else if(itso_parse(app->nfc_device, parsed_data)) {
-            furi_string_reset(app->text_box_store);
+        } else if(itso_verify(data)) {
             view_dispatcher_send_custom_event(
                 app->view_dispatcher, MetroflipCustomEventPollerSuccess);
             app->desfire_card_type = CARD_TYPE_ITSO;
-        } else if(myki_parse(app->nfc_device, parsed_data)) {
-            furi_string_reset(app->text_box_store);
+        } else if(myki_verify(data)) {
             view_dispatcher_send_custom_event(
                 app->view_dispatcher, MetroflipCustomEventPollerSuccess);
             app->desfire_card_type = CARD_TYPE_MYKI;
-        } else if(opal_parse(app->nfc_device, parsed_data)) {
+        } else if(opal_verify(data)) {
             furi_string_reset(app->text_box_store);
             view_dispatcher_send_custom_event(
                 app->view_dispatcher, MetroflipCustomEventPollerSuccess);
@@ -52,7 +48,6 @@ static NfcCommand
                 app->view_dispatcher, MetroflipCustomEventPollerSuccess);
             app->desfire_card_type = CARD_TYPE_DESFIRE_UNKNOWN;
         }
-        furi_string_free(parsed_data);
         command = NfcCommandStop;
     } else if(mf_desfire_event->type == MfDesfirePollerEventTypeReadFailed) {
         view_dispatcher_send_custom_event(app->view_dispatcher, MetroflipCustomEventPollerSuccess);
@@ -80,6 +75,11 @@ void metroflip_scene_detect_scan_callback(NfcScannerEvent event, void* context) 
             view_dispatcher_send_custom_event(
                 app->view_dispatcher, MetroflipCustomEventPollerDetect);
         } else if(event.data.protocols && *event.data.protocols == NfcProtocolMfDesfire) {
+            nfc_detected_protocols_set(
+                app->detected_protocols, event.data.protocols, event.data.protocol_num);
+            view_dispatcher_send_custom_event(
+                app->view_dispatcher, MetroflipCustomEventPollerDetect);
+        } else if(event.data.protocols && *event.data.protocols == NfcProtocolFelica) {
             nfc_detected_protocols_set(
                 app->detected_protocols, event.data.protocols, event.data.protocol_num);
             view_dispatcher_send_custom_event(
@@ -160,7 +160,10 @@ bool metroflip_scene_auto_on_event(void* context, SceneManagerEvent event) {
             app->auto_mode = true;
             if(nfc_detected_protocols_get_protocol(app->detected_protocols, 0) ==
                NfcProtocolMfClassic) {
-                CardType card_type = determine_card_type(app->nfc);
+                MfClassicData* mfc_data = mf_classic_alloc();
+                app->data_loaded = false;
+                CardType card_type = determine_card_type(app->nfc, mfc_data, app->data_loaded);
+                mf_classic_free(mfc_data);
                 app->mfc_card_type = card_type;
                 Popup* popup = app->popup;
                 UNUSED(popup);
@@ -197,6 +200,12 @@ bool metroflip_scene_auto_on_event(void* context, SceneManagerEvent event) {
                 nfc_detected_protocols_get_protocol(app->detected_protocols, 0) ==
                 NfcProtocolIso14443_4b) {
                 app->card_type = "calypso";
+                scene_manager_next_scene(app->scene_manager, MetroflipSceneParse);
+                consumed = true;
+            } else if(
+                nfc_detected_protocols_get_protocol(app->detected_protocols, 0) ==
+                NfcProtocolFelica) {
+                app->card_type = "suica";
                 scene_manager_next_scene(app->scene_manager, MetroflipSceneParse);
                 consumed = true;
             } else if(

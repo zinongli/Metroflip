@@ -9,6 +9,7 @@ typedef enum {
     CARD_TYPE_CHARLIECARD,
     CARD_TYPE_SMARTRIDER,
     CARD_TYPE_TROIKA,
+    CARD_TYPE_GOCARD,
     CARD_TYPE_UNKNOWN
 } CardType;
 
@@ -28,9 +29,10 @@ typedef struct {
 
 extern const MfClassicKeyPair troika_1k_keys[16];
 extern const MfClassicKeyPair troika_4k_keys[40];
-extern const uint8_t SMARTRIDER_STANDARD_KEYS[3][6];
 extern const MfClassicKeyPair charliecard_1k_keys[16];
 extern const MfClassicKeyPair bip_1k_keys[16];
 extern const MfClassicKeyPair metromoney_1k_keys[16];
+extern const uint8_t gocard_verify_data[1][14];
+extern const uint8_t gocard_verify_data2[1][14];
 
 #endif // KEYS_H

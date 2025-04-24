@@ -118,12 +118,8 @@ static void opal_days_minutes_to_datetime(uint16_t days, uint16_t minutes, DateT
 
     out->day = days;
 }
-
-bool opal_parse(const NfcDevice* device, FuriString* parsed_data) {
-    furi_assert(device);
+bool opal_parse(const MfDesfireData* data, FuriString* parsed_data) {
     furi_assert(parsed_data);
-
-    const MfDesfireData* data = nfc_device_get_data(device, NfcProtocolMfDesfire);
 
     bool parsed = false;
 
@@ -230,7 +226,8 @@ static NfcCommand opal_poller_callback(NfcGenericEvent event, void* context) {
     if(mf_desfire_event->type == MfDesfirePollerEventTypeReadSuccess) {
         nfc_device_set_data(
             app->nfc_device, NfcProtocolMfDesfire, nfc_poller_get_data(app->poller));
-        if(!opal_parse(app->nfc_device, parsed_data)) {
+        const MfDesfireData* data = nfc_device_get_data(app->nfc_device, NfcProtocolMfDesfire);
+        if(!opal_parse(data, parsed_data)) {
             furi_string_reset(app->text_box_store);
             FURI_LOG_I(TAG, "Unknown card type");
             furi_string_printf(parsed_data, "\e#Unknown card\n");
@@ -239,6 +236,8 @@ static NfcCommand opal_poller_callback(NfcGenericEvent event, void* context) {
 
         widget_add_button_element(
             widget, GuiButtonTypeRight, "Exit", metroflip_exit_widget_callback, app);
+        widget_add_button_element(
+            widget, GuiButtonTypeCenter, "Save", metroflip_save_widget_callback, app);
 
         furi_string_free(parsed_data);
         view_dispatcher_switch_to_view(app->view_dispatcher, MetroflipViewWidget);
@@ -255,18 +254,41 @@ static NfcCommand opal_poller_callback(NfcGenericEvent event, void* context) {
 static void opal_on_enter(Metroflip* app) {
     dolphin_deed(DolphinDeedNfcRead);
 
-    // Setup view
-    Popup* popup = app->popup;
-    popup_set_header(popup, "Apply\n card to\nthe back", 68, 30, AlignLeft, AlignTop);
-    popup_set_icon(popup, 0, 3, &I_RFIDDolphinReceive_97x61);
+    if(app->data_loaded) {
+        Storage* storage = furi_record_open(RECORD_STORAGE);
+        FlipperFormat* ff = flipper_format_file_alloc(storage);
+        if(flipper_format_file_open_existing(ff, app->file_path)) {
+            mf_desfire_load(app->mfdes_data, ff, 2);
+            FuriString* parsed_data = furi_string_alloc();
+            Widget* widget = app->widget;
 
-    // Start worker
-    view_dispatcher_switch_to_view(app->view_dispatcher, MetroflipViewPopup);
-    nfc_scanner_alloc(app->nfc);
-    app->poller = nfc_poller_alloc(app->nfc, NfcProtocolMfDesfire);
-    nfc_poller_start(app->poller, opal_poller_callback, app);
+            furi_string_reset(app->text_box_store);
+            opal_parse(app->mfdes_data, parsed_data);
+            widget_add_text_scroll_element(
+                widget, 0, 0, 128, 64, furi_string_get_cstr(parsed_data));
 
-    metroflip_app_blink_start(app);
+            widget_add_button_element(
+                widget, GuiButtonTypeRight, "Exit", metroflip_exit_widget_callback, app);
+            widget_add_button_element(
+                widget, GuiButtonTypeCenter, "Delete", metroflip_delete_widget_callback, app);
+            furi_string_free(parsed_data);
+            view_dispatcher_switch_to_view(app->view_dispatcher, MetroflipViewWidget);
+        }
+        flipper_format_free(ff);
+    } else {
+        // Setup view
+        Popup* popup = app->popup;
+        popup_set_header(popup, "Apply\n card to\nthe back", 68, 30, AlignLeft, AlignTop);
+        popup_set_icon(popup, 0, 3, &I_RFIDDolphinReceive_97x61);
+
+        // Start worker
+        view_dispatcher_switch_to_view(app->view_dispatcher, MetroflipViewPopup);
+        nfc_scanner_alloc(app->nfc);
+        app->poller = nfc_poller_alloc(app->nfc, NfcProtocolMfDesfire);
+        nfc_poller_start(app->poller, opal_poller_callback, app);
+
+        metroflip_app_blink_start(app);
+    }
 }
 
 static bool opal_on_event(Metroflip* app, SceneManagerEvent event) {
@@ -292,6 +314,7 @@ static bool opal_on_event(Metroflip* app, SceneManagerEvent event) {
         }
     } else if(event.type == SceneManagerEventTypeBack) {
         scene_manager_search_and_switch_to_previous_scene(app->scene_manager, MetroflipSceneStart);
+        scene_manager_set_scene_state(app->scene_manager, MetroflipSceneStart, MetroflipSceneAuto);
         consumed = true;
     }
 
@@ -301,7 +324,7 @@ static bool opal_on_event(Metroflip* app, SceneManagerEvent event) {
 static void opal_on_exit(Metroflip* app) {
     widget_reset(app->widget);
     metroflip_app_blink_stop(app);
-    if(app->poller) {
+    if(app->poller && !app->data_loaded) {
         nfc_poller_stop(app->poller);
         nfc_poller_free(app->poller);
     }

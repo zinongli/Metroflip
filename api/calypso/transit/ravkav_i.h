@@ -23,6 +23,7 @@ typedef struct {
     bool end_date_available;
 
     bool present;
+    float balance;
 } RavKavCardContract;
 
 typedef struct {

@@ -37,3 +37,16 @@ Big update!
 - Unified Calypso Parser: A new unified Calypso parser has been introduced (thanks to DocSystem), streamlining Calypso card support.
 - RavKav Moved to Calypso Parser: RavKav has been moved to the new unified Calypso parser (credit to luu176).
 
+## v0.6
+
+- Added a load mode and a save mode to store card info
+- Fixed a major bug due to API symbol not existing
+
+## v0.7
+
+- Fixed the stuck in app loop.
+- Added balance to RavKav.
+- Added Suica parser
+- Stylization updates
+
+

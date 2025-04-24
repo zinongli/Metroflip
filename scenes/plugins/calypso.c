@@ -321,6 +321,8 @@ void metroflip_next_button_widget_callback(GuiButtonType result, InputType type,
             ctx->page_id = 0;
             scene_manager_search_and_switch_to_previous_scene(
                 app->scene_manager, MetroflipSceneStart);
+            scene_manager_set_scene_state(
+                app->scene_manager, MetroflipSceneStart, MetroflipSceneAuto);
             return;
         }
         if(ctx->page_id < 10) {
@@ -352,6 +354,8 @@ void metroflip_next_button_widget_callback(GuiButtonType result, InputType type,
                 ctx->page_id = 0;
                 scene_manager_search_and_switch_to_previous_scene(
                     app->scene_manager, MetroflipSceneStart);
+                scene_manager_set_scene_state(
+                    app->scene_manager, MetroflipSceneStart, MetroflipSceneAuto);
                 return;
             }
             ctx->page_id += 1;
@@ -359,6 +363,8 @@ void metroflip_next_button_widget_callback(GuiButtonType result, InputType type,
             ctx->page_id = 0;
             scene_manager_search_and_switch_to_previous_scene(
                 app->scene_manager, MetroflipSceneStart);
+            scene_manager_set_scene_state(
+                app->scene_manager, MetroflipSceneStart, MetroflipSceneAuto);
             return;
         }
 
@@ -1783,6 +1789,52 @@ static NfcCommand calypso_poller_callback(NfcGenericEvent event, void* context) 
                     if(card->card_type == CALYPSO_CARD_RAVKAV) {
                         card->ravkav = malloc(sizeof(RavKavCardData));
 
+                        // Prepare calypso structure
+
+                        CalypsoApp* RavKavContractStructure = get_ravkav_contract_structure();
+                        if(!RavKavContractStructure) {
+                            FURI_LOG_E(TAG, "Failed to load RavKav Contract structure");
+                            break;
+                        }
+
+                        //get balance
+                        error = select_new_app(
+                            0x20, 0x2A, tx_buffer, rx_buffer, iso14443_4b_poller, app, &stage);
+                        if(error != 0) {
+                            FURI_LOG_E(TAG, "Failed to select app for contracts");
+                            break;
+                        }
+
+                        // Check the response after selecting app
+                        if(check_response(rx_buffer, app, &stage, &response_length) != 0) {
+                            FURI_LOG_E(
+                                TAG, "Failed to check response after selecting app for counter");
+                            break;
+                        }
+
+                        error = read_new_file(
+                            1, tx_buffer, rx_buffer, iso14443_4b_poller, app, &stage);
+                        if(error != 0) {
+                            FURI_LOG_E(TAG, "Failed to read counter %d", 1);
+                            break;
+                        }
+
+                        // Check the response after reading the file
+                        if(check_response(rx_buffer, app, &stage, &response_length) != 0) {
+                            FURI_LOG_E(
+                                TAG, "Failed to check response after reading counter %d", 1);
+                            break;
+                        }
+
+                        uint32_t value = 0;
+                        for(uint8_t i = 0; i < 3; i++) {
+                            value = (value << 8) | bit_buffer_get_byte(rx_buffer, i);
+                        }
+                        float result = value / 100.0f;
+                        FURI_LOG_I(TAG, "Value: %.2f ILS", (double)result);
+
+                        card->ravkav->contracts[0].balance = result;
+
                         error = select_new_app(
                             0x20, 0x20, tx_buffer, rx_buffer, iso14443_4b_poller, app, &stage);
                         if(error != 0) {
@@ -1794,14 +1846,6 @@ static NfcCommand calypso_poller_callback(NfcGenericEvent event, void* context) 
                         if(check_response(rx_buffer, app, &stage, &response_length) != 0) {
                             FURI_LOG_E(
                                 TAG, "Failed to check response after selecting app for contracts");
-                            break;
-                        }
-
-                        // Prepare calypso structure
-
-                        CalypsoApp* RavKavContractStructure = get_ravkav_contract_structure();
-                        if(!RavKavContractStructure) {
-                            FURI_LOG_E(TAG, "Failed to load RavKav Contract structure");
                             break;
                         }
 
@@ -2477,6 +2521,7 @@ static bool calypso_on_event(Metroflip* app, SceneManagerEvent event) {
         }
     } else if(event.type == SceneManagerEventTypeBack) {
         scene_manager_search_and_switch_to_previous_scene(app->scene_manager, MetroflipSceneStart);
+        scene_manager_set_scene_state(app->scene_manager, MetroflipSceneStart, MetroflipSceneAuto);
         consumed = true;
     }
 
@@ -2484,7 +2529,7 @@ static bool calypso_on_event(Metroflip* app, SceneManagerEvent event) {
 }
 
 static void calypso_on_exit(Metroflip* app) {
-    if(app->poller) {
+    if(app->poller && !app->data_loaded) {
         nfc_poller_stop(app->poller);
         nfc_poller_free(app->poller);
     }

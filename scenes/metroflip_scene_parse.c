@@ -1,6 +1,7 @@
 #include "../metroflip_i.h"
 #include <furi.h>
 #include "../metroflip_plugins.h"
+#include "../api/metroflip/metroflip_api.h"
 #define TAG "Metroflip:Scene:Parse"
 #include <stdio.h>
 
@@ -52,7 +53,6 @@ bool metroflip_scene_parse_on_event(void* context, SceneManagerEvent event) {
 
 void metroflip_scene_parse_on_exit(void* context) {
     Metroflip* app = context;
-
     if(!((app->card_type[0] == '\0') || (strcmp(app->card_type, "unknown") == 0) ||
          (!app->card_type))) {
         // Get and run the plugin's on_exit function
@@ -62,5 +62,5 @@ void metroflip_scene_parse_on_exit(void* context) {
         plugin_manager_free(app->plugin_manager);
         composite_api_resolver_free(app->resolver);
     }
-    app->card_type = "unknown";
+    app->data_loaded = false;
 }
