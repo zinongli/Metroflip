@@ -341,7 +341,7 @@ static NfcCommand suica_poller_callback(NfcGenericEvent event, void* context) {
         if(stage == MetroflipPollerEventTypeStart) {
             nfc_device_set_data(
                 app->nfc_device, NfcProtocolFelica, nfc_poller_get_data(app->poller));
-            furi_string_printf(parsed_data, "\e#Japan Rail IC\n");
+            furi_string_printf(parsed_data, "\e#Japan Transit IC\n");
 
             // Authenticate with the card
             // Iterate through the two services
@@ -397,7 +397,7 @@ static NfcCommand suica_poller_callback(NfcGenericEvent event, void* context) {
             if(model->size == 1) { // Have to let the poller run once before knowing we failed
                 furi_string_printf(
                     parsed_data,
-                    "\e#Japan Rail IC\nSorry, no data found.\nPlease let the developers know and we will add support.");
+                    "\e#Japan Transit IC\nSorry, no data found.\nPlease let the developers know and we will add support.");
             }
 
             if(model->size == 1 && felica_data->pmm.data[1] != SUICA_IC_TYPE_CODE) {
@@ -544,7 +544,7 @@ static void suica_on_enter(Metroflip* app) {
         suica_model_initialize_after_load(model);
         Widget* widget = app->widget;
         FuriString* parsed_data = furi_string_alloc();
-        furi_string_printf(parsed_data, "\e#Japan Rail IC\n");
+        furi_string_printf(parsed_data, "\e#Japan Transit IC\n");
 
         for(uint8_t i = 0; i < model->size; i++) {
             furi_string_cat_printf(app->suica_file_data, "Log %02X: ", i);
