@@ -110,11 +110,10 @@ static void suica_parse_train_code(
     FuriString* station_num_candidate = furi_string_alloc_set("0");
     FuriString* station_JR_header_candidate = furi_string_alloc_set("0");
     FuriString* line_copy = furi_string_alloc();
-    FuriString* file_name = furi_string_alloc();    
+    FuriString* file_name = furi_string_alloc();
 
     furi_string_printf(line_code_str, "0x%02X", line_code);
     furi_string_printf(line_and_station_code_str, "0x%02X,0x%02X", line_code, station_code);
-
 
     size_t line_comma_ind = 0;
     size_t station_comma_ind = 0;
@@ -216,7 +215,7 @@ static void suica_parse_train_code(
     furi_string_free(station_num_candidate);
     furi_string_free(station_JR_header_candidate);
     furi_string_free(file_name);
-    
+
     file_stream_close(stream);
     stream_free(stream);
     furi_record_close(RECORD_STORAGE);
@@ -362,6 +361,9 @@ static NfcCommand suica_poller_callback(NfcGenericEvent event, void* context) {
                         command = NfcCommandStop;
                         break;
                     }
+                    if (rx_resp->SF1 == 0 || rx_resp->SF2 == 0) {
+                        break;
+                    }
                     furi_string_cat_printf(parsed_data, "Log %02X: ", blocks[0]);
                     if(service_code_index == 0) {
                         furi_string_cat_printf(app->suica_file_data, "Log %02X: ", blocks[0]);
@@ -385,10 +387,8 @@ static NfcCommand suica_poller_callback(NfcGenericEvent event, void* context) {
                         suica_add_entry(model, block_data);
                         furi_string_cat_printf(app->suica_file_data, "\n");
                     }
-                } while((rx_resp->SF1 + rx_resp->SF2) == 0 &&
-                        blocks[0] < SUICA_MAX_HISTORY_ENTRIES && error == FelicaErrorNone);
+                } while(blocks[0] < SUICA_MAX_HISTORY_ENTRIES && error == FelicaErrorNone);
                 if(error != FelicaErrorNone) {
-
                     break;
                 }
             }

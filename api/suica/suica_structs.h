@@ -2,7 +2,7 @@
 #include <stdbool.h>
 #include <furi.h>
 
-#define SUICA_MAX_HISTORY_ENTRIES 0x15
+#define SUICA_MAX_HISTORY_ENTRIES 0x14
 typedef enum {
     SuicaHistoryNull,
     SuicaHistoryTopUp,
