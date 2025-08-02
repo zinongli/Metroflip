@@ -1122,7 +1122,6 @@ static void suica_history_draw_callback(Canvas* canvas, void* model) {
             suica_draw_birthday_page_2(canvas, my_model->history, my_model);
             break;
         case SuicaHistoryVendingMachine:
-
             suica_draw_vending_machine_page_2(canvas, my_model->history, my_model);
             break;
         case SuicaHistoryPosAndTaxi:

@@ -12,13 +12,13 @@ static void suica_model_initialize(SuicaHistoryViewModel* model, size_t initial_
 static void suica_add_entry(SuicaHistoryViewModel* model, const uint8_t* entry) {
     if(model->size <= 0) {
         model->travel_history =
-            (uint8_t*)malloc(3 * FELICA_DATA_BLOCK_SIZE); // Each entry is 16 bytes
+            (uint8_t*)malloc(20 * FELICA_DATA_BLOCK_SIZE); // Each entry is 16 bytes
         model->size = 0;
-        model->capacity = 3;
+        model->capacity = 20;
     }
     // Check if resizing is needed
     if(model->size == model->capacity) {
-        size_t new_capacity = model->capacity * 2; // Double the capacity
+        size_t new_capacity = model->capacity + 1; // Increment the capacity, very unlikely
         uint8_t* new_data =
             (uint8_t*)realloc(model->travel_history, new_capacity * FELICA_DATA_BLOCK_SIZE);
         model->travel_history = new_data;
@@ -41,7 +41,7 @@ static void load_suica_data(void* context, FlipperFormat* format) {
     view_allocate_model(
         app->suica_context->view_history, ViewModelTypeLockFree, sizeof(SuicaHistoryViewModel));
     SuicaHistoryViewModel* model = view_get_model(app->suica_context->view_history);
-    suica_model_initialize(model, 3); // Initialize with a capacity of 3 entries
+    suica_model_initialize(model, 20); // Initialize with a capacity of 3 entries
     uint8_t* byte_array_buffer = (uint8_t*)malloc(FELICA_DATA_BLOCK_SIZE);
     FuriString* entry_preamble = furi_string_alloc();
     // Read the travel history entries

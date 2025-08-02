@@ -74,11 +74,11 @@ static void suica_model_free(SuicaHistoryViewModel* model) {
 
 static void suica_add_entry(SuicaHistoryViewModel* model, const uint8_t* entry) {
     if(model->size <= 0) {
-        suica_model_initialize(model, 3);
+        suica_model_initialize(model, 20);
     }
     // Check if resizing is needed
     if(model->size == model->capacity) {
-        size_t new_capacity = model->capacity * 2; // Double the capacity
+        size_t new_capacity = model->capacity + 1; // Increment the capacity, very unlikely
         uint8_t* new_data =
             (uint8_t*)realloc(model->travel_history, new_capacity * FELICA_DATA_BLOCK_SIZE);
         model->travel_history = new_data;
