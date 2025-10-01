@@ -107,4 +107,4 @@ This is a list of metro cards and transit systems that need support or have part
 ---
 
 ### Special Thanks
-Huge thanks to [@equipter](https://github.com/equipter) for helping out the community!
+Huge thanks to [@equipter](https://github.com/equipter) & [@ry4000](https://github.com/ry4000) for helping out the community!
