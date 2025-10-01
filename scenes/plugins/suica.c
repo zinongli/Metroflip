@@ -49,6 +49,8 @@ static void suica_model_initialize(SuicaHistoryViewModel* model, size_t initial_
     model->history.exit_station.jr_header = furi_string_alloc_set("0");
     model->history.entry_line = RailwaysList[SUICA_RAILWAY_NUM];
     model->history.exit_line = RailwaysList[SUICA_RAILWAY_NUM];
+    model->buffer = furi_string_alloc();
+    furi_string_reserve(model->buffer, 64);
 }
 
 static void suica_model_initialize_after_load(SuicaHistoryViewModel* model) {
@@ -61,6 +63,8 @@ static void suica_model_initialize_after_load(SuicaHistoryViewModel* model) {
     model->history.exit_station.jr_header = furi_string_alloc_set("0");
     model->history.entry_line = RailwaysList[SUICA_RAILWAY_NUM];
     model->history.exit_line = RailwaysList[SUICA_RAILWAY_NUM];
+    model->buffer = furi_string_alloc();
+    furi_string_reserve(model->buffer, 64);
 }
 
 static void suica_model_free(SuicaHistoryViewModel* model) {
@@ -69,6 +73,7 @@ static void suica_model_free(SuicaHistoryViewModel* model) {
     furi_string_free(model->history.entry_station.jr_header);
     furi_string_free(model->history.exit_station.name);
     furi_string_free(model->history.exit_station.jr_header);
+    furi_string_free(model->buffer);
     // no need to free RailwaysList — static
 }
 
@@ -102,71 +107,79 @@ static void suica_parse_train_code(
     Storage* storage = furi_record_open(RECORD_STORAGE);
     Stream* stream = file_stream_alloc(storage);
 
-    FuriString* line = furi_string_alloc();
-    FuriString* line_code_str = furi_string_alloc();
-    FuriString* line_and_station_code_str = furi_string_alloc();
-    FuriString* line_candidate = furi_string_alloc_set(SUICA_RAILWAY_UNKNOWN_NAME);
-    FuriString* station_candidate = furi_string_alloc_set(SUICA_RAILWAY_UNKNOWN_NAME);
-    FuriString* station_num_candidate = furi_string_alloc_set("0");
-    FuriString* station_JR_header_candidate = furi_string_alloc_set("0");
-    FuriString* line_copy = furi_string_alloc();
-    FuriString* file_name = furi_string_alloc();
+    // Reuse one dynamic string plus small stack buffers
+    FuriString* line = model->buffer; // was reserved in initialize()
+    furi_string_reset(line);
+    char file_name[64];
+    char line_candidate[48] = SUICA_RAILWAY_UNKNOWN_NAME;
+    char station_candidate[48] = SUICA_RAILWAY_UNKNOWN_NAME;
+    char station_num_candidate[8] = "0";
+    char station_jr_header_candidate[8] = "0";
+    char want_line[8], want_line_station[16];
+    snprintf(want_line, sizeof(want_line), "0x%02X", line_code);
+    snprintf(
+        want_line_station, sizeof(want_line_station), "0x%02X,0x%02X", line_code, station_code);
 
-    furi_string_printf(line_code_str, "0x%02X", line_code);
-    furi_string_printf(line_and_station_code_str, "0x%02X,0x%02X", line_code, station_code);
-
-    size_t line_comma_ind = 0;
-    size_t station_comma_ind = 0;
-    size_t station_num_comma_ind = 0;
-    size_t station_JR_header_comma_ind = 0;
+    snprintf(
+        file_name,
+        sizeof(file_name),
+        "%sArea%01X/line_0x%02X.txt",
+        SUICA_STATION_LIST_PATH,
+        area_code,
+        line_code);
 
     bool station_found = false;
 
-    furi_string_printf(
-        file_name, "%sArea%01X/line_0x%02X.txt", SUICA_STATION_LIST_PATH, area_code, line_code);
-    if(file_stream_open(stream, furi_string_get_cstr(file_name), FSAM_READ, FSOM_OPEN_EXISTING)) {
+    if(file_stream_open(stream, file_name, FSAM_READ, FSOM_OPEN_EXISTING)) {
         while(stream_read_line(stream, line) && !station_found) {
             // file is in csv format: station_group_id,station_id,station_sub_id,station_name
-            // search for the station
-            furi_string_replace_all(line, "\r", "");
-            furi_string_replace_all(line, "\n", "");
-            furi_string_set(line_copy, line); // 0xD5,0x02,Keikyu Main,Shinagawa,1,0
-
-            if(furi_string_start_with(line, line_code_str)) {
-                // set line name here
-                furi_string_right(line_copy, 10); // Keikyu Main,Shinagawa,1,0
-                furi_string_set(line_candidate, line_copy);
-                line_comma_ind = furi_string_search_char(line_candidate, ',', 0);
-                furi_string_left(line_candidate, line_comma_ind); // Keikyu Main
-                // we cut the line and station code in the line line copy
-                // and we leave only the line name for the line candidate
-                if(furi_string_start_with(line, line_and_station_code_str)) {
-                    furi_string_set(station_candidate, line_copy); // Keikyu Main,Shinagawa,1,0
-                    furi_string_right(station_candidate, line_comma_ind + 1);
-                    station_comma_ind =
-                        furi_string_search_char(station_candidate, ',', 0); // Shinagawa,1,0
-                    furi_string_left(station_candidate, station_comma_ind); //  Shinagawa
+            const char* s = furi_string_get_cstr(line);
+            // trim CR/LF
+            while(*s == '\r' || *s == '\n')
+                ++s;
+            if(strncmp(s, want_line, strlen(want_line)) == 0) {
+                // s = "0xLL,0xSS,LineName,StationName,Num,JR"
+                // skip "0xLL,0xSS,"
+                const char* p = strchr(s, ',');
+                if(!p) continue;
+                p = strchr(p + 1, ',');
+                if(!p) continue;
+                const char* line_start = p + 1;
+                const char* comma1 = strchr(line_start, ',');
+                if(!comma1) continue;
+                size_t ln = (size_t)(comma1 - line_start);
+                if(ln >= sizeof(line_candidate)) ln = sizeof(line_candidate) - 1;
+                memcpy(line_candidate, line_start, ln);
+                line_candidate[ln] = '\0';
+                if(strncmp(s, want_line_station, strlen(want_line_station)) == 0) {
+                    const char* st_start = comma1 + 1;
+                    const char* comma2 = strchr(st_start, ',');
+                    if(!comma2) continue;
+                    size_t sn = (size_t)(comma2 - st_start);
+                    if(sn >= sizeof(station_candidate)) sn = sizeof(station_candidate) - 1;
+                    memcpy(station_candidate, st_start, sn);
+                    station_candidate[sn] = '\0';
+                    const char* num_start = comma2 + 1;
+                    const char* comma3 = strchr(num_start, ',');
+                    if(!comma3) continue;
+                    size_t nn = (size_t)(comma3 - num_start);
+                    if(nn >= sizeof(station_num_candidate)) nn = sizeof(station_num_candidate) - 1;
+                    memcpy(station_num_candidate, num_start, nn);
+                    station_num_candidate[nn] = '\0';
+                    const char* jr_start = comma3 + 1;
+                    size_t jn = strcspn(jr_start, ",\r\n");
+                    if(jn >= sizeof(station_jr_header_candidate))
+                        jn = sizeof(station_jr_header_candidate) - 1;
+                    memcpy(station_jr_header_candidate, jr_start, jn);
+                    station_jr_header_candidate[jn] = '\0';
                     station_found = true;
                     break;
                 }
             }
         }
     } else {
-        FURI_LOG_E(
-            TAG, "Failed to open stations list text file: %s", furi_string_get_cstr(file_name));
+        FURI_LOG_E(TAG, "Failed to open stations: %s", file_name);
     }
-
-    furi_string_set(station_num_candidate, line_copy); // Keikyu Main,Shinagawa,1,0
-    furi_string_right(station_num_candidate, line_comma_ind + station_comma_ind + 2); // 1,0
-    station_num_comma_ind = furi_string_search_char(station_num_candidate, ',', 0);
-    furi_string_left(station_num_candidate, station_num_comma_ind); // 1
-
-    furi_string_set(station_JR_header_candidate, line_copy); // Keikyu Main,Shinagawa,1,0
-    furi_string_right(
-        station_JR_header_candidate,
-        line_comma_ind + station_comma_ind + station_num_comma_ind + 3); // 0
-    station_JR_header_comma_ind = furi_string_search_char(station_JR_header_candidate, ',', 0);
-    furi_string_left(station_JR_header_candidate, station_JR_header_comma_ind); // 0
 
     switch(ride_type) {
     case SuicaTrainRideEntry:
@@ -174,13 +187,12 @@ static void suica_parse_train_code(
         furi_string_set(model->history.entry_station.jr_header, "0");
         model->history.entry_line = RailwaysList[SUICA_RAILWAY_NUM];
         for(size_t i = 0; i < SUICA_RAILWAY_NUM; i++) {
-            if(furi_string_equal_str(line_candidate, RailwaysList[i].long_name)) {
+            if(strcmp(line_candidate, RailwaysList[i].long_name) == 0) {
                 model->history.entry_line = RailwaysList[i];
                 furi_string_set(model->history.entry_station.name, station_candidate);
-                model->history.entry_station.station_number =
-                    atoi(furi_string_get_cstr(station_num_candidate));
+                model->history.entry_station.station_number = atoi(station_num_candidate);
                 furi_string_set(
-                    model->history.entry_station.jr_header, station_JR_header_candidate);
+                    model->history.entry_station.jr_header, station_jr_header_candidate);
                 break;
             }
         }
@@ -190,13 +202,11 @@ static void suica_parse_train_code(
         furi_string_set(model->history.exit_station.jr_header, "0");
         model->history.exit_line = RailwaysList[SUICA_RAILWAY_NUM];
         for(size_t i = 0; i < SUICA_RAILWAY_NUM; i++) {
-            if(furi_string_equal_str(line_candidate, RailwaysList[i].long_name)) {
+            if(strcmp(line_candidate, RailwaysList[i].long_name) == 0) {
                 model->history.exit_line = RailwaysList[i];
                 furi_string_set(model->history.exit_station.name, station_candidate);
-                model->history.exit_station.station_number =
-                    atoi(furi_string_get_cstr(station_num_candidate));
-                furi_string_set(
-                    model->history.exit_station.jr_header, station_JR_header_candidate);
+                model->history.exit_station.station_number = atoi(station_num_candidate);
+                furi_string_set(model->history.exit_station.jr_header, station_jr_header_candidate);
                 break;
             }
         }
@@ -205,16 +215,6 @@ static void suica_parse_train_code(
         UNUSED(model);
         break;
     }
-
-    furi_string_free(line);
-    furi_string_free(line_copy);
-    furi_string_free(line_code_str);
-    furi_string_free(line_and_station_code_str);
-    furi_string_free(line_candidate);
-    furi_string_free(station_candidate);
-    furi_string_free(station_num_candidate);
-    furi_string_free(station_JR_header_candidate);
-    furi_string_free(file_name);
 
     file_stream_close(stream);
     stream_free(stream);
@@ -361,7 +361,7 @@ static NfcCommand suica_poller_callback(NfcGenericEvent event, void* context) {
                         command = NfcCommandStop;
                         break;
                     }
-                    if (rx_resp->SF1 == 0 || rx_resp->SF2 == 0) {
+                    if(rx_resp->SF1 == 0 || rx_resp->SF2 == 0) {
                         break;
                     }
                     furi_string_cat_printf(parsed_data, "Log %02X: ", blocks[0]);
