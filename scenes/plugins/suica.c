@@ -31,7 +31,7 @@
 
 #define TAG "Metroflip:Scene:Suica"
 
-static const NotificationSequence octopus_success_sequence = {
+static const NotificationSequence octopus_read_success_sequence = {
     &message_display_backlight_on,
     &message_green_255,
     &message_vibro_on,
@@ -39,6 +39,43 @@ static const NotificationSequence octopus_success_sequence = {
     &message_delay_250,
     &message_sound_off,
     &message_vibro_off,
+    NULL,
+};
+
+static const NotificationSequence suica_read_success_sequence = {
+    &message_display_backlight_on,
+    &message_green_255,
+    &message_vibro_on,
+    &message_note_e6,
+    &message_delay_25,
+    &message_sound_off,
+    &message_delay_25,
+    &message_note_e6,
+    &message_delay_100,
+    &message_sound_off,
+    &message_vibro_off,
+    NULL,
+};
+
+static const NotificationSequence octopus_load_success_sequence = {
+    &message_display_backlight_on,
+    &message_green_255,
+    &message_note_e5,
+    &message_delay_250,
+    &message_sound_off,
+    NULL,
+};
+
+static const NotificationSequence suica_load_success_sequence = {
+    &message_display_backlight_on,
+    &message_green_255,
+    &message_note_e6,
+    &message_delay_25,
+    &message_sound_off,
+    &message_delay_25,
+    &message_note_e6,
+    &message_delay_100,
+    &message_sound_off,
     NULL,
 };
 
@@ -431,13 +468,12 @@ static NfcCommand suica_poller_callback(NfcGenericEvent event, void* context) {
 
         do {
             if(suica_found) {
-                furi_string_printf(parsed_data, "\e#Japan Transit IC\n");
-                notification_message(app->notifications, &sequence_success);
+                notification_message(app->notifications, &suica_read_success_sequence);
                 break;
             }
             bool octopus_found = suica_help_with_octopus(felica_data, parsed_data);
             if(octopus_found) {
-                notification_message(app->notifications, &octopus_success_sequence);
+                notification_message(app->notifications, &octopus_read_success_sequence);
                 break;
             }
 
@@ -581,15 +617,19 @@ static void suica_on_enter(Metroflip* app) {
             do {
                 if(is_stock_nfc_file) { // loading from stock NFC file (API 87.0+)
                     suica_found = suica_model_pack_data(model, felica_data, parsed_data);
-                    if(suica_found) break;
+                    if(suica_found) {
+                        notification_message(app->notifications, &suica_load_success_sequence);
+                        break;
+                    }
 
                     bool octopus_found = suica_help_with_octopus(felica_data, parsed_data);
                     if(octopus_found) {
-                        notification_message(app->notifications, &octopus_success_sequence);
+                        notification_message(app->notifications, &octopus_load_success_sequence);
                         break;
                     }
                 } else { // loading from legacy saved file (pre API 87.0)
                     suica_found = true;
+                    notification_message(app->notifications, &suica_load_success_sequence);
                     furi_string_printf(parsed_data, "\e#Japan Transit IC\n\n");
                     for(uint8_t i = 0; i < model->size; i++) {
                         furi_string_cat_printf(parsed_data, "Log %02X: ", i);
