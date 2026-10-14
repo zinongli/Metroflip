@@ -1270,6 +1270,9 @@ static void suica_history_draw_callback(Canvas* canvas, void* model) {
     case SuicaHistoryTopUp:
         canvas_draw_icon(canvas, 20, 0, &I_Suica_TopUpIcon);
         break;
+    case SuicaHistoryBus:
+        canvas_draw_icon(canvas, 18, 0, &I_Suica_BusIcon);
+        break;
     default:
         canvas_draw_icon(canvas, 22, 0, &I_Suica_UnknownIcon);
         break;

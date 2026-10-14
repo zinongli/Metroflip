@@ -16,6 +16,8 @@ static const Railway RailwaysList[] = {
     {0x01, {0, 0}, "East Tokaido", 21, SuicaJREast, "JT", 0},
     {0x02, {0, 0}, "Keihin Tohoku", 22, SuicaJREast, "JK", 0},
     {0x02, {0, 0}, "Utsunomiya", 33, SuicaJREast, "JU", 0},
+    {0x02, {0, 0}, "Tohoku Main", 81, SuicaJRPageOneOnly, "", 0},
+    {0x02, {0, 0}, "Aoimori", 26, SuicaAoimoriRailwayPageOneOnly, "", 0},
     {0x02, {0, 0}, "Mobile Suica", 1, SuicaMobile, "", 0},
     {0x03, {0, 0}, "Chuo Rapid", 32, SuicaJREast, "JC", 0},
     {0x03, {0, 0}, "Chuo Main", 29, SuicaJREast, "CO", 0},
@@ -24,6 +26,8 @@ static const Railway RailwaysList[] = {
     {0x05, {0, 0}, "Joban Local", 14, SuicaJREast, "JL", 0},
     {0x1D, {0, 0}, "Negishi", 10, SuicaJREast, "JK", 0},
     {0x25, {0, 0}, "Yamanote", 16, SuicaJREast, "JY", 0},
+    {0x26, {0, 0}, "Utsunomiya", 1, SuicaJREast, "JU", 0},
+    {0x3E, {0, 0}, "Tohoku Main", 2, SuicaJRPageOneOnly, "", 0},
 
     // Central Japan Railway Company SuicaJRCentral
     {0x01, {0, 0}, "Central Tokaido", 83, SuicaJRCentral, "CA", 0},
