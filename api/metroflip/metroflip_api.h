@@ -145,6 +145,7 @@ extern const Icon I_DolphinMafia_119x62;
 
 
 
+extern const Icon I_Suica_AoimoriLogo;
 extern const Icon I_Suica_AsakusaA;
 extern const Icon I_Suica_BigStar;
 extern const Icon I_Suica_BusIcon;

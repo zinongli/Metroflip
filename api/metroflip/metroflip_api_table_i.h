@@ -89,6 +89,7 @@ static constexpr auto metroflip_api_table = sort(create_array_t<sym_entry>(
     API_VARIABLE(I_icon, Icon),
 
     // Suica
+    API_VARIABLE(I_Suica_AoimoriLogo, Icon),
     API_VARIABLE(I_Suica_AsakusaA, Icon),
     API_VARIABLE(I_Suica_BigStar, Icon),
     API_VARIABLE(I_Suica_BusIcon, Icon),
