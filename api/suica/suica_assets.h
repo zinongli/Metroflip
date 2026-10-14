@@ -61,6 +61,8 @@ static const Railway RailwaysList[] = {
     {0x5C, {0, 0}, "Sakurajima", 4, SuicaJRWest, "P", 0},
     {0x5F, {0, 0}, "Yamatoji", 22, SuicaJRWest, "Q", 0},
     {0x60, {0, 0}, "Nara", 22, SuicaJRWest, "D", 0},
+    {0x60, {0, 0}, "Sakurai", 12, SuicaJRPageOneOnly, "", 0},
+    {0x60, {0, 0}, "Wakayama", 5, SuicaJRPageOneOnly, "", 0},
     {0x63, {0, 0}, "Hanwa", 34, SuicaJRWest, "R", 0},
     {0x6A, {0, 0}, "Osaka Higashi", 5, SuicaJRWest, "F", 0},
     {0x6D, {0, 0}, "Kosai", 19, SuicaJRWest, "B", 0},

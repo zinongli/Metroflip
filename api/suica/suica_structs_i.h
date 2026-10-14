@@ -10,6 +10,7 @@ typedef enum {
     SuicaJRCentral,
     SuicaJRWest,
     SuicaJRKyushu,
+    SuicaJRPageOneOnly,
     SuicaTokyu,
     SuicaMobile,
     SuicaTWR,

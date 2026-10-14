@@ -133,6 +133,7 @@ static void suica_draw_train_page_1(
     case SuicaJRCentral:
     case SuicaJRWest:
     case SuicaJRKyushu:
+    case SuicaJRPageOneOnly:
         canvas_draw_icon(canvas, 1, 12, &I_Suica_JRLogo);
         break;
     case SuicaMobile:
@@ -189,6 +190,7 @@ static void suica_draw_train_page_1(
         case SuicaJRCentral:
         case SuicaJRWest:
         case SuicaJRKyushu:
+        case SuicaJRPageOneOnly:
             canvas_draw_icon(canvas, 1, 40, &I_Suica_JRLogo);
             break;
         case SuicaTokyoMetro:
@@ -410,6 +412,7 @@ static void
         canvas_draw_str(canvas, 14, 51, furi_string_get_cstr(buffer));
         canvas_set_color(canvas, ColorBlack);
         break;
+    case SuicaJRPageOneOnly:
     case SuicaRailwayTypeMax:
         canvas_draw_circle(canvas, 24, 38, 24);
         canvas_draw_circle(canvas, 24, 38, 19);
@@ -563,6 +566,7 @@ static void
         canvas_draw_str(canvas, 92, 51, furi_string_get_cstr(buffer));
         canvas_set_color(canvas, ColorBlack);
         break;
+    case SuicaJRPageOneOnly:
     case SuicaRailwayTypeMax:
         canvas_draw_circle(canvas, 103, 38, 24);
         canvas_draw_circle(canvas, 103, 38, 19);
