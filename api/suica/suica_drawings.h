@@ -160,7 +160,7 @@ static void suica_draw_train_page_1(
     case SuicaOsakaMetro:
         canvas_draw_icon(canvas, 0, 11, &I_Suica_OsakaMetroLogo);
         break;
-    case SuicaAoimori:
+    case SuicaAoimoriPageOneOnly:
         canvas_draw_icon(canvas, 3, 11, &I_Suica_AoimoriLogo);
         break;
     case SuicaRailwayTypeMax:
@@ -217,7 +217,7 @@ static void suica_draw_train_page_1(
         case SuicaOsakaMetro:
             canvas_draw_icon(canvas, 0, 39, &I_Suica_OsakaMetroLogo);
             break;
-        case SuicaAoimori:
+        case SuicaAoimoriPageOneOnly:
             canvas_draw_icon(canvas, 3, 39, &I_Suica_AoimoriLogo);
             break;
         case SuicaRailwayTypeMax:
@@ -332,17 +332,35 @@ static void
         break;
     case SuicaJRCentral:
         canvas_set_color(canvas, ColorBlack);
-        canvas_draw_box(canvas, 8, 23, 34, 33);
+        canvas_draw_box(canvas, 8, 22, 34, 34);
         canvas_set_color(canvas, ColorWhite);
         canvas_set_font(canvas, FontPrimary);
         canvas_draw_str_aligned(
             canvas,
             24 + history.entry_line.logo_offset[0],
-            33 + history.entry_line.logo_offset[1],
+            32 + history.entry_line.logo_offset[1],
             AlignCenter,
             AlignBottom,
             history.entry_line.short_name);
         canvas_draw_box(canvas, 11, 35, 28, 18);
+        canvas_set_color(canvas, ColorBlack);
+        canvas_set_font(canvas, FontBigNumbers);
+        furi_string_printf(buffer, "%02d", history.entry_station.station_number);
+        canvas_draw_str(canvas, 14, 51, furi_string_get_cstr(buffer));
+        break;
+    case SuicaJRKyushu:
+        canvas_set_color(canvas, ColorBlack);
+        canvas_draw_rbox(canvas, 8, 22, 34, 34, 3);
+        canvas_set_color(canvas, ColorWhite);
+        canvas_set_font(canvas, FontPrimary);
+        canvas_draw_str_aligned(
+            canvas,
+            24 + history.entry_line.logo_offset[0],
+            32 + history.entry_line.logo_offset[1],
+            AlignCenter,
+            AlignBottom,
+            history.entry_line.short_name);
+        canvas_draw_rbox(canvas, 10, 34, 30, 20, 2);
         canvas_set_color(canvas, ColorBlack);
         canvas_set_font(canvas, FontBigNumbers);
         furi_string_printf(buffer, "%02d", history.entry_station.station_number);
@@ -419,6 +437,9 @@ static void
         canvas_set_color(canvas, ColorBlack);
         break;
     case SuicaJRPageOneOnly:
+    case SuicaAoimoriPageOneOnly:
+    case SuicaShinanoPageOneOnly:
+    case SuicaETRPageOneOnly:
     case SuicaRailwayTypeMax:
         canvas_draw_circle(canvas, 24, 38, 24);
         canvas_draw_circle(canvas, 24, 38, 19);
@@ -486,7 +507,25 @@ static void
         break;
     case SuicaJRCentral:
         canvas_set_color(canvas, ColorBlack);
-        canvas_draw_box(canvas, 86, 23, 34, 33);
+        canvas_draw_box(canvas, 86, 22, 34, 34);
+        canvas_set_color(canvas, ColorWhite);
+        canvas_set_font(canvas, FontPrimary);
+        canvas_draw_str_aligned(
+            canvas,
+            102 + history.exit_line.logo_offset[0],
+            32 + history.exit_line.logo_offset[1],
+            AlignCenter,
+            AlignBottom,
+            history.exit_line.short_name);
+        canvas_draw_box(canvas, 89, 35, 28, 18);
+        canvas_set_color(canvas, ColorBlack);
+        canvas_set_font(canvas, FontBigNumbers);
+        furi_string_printf(buffer, "%02d", history.exit_station.station_number);
+        canvas_draw_str(canvas, 92, 51, furi_string_get_cstr(buffer));
+        break;
+    case SuicaJRKyushu:
+        canvas_set_color(canvas, ColorBlack);
+        canvas_draw_rbox(canvas, 86, 22, 34, 34, 3);
         canvas_set_color(canvas, ColorWhite);
         canvas_set_font(canvas, FontPrimary);
         canvas_draw_str_aligned(
@@ -496,7 +535,7 @@ static void
             AlignCenter,
             AlignBottom,
             history.exit_line.short_name);
-        canvas_draw_box(canvas, 89, 35, 28, 18);
+        canvas_draw_rbox(canvas, 86, 22, 34, 34, 3);
         canvas_set_color(canvas, ColorBlack);
         canvas_set_font(canvas, FontBigNumbers);
         furi_string_printf(buffer, "%02d", history.exit_station.station_number);
@@ -573,6 +612,9 @@ static void
         canvas_set_color(canvas, ColorBlack);
         break;
     case SuicaJRPageOneOnly:
+    case SuicaAoimoriPageOneOnly:
+    case SuicaShinanoPageOneOnly:
+    case SuicaETRPageOneOnly:
     case SuicaRailwayTypeMax:
         canvas_draw_circle(canvas, 103, 38, 24);
         canvas_draw_circle(canvas, 103, 38, 19);

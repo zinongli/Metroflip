@@ -4,10 +4,16 @@
 
 #include "suica_structs_i.h"
 
-#define SUICA_RAILWAY_NUM 86 // Don't count Unknown
+#define SUICA_RAILWAY_NUM 101 // Don't count Unknown
 
 #define SUICA_RAILWAY_UNKNOWN_NAME "Unknown"
 // Railway
+
+// Railway[i].station_num is deprecated because we have same line using
+// multiple line code, thus there has to be two instances of the same
+// line with different line codes, each having different station numbers.
+// Same is for line codes. They are only for easy human reading, not used
+// in actual parser logic.
 
 static const Railway RailwaysList[] = {
     // ----------------Area Code = 0b00----------------
@@ -17,21 +23,32 @@ static const Railway RailwaysList[] = {
     {0x02, {0, 0}, "Keihin Tohoku", 22, SuicaJREast, "JK", 0},
     {0x02, {0, 0}, "Utsunomiya", 33, SuicaJREast, "JU", 0},
     {0x02, {0, 0}, "Tohoku Main", 81, SuicaJRPageOneOnly, "", 0},
-    {0x02, {0, 0}, "Aoimori", 26, SuicaAoimoriRailwayPageOneOnly, "", 0},
+    {0x02, {0, 0}, "Aoimori", 26, SuicaAoimoriPageOneOnly, "", 0},
     {0x02, {0, 0}, "Mobile Suica", 1, SuicaMobile, "", 0},
     {0x03, {0, 0}, "Chuo Rapid", 32, SuicaJREast, "JC", 0},
     {0x03, {0, 0}, "Chuo Main", 29, SuicaJREast, "CO", 0},
     {0x03, {0, 0}, "Chuo-Sobu", 18, SuicaJREast, "JB", 0},
+    {0x04, {0, 0}, "Takasaki", 20, SuicaJRPageOneOnly, "", 0},
+
+    {0x04, {0, 0}, "Shinetsu Main", 5, SuicaJREast, "SE", 0},
+    {0x04, {0, 0}, "Shin'etsu Main", 51, SuicaJRPageOneOnly, "", 0},
+    // Have to use different names because page 2 drawing logic is different
+
+    {0x04, {0, 0}, "Kita-Shinano", 7, SuicaShinanoPageOneOnly, "", 0},
+    {0x04, {0, 0}, "ETR", 8, SuicaETRPageOneOnly, "", 0},
     {0x05, {0, 0}, "Joban", 71, SuicaJREast, "JJ", 0},
     {0x05, {0, 0}, "Joban Local", 14, SuicaJREast, "JL", 0},
     {0x1D, {0, 0}, "Negishi", 10, SuicaJREast, "JK", 0},
     {0x25, {0, 0}, "Yamanote", 16, SuicaJREast, "JY", 0},
     {0x26, {0, 0}, "Utsunomiya", 1, SuicaJREast, "JU", 0},
+    {0x35, {0, 0}, "Saikyo", 9, SuicaJREast, "JA", 0},
     {0x3E, {0, 0}, "Tohoku Main", 2, SuicaJRPageOneOnly, "", 0},
+    {0x52, {0, 0}, "Shinonoi", 4, SuicaJREast, "SN", 0},
 
     // Central Japan Railway Company SuicaJRCentral
     {0x01, {0, 0}, "Central Tokaido", 83, SuicaJRCentral, "CA", 0},
     {0x03, {0, 0}, "Central Chuo", 37, SuicaJRCentral, "CF", 0},
+    {0x35, {0, 0}, "Chuo Tatsuno", 4, SuicaJRPageOneOnly, "", 0},
     {0x3D, {1, 0}, "Gotemba", 18, SuicaJRCentral, "CB", 0},
     {0x3E, {0, 0}, "Minobu", 12, SuicaJRCentral, "CC", 0},
     {0x43, {1, 0}, "Taketoyo", 10, SuicaJRCentral, "CD", 0},
@@ -72,6 +89,9 @@ static const Railway RailwaysList[] = {
     {0x6D, {0, 0}, "Kosai", 19, SuicaJRWest, "B", 0},
     {0x70, {-1, 0}, "Kansai Airport", 2, SuicaJRWest, "S", 0},
     {0x73, {0, 0}, "Ako", 12, SuicaJRWest, "N", 0},
+
+    // JR Kyushu
+    {0x52, {0, 0}, "Misumi", 8, SuicaJRPageOneOnly, "", 0},
 
     // Tokyo Waterfront Area Rapid Transit Company SuicaTWR
     {0x82, {0, 0}, "Rinkai", 8, SuicaTWR, "R", &I_Suica_RinkaiR},
