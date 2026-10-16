@@ -4,7 +4,7 @@
 
 #include "suica_structs_i.h"
 
-#define SUICA_RAILWAY_NUM 101 // Don't count Unknown
+#define SUICA_RAILWAY_NUM 103 // Don't count Unknown
 
 #define SUICA_RAILWAY_UNKNOWN_NAME "Unknown"
 // Railway
@@ -35,7 +35,7 @@ static const Railway RailwaysList[] = {
     // Have to use different names because page 2 drawing logic is different
 
     {0x04, {0, 0}, "Kita-Shinano", 7, SuicaShinanoPageOneOnly, "", 0},
-    {0x04, {0, 0}, "ETR", 8, SuicaETRPageOneOnly, "", 0},
+    {0x04, {0, 0}, "Myoko Haneuma", 8, SuicaETRPageOneOnly, "", 0},
     {0x05, {0, 0}, "Joban", 71, SuicaJREast, "JJ", 0},
     {0x05, {0, 0}, "Joban Local", 14, SuicaJREast, "JL", 0},
     {0x1D, {0, 0}, "Negishi", 10, SuicaJREast, "JK", 0},
@@ -48,7 +48,7 @@ static const Railway RailwaysList[] = {
     // Central Japan Railway Company SuicaJRCentral
     {0x01, {0, 0}, "Central Tokaido", 83, SuicaJRCentral, "CA", 0},
     {0x03, {0, 0}, "Central Chuo", 37, SuicaJRCentral, "CF", 0},
-    {0x35, {0, 0}, "Chuo Tatsuno", 4, SuicaJRPageOneOnly, "", 0},
+    {0x35, {0, 0}, "Chuo OY-SJ", 4, SuicaJRPageOneOnly, "", 0},
     {0x3D, {1, 0}, "Gotemba", 18, SuicaJRCentral, "CB", 0},
     {0x3E, {0, 0}, "Minobu", 12, SuicaJRCentral, "CC", 0},
     {0x43, {1, 0}, "Taketoyo", 10, SuicaJRCentral, "CD", 0},
@@ -91,6 +91,10 @@ static const Railway RailwaysList[] = {
     {0x73, {0, 0}, "Ako", 12, SuicaJRWest, "N", 0},
 
     // JR Kyushu
+    // Because of Kagoshima, station.jr_header will be used in place of 
+    // line.short_name. This is reflected in drawing logic.
+    {0x06, {0, 0}, "Kagoshima Main", 66, SuicaJRKyushu, "", 0},
+    {0x06, {0, 0}, "Kagoshima", 19, SuicaJRPageOneOnly, "", 0},
     {0x52, {0, 0}, "Misumi", 8, SuicaJRPageOneOnly, "", 0},
 
     // Tokyo Waterfront Area Rapid Transit Company SuicaTWR

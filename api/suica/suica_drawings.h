@@ -338,7 +338,7 @@ static void
         canvas_draw_str_aligned(
             canvas,
             24 + history.entry_line.logo_offset[0],
-            32 + history.entry_line.logo_offset[1],
+            33 + history.entry_line.logo_offset[1],
             AlignCenter,
             AlignBottom,
             history.entry_line.short_name);
@@ -355,11 +355,11 @@ static void
         canvas_set_font(canvas, FontPrimary);
         canvas_draw_str_aligned(
             canvas,
-            24 + history.entry_line.logo_offset[0],
+            25 + history.entry_line.logo_offset[0],
             32 + history.entry_line.logo_offset[1],
             AlignCenter,
             AlignBottom,
-            history.entry_line.short_name);
+            history.entry_station.jr_header);
         canvas_draw_rbox(canvas, 10, 34, 30, 20, 2);
         canvas_set_color(canvas, ColorBlack);
         canvas_set_font(canvas, FontBigNumbers);
@@ -513,7 +513,7 @@ static void
         canvas_draw_str_aligned(
             canvas,
             102 + history.exit_line.logo_offset[0],
-            32 + history.exit_line.logo_offset[1],
+            33 + history.exit_line.logo_offset[1],
             AlignCenter,
             AlignBottom,
             history.exit_line.short_name);
@@ -530,11 +530,11 @@ static void
         canvas_set_font(canvas, FontPrimary);
         canvas_draw_str_aligned(
             canvas,
-            102 + history.exit_line.logo_offset[0],
+            103 + history.exit_line.logo_offset[0],
             33 + history.exit_line.logo_offset[1],
             AlignCenter,
             AlignBottom,
-            history.exit_line.short_name);
+            history.exit_station.jr_header);
         canvas_draw_rbox(canvas, 86, 22, 34, 34, 3);
         canvas_set_color(canvas, ColorBlack);
         canvas_set_font(canvas, FontBigNumbers);

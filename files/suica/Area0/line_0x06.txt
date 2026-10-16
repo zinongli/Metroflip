@@ -1,0 +1,86 @@
+0x06,0x01,Kagoshima Main,Monjiko,31,JA
+0x06,0x02,Kagoshima Main,Komorie,30,JA
+0x06,0x03,Kagoshima Main,Moji,29,JA
+0x06,0x04,Kagoshima Main,Kitakyushu Freight,0,JA
+0x06,0x05,Kagoshima Main,Higashi-Kokura Freight,0,JA
+0x06,0x06,Kagoshima Main,Kokura,28,JA
+0x06,0x07,Kagoshima Main,Nishi-Kokura,27,JA
+0x06,0x08,Kagoshima Main,Hama-Kokura Freight,0,JA
+0x06,0x09,Kagoshima Main,Kyushukodai-mae,26,JA
+0x06,0x0A,Kagoshima Main,Tobata,25,JA
+0x06,0x0B,Kagoshima Main,Edamitsu,24,JA
+0x06,0x0C,Kagoshima Main,Space World,23,JA
+0x06,0x0D,Kagoshima Main,Yahata,22,JA
+0x06,0x0E,Kagoshima Main,Kurosaki,21,JA
+0x06,0x0F,Kagoshima Main,Higashi-Orio Yard,0,JA
+0x06,0x10,Kagoshima Main,Jinnoharu,20,JA
+0x06,0x11,Kagoshima Main,Orio,19,JA
+0x06,0x12,Kagoshima Main,Mizumaki,18,JA
+0x06,0x13,Kagoshima Main,Ongagawa,17,JA
+0x06,0x15,Kagoshima Main,Ebitsu,16,JA
+0x06,0x17,Kagoshima Main,Kyoikudai-mae,15,JA
+0x06,0x18,Kagoshima Main,Akama,14,JA
+0x06,0x19,Kagoshima Main,Togo,13,JA
+0x06,0x1A,Kagoshima Main,Higashi-Fukuma,12,JA
+0x06,0x1C,Kagoshima Main,Fukuma,11,JA
+0x06,0x1D,Kagoshima Main,Chidori,10,JA
+0x06,0x1E,Kagoshima Main,Koga,9,JA
+0x06,0x1F,Kagoshima Main,Shishibu,8,JA
+0x06,0x20,Kagoshima Main,Shingu-Chuo,7,JA
+0x06,0x21,Kagoshima Main,Fukkodai-mae,6,JA
+0x06,0x22,Kagoshima Main,Kyusandai-mae,5,JA
+0x06,0x23,Kagoshima Main,Kashii,4,JA
+0x06,0x24,Kagoshima Main,Chihaya,3,JA
+0x06,0x25,Kagoshima Main,Hakozaki,2,JA
+0x06,0x26,Kagoshima Main,Yoshizuka,1,JA
+0x06,0x27,Kagoshima Main,Hakata,0,JA
+0x06,0x28,Kagoshima Main,Takeshita,1,JB
+0x06,0x29,Kagoshima Main,Sasabaru,2,JB
+0x06,0x2A,Kagoshima Main,Minami-Fukuoka,3,JB
+0x06,0x2B,Kagoshima Main,Kasuga,4,JB
+0x06,0x2C,Kagoshima Main,Onojo,5,JB
+0x06,0x2D,Kagoshima Main,Mizuki,6,JB
+0x06,0x2E,Kagoshima Main,Dazaifu Signal Yard,0,JB
+0x06,0x2F,Kagoshima Main,Tofurominami,7,JB
+0x06,0x30,Kagoshima Main,Futsukaichi,8,JB
+0x06,0x31,Kagoshima Main,Tenpaizan,9,JB
+0x06,0x32,Kagoshima Main,Haruda,10,JB
+0x06,0x33,Kagoshima Main,Keyakidai,11,JB
+0x06,0x34,Kagoshima Main,Kiyama,12,JB
+0x06,0x35,Kagoshima Main,Yayoigaoka,13,JB
+0x06,0x36,Kagoshima Main,Tashiro,14,JB
+0x06,0x37,Kagoshima Main,Tosu Freight,0,JB
+0x06,0x38,Kagoshima Main,Tosu,15,JB
+0x06,0x39,Kagoshima Main,Hizen-Asahi,16,JB
+0x06,0x3B,Kagoshima Main,Kurume,17,JB
+0x06,0x3D,Kagoshima Main,Araki,18,JB
+0x06,0x3F,Kagoshima Main,Nishimuta,19,JB
+0x06,0x41,Kagoshima Main,Hainuzuka,20,JB
+0x06,0x43,Kagoshima Main,Chikugo-Funagoya,21,JB
+0x06,0x45,Kagoshima Main,Setaka,22,JB
+0x06,0x47,Kagoshima Main,Minami-Setaka,23,JB
+0x06,0x49,Kagoshima Main,Wataze,24,JB
+0x06,0x4A,Kagoshima Main,Yoshino,25,JB
+0x06,0x4B,Kagoshima Main,Ginsui,26,JB
+0x06,0x4D,Kagoshima Main,Omuta,27,JB
+0x06,0x4F,Kagoshima Main,Arao,28,JB
+
+0x06,0x55,Kagoshima,Onoshimo,0,0
+0x06,0x57,Kagoshima,Tamana,0,0
+0x06,0x62,Kagoshima,Sojodaigakumae,0,0
+0x06,0x63,Kagoshima,Kamikumamoto,0,0
+0x06,0x65,Kagoshima,Kumamoto,0,0
+0x06,0x67,Kagoshima,Kawajiri,0,0
+0x06,0x68,Kagoshima,Uto,0,0
+0x06,0x6C,Kagoshima,Ogawa,0,0
+0x06,0x71,Kagoshima,Shinyatsushiro,0,0
+0x06,0x72,Kagoshima,Yatsushiro,0,0
+0x06,0x91,Kagoshima,Sendai,0,0
+0x06,0x92,Kagoshima,Kumanojo,0,0
+0x06,0x96,Kagoshima,Kushikino,0,0
+0x06,0x9D,Kagoshima,Ijuin,0,0
+0x06,0x9F,Kagoshima,Satsumamatsumoto,0,0
+0x06,0xA0,Kagoshima,Kamiijuin,0,0
+0x06,0xA1,Kagoshima,Hiroki,0,0
+0x06,0xA2,Kagoshima,KagoshimaChuo,0,0
+0x06,0xA4,Kagoshima,Kagoshima,0,0
